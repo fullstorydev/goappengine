@@ -268,7 +268,7 @@ func buildApp(app *App) error {
 		if err != nil {
 			return fmt.Errorf("failed creating main: %v", err)
 		}
-		mainFile := filepath.Join(*workDir, "_go_main.go")
+		mainFile := filepath.Join(*workDir, *binaryName+".go")
 		defer os.Remove(mainFile)
 		if err := ioutil.WriteFile(mainFile, []byte(mainStr), 0640); err != nil {
 			return fmt.Errorf("failed writing main: %v", err)
@@ -476,16 +476,20 @@ func (c *compiler) compile(pkg *Package) error {
 		// and this avoids triggering a circular import.
 		if len(pkg.Files) > 0 && len(c.extra) > 0 && !pkg.Dupe {
 			// synthetic extra imports
-			extraImportsStr, err := MakeExtraImports(pkg.Files[0].PackageName, c.extra)
+			pkgName := pkg.Files[0].PackageName
+			extraImportsStr, err := MakeExtraImports(pkgName, c.extra)
 			if err != nil {
 				return fmt.Errorf("failed creating extra-imports file: %v", err)
 			}
 			pkgImportPathHash := sha1.Sum([]byte(pkg.ImportPath))
 			extraImportsFileName := fmt.Sprintf("_extra_imports_%s.go", hex.EncodeToString(pkgImportPathHash[:]))
 			extraImportsFile := filepath.Join(*workDir, extraImportsFileName)
-			c.removeLater(extraImportsFile)
-			if err := ioutil.WriteFile(extraImportsFile, []byte(extraImportsStr), 0640); err != nil {
-				return fmt.Errorf("failed writing extra-imports file: %v", err)
+			if _, err := os.Stat(extraImportsFile); os.IsNotExist(err) {
+				if err := ioutil.WriteFile(extraImportsFile, []byte(extraImportsStr), 0640); err != nil {
+					return fmt.Errorf("failed writing extra-imports file: %v", err)
+				}
+			} else if err != nil {
+				return fmt.Errorf("failed to stat %s: %v", extraImportsFile, err)
 			}
 			files = append(files, extraImportsFile)
 		}
