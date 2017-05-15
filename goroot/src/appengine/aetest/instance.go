@@ -269,6 +269,9 @@ func (i *instance) startChild() (err error) {
 			}
 		}
 		errc <- s.Err()
+
+		// drain the swamp so child process doesn't block
+		io.Copy(ioutil.Discard, stderr)
 	}()
 
 	select {
