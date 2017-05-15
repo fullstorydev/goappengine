@@ -1,0 +1,96 @@
+!<arch>
+__.PKGDEF       0           0     0     644     9926      `
+go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+build id "8e510448f54787cec9f36aa61e9002083e8c68a4"
+
+$$
+package cloudsql
+	import net "net"
+	import errors "errors"
+	type @"net".Addr interface { Network() (? string); String() (? string) }
+	import time "time" // indirect
+	type @"time".zone struct { @"time".name string; @"time".offset int; @"time".isDST bool }
+	type @"time".zoneTrans struct { @"time".when int64; @"time".index uint8; @"time".isstd bool; @"time".isutc bool }
+	type @"time".Location struct { @"time".name string; @"time".zone []@"time".zone; @"time".tx []@"time".zoneTrans; @"time".cacheStart int64; @"time".cacheEnd int64; @"time".cacheZone *@"time".zone }
+	func (@"time".lÂ·2 *@"time".Location "esc:0x22") String () (? string)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x1") @"time".firstZoneUsed () (? bool)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x12") @"time".get () (? *@"time".Location)
+	func (@"time".lÂ·6 *@"time".Location "esc:0x32") @"time".lookup (@"time".secÂ·7 int64) (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".isDSTÂ·3 bool, @"time".startÂ·4 int64, @"time".endÂ·5 int64)
+	func (@"time".lÂ·2 *@"time".Location "esc:0x1") @"time".lookupFirstZone () (? int)
+	func (@"time".lÂ·4 *@"time".Location "esc:0x1") @"time".lookupName (@"time".nameÂ·5 string "esc:0x1", @"time".unixÂ·6 int64) (@"time".offsetÂ·1 int, @"time".isDSTÂ·2 bool, @"time".okÂ·3 bool)
+	type @"time".Duration int64
+	func (@"time".dÂ·2 @"time".Duration) Hours () (? float64) { var @"time".hourÂ·3 @"time".Duration; ; @"time".hourÂ·3 = @"time".dÂ·2 / @"time".Duration(0x34630b8a000); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x34630b8a000); return float64(@"time".hourÂ·3) + float64(@"time".nsecÂ·4) * float64(8190022623310637111963488201822504381538623676021880892417778544696899264837610290203272971060556344039023584360473938041055625214280336402169897364226048p-553) }
+	func (@"time".dÂ·2 @"time".Duration) Minutes () (? float64) { var @"time".minÂ·3 @"time".Duration; ; @"time".minÂ·3 = @"time".dÂ·2 / @"time".Duration(0xdf8475800); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0xdf8475800); return float64(@"time".minÂ·3) + float64(@"time".nsecÂ·4) * float64(7678146209353722106395056769533233877065564876941352542109479049699919628723768656821910653339403201031675627614471533358284117434246264392176261853609984p-547) }
+	func (@"time".dÂ·2 @"time".Duration) Nanoseconds () (? int64) { return int64(@"time".dÂ·2) }
+	func (@"time".dÂ·2 @"time".Duration) Seconds () (? float64) { var @"time".secÂ·3 @"time".Duration; ; @"time".secÂ·3 = @"time".dÂ·2 / @"time".Duration(0x3b9aca00); var @"time".nsecÂ·4 @"time".Duration; ; @"time".nsecÂ·4 = @"time".dÂ·2 % @"time".Duration(0x3b9aca00); return float64(@"time".secÂ·3) + float64(@"time".nsecÂ·4) * float64(7198262071269114660816079141112770740375861891461678802759824945047098083990024106014198994535558872472104883612039846078596891298747423852523262413111296p-541) }
+	func (@"time".dÂ·2 @"time".Duration) String () (? string)
+	type @"time".Month int
+	func (@"time".mÂ·2 @"time".Month) String () (? string) { return @"time".months[@"time".mÂ·2 - @"time".Month(0x1)] }
+	type @"time".Weekday int
+	func (@"time".dÂ·2 @"time".Weekday) String () (? string) { return @"time".days[@"time".dÂ·2] }
+	type @"time".Time struct { @"time".sec int64; @"time".nsec int32; @"time".loc *@"time".Location }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Add (@"time".dÂ·3 @"time".Duration) (? @"time".Time) { @"time".tÂ·2.@"time".sec += int64(@"time".dÂ·3 / @"time".Duration(0x3b9aca00)); var @"time".nsecÂ·4 int32; ; @"time".nsecÂ·4 = int32(@"time".tÂ·2.@"time".nsec) + int32(@"time".dÂ·3 % @"time".Duration(0x3b9aca00)); if @"time".nsecÂ·4 >= int32(0x3b9aca00) { @"time".tÂ·2.@"time".sec++; @"time".nsecÂ·4 -= int32(0x3b9aca00) } else { if @"time".nsecÂ·4 < int32(0x0) { @"time".tÂ·2.@"time".sec--; @"time".nsecÂ·4 += int32(0x3b9aca00) } }; @"time".tÂ·2.@"time".nsec = @"time".nsecÂ·4; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") AddDate (@"time".yearsÂ·3 int, @"time".monthsÂ·4 int, @"time".daysÂ·5 int) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") After (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec > @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec > @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") AppendFormat (@"time".bÂ·3 []byte "esc:0x1a", @"time".layoutÂ·4 string "esc:0x9") (? []byte)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Before (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec < @"time".uÂ·3.@"time".sec || @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec < @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·4 @"time".Time "esc:0x1") Clock () (@"time".hourÂ·1 int, @"time".minÂ·2 int, @"time".secÂ·3 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x1") Date () (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Day () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Equal (@"time".uÂ·3 @"time".Time "esc:0x1") (? bool) { return @"time".tÂ·2.@"time".sec == @"time".uÂ·3.@"time".sec && @"time".tÂ·2.@"time".nsec == @"time".uÂ·3.@"time".nsec }
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") Format (@"time".layoutÂ·3 string "esc:0x9") (? string)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") GobDecode (@"time".dataÂ·3 []byte "esc:0x1") (? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") GobEncode () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Hour () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") ISOWeek () (@"time".yearÂ·1 int, @"time".weekÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") In (@"time".locÂ·3 *@"time".Location "esc:0x12") (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") IsZero () (? bool) { return @"time".tÂ·2.@"time".sec == int64(0x0) && @"time".tÂ·2.@"time".nsec == int32(0x0) }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Local () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".Local; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Location () (? *@"time".Location) { var @"time".lÂ·3 *@"time".Location; ; @"time".lÂ·3 = @"time".tÂ·2.@"time".loc; if @"time".lÂ·3 == nil { @"time".lÂ·3 = @"time".UTC }; return @"time".lÂ·3 }
+	func (@"time".tÂ·3 @"time".Time "esc:0x1") MarshalBinary () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x9") MarshalJSON () (? []byte, ? error)
+	func (@"time".tÂ·3 @"time".Time "esc:0x9") MarshalText () (? []byte, ? error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Minute () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Month () (? @"time".Month)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Nanosecond () (? int) { return int(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Round (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Second () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x9") String () (? string)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Sub (@"time".uÂ·3 @"time".Time "esc:0x1") (? @"time".Duration)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") Truncate (@"time".dÂ·3 @"time".Duration) (? @"time".Time)
+	func (@"time".tÂ·2 @"time".Time "esc:0x12") UTC () (? @"time".Time) { @"time".tÂ·2.@"time".loc = @"time".UTC; return @"time".tÂ·2 }
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Unix () (? int64) { return @"time".tÂ·2.@"time".sec + int64(-0xe7791f700) }
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") UnixNano () (? int64) { return (@"time".tÂ·2.@"time".sec + int64(-0xe7791f700)) * int64(0x3b9aca00) + int64(@"time".tÂ·2.@"time".nsec) }
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalBinary (@"time".dataÂ·3 []byte "esc:0x1") (? error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalJSON (@"time".dataÂ·3 []byte "esc:0x1") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 *@"time".Time "esc:0x1") UnmarshalText (@"time".dataÂ·3 []byte "esc:0x1") (@"time".errÂ·1 error)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Weekday () (? @"time".Weekday)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") Year () (? int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") YearDay () (? int)
+	func (@"time".tÂ·3 @"time".Time "esc:0x32") Zone () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int)
+	func (@"time".tÂ·2 @"time".Time "esc:0x1") @"time".abs () (? uint64)
+	func (@"time".tÂ·5 @"time".Time "esc:0x1") @"time".date (@"time".fullÂ·6 bool) (@"time".yearÂ·1 int, @"time".monthÂ·2 @"time".Month, @"time".dayÂ·3 int, @"time".ydayÂ·4 int)
+	func (@"time".tÂ·4 @"time".Time "esc:0x32") @"time".locabs () (@"time".nameÂ·1 string, @"time".offsetÂ·2 int, @"time".absÂ·3 uint64)
+	type @"net".Conn interface { Close() (? error); LocalAddr() (? @"net".Addr); Read(@"net".b []byte) (@"net".n int, @"net".err error); RemoteAddr() (? @"net".Addr); SetDeadline(@"net".t @"time".Time) (? error); SetReadDeadline(@"net".t @"time".Time) (? error); SetWriteDeadline(@"net".t @"time".Time) (? error); Write(@"net".b []byte) (@"net".n int, @"net".err error) }
+	func @"".Dial (@"".instanceÂ·3 string "esc:0x1") (? @"net".Conn, ? error) { return @"".connect(@"".instanceÂ·3) }
+	func @"".init ()
+	var @"time".months [12]string
+	var @"time".days [7]string
+	var @"time".Local *@"time".Location
+	var @"time".UTC *@"time".Location
+	func @"".connect (@"".instanceÂ·3 string "esc:0x1") (? @"net".Conn, ? error) { return nil, @"errors".New(string("cloudsql: not supported in dev yet")) }
+	func @"errors".New (@"errors".textÂ·2 string) (? error) { return (&@"errors".errorString{ @"errors".s:@"errors".textÂ·2 }) }
+	type @"errors".errorString struct { @"errors".s string }
+	func (@"errors".eÂ·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".eÂ·2.@"errors".s }
+
+$$
+_go_.o          0           0     0     644     4078      `
+go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+
+!
+  go13ld
+net.aerrors.a ş"".Dial  À  ÀeH‹%    H;a†5  Hƒìx1ÛH‰œ$   H‰œ$˜   1ÛH‰œ$    H‰œ$¨   H‹œ$€   H‰\$hH‹œ$ˆ   H‰\$p1ÛH‰\$8H‰\$@1ÛH‰\$(H‰\$0H    H‰\$XHÇD$`"   1ÛH‰\$HH‰\$PH    H‰$è    H‹D$H‰D$ H‹l$`H‰hH‹l$X€=     uqH‰(H‰D$ H‹    1íH9èt,H‹L$ 1öH‰´$   H‰´$˜   H‰„$    H‰Œ$¨   HƒÄxÃH    H‰$H    H‰\$H    H‰\$è    H‹D$ë¥H‰$H‰l$è    H‹D$ ézÿÿÿè    é®şÿÿÌÌÌÌÌÌÌÌÌÌÌÌÌÌ
+      à  \go.string."cloudsql: not supported in dev yet"   ¢  .type.errors.errorString   ´  "runtime.newobject   ğ (runtime.writeBarrier   ”  Bgo.itab.*errors.errorString.error   ˆ  0type.*errors.errorString     type.error   ¶  Bgo.itab.*errors.errorString.error   Ê   runtime.typ2Itab   ô  .runtime.writebarrierptr   ’  0runtime.morestack_noctxt   `ğ  "".autotmp_0004  type.error "".autotmp_0001 ¯0type.*errors.errorString "".autotmp_0000  0type.*errors.errorString "".~r0 _type.error errors.textÂ·2 ?type.string "".~r2 Ÿtype.error "".~r1 type.net.Conn "".instance type.string "".~r2 @type.error "".~r1  type.net.Conn "".instance  type.string  ğéïğGï à t;  ™‹< TgclocalsÂ·adb3347b296419e60da36d67f8b7ce43 TgclocalsÂ·6216f598a32a7c33e3ae207b0f9c60dd   T$GOROOT/src/appengine/cloudsql/cloudsql.goş"".connect      eH‹%    H;a†è   HƒìH1ÛH‰\$`H‰\$h1ÛH‰\$pH‰\$xH    H‰\$8HÇD$@"   1ÛH‰\$(H‰\$0H    H‰$è    H‹D$H‰D$ H‹l$@H‰hH‹l$8€=     ueH‰(H‰D$ H‹    1íH9èt H‹L$ 1ÛH‰\$`H‰\$hH‰D$pH‰L$xHƒÄHÃH    H‰$H    H‰\$H    H‰\$è    H‹D$ë±H‰$H‰l$è    H‹D$ ë‰è    éûşÿÿÌÌÌÌÌÌÌÌÌÌÌ
+      d  \go.string."cloudsql: not supported in dev yet"   ¦  .type.errors.errorString   ¸  "runtime.newobject   ô (runtime.writeBarrier   ˜  Bgo.itab.*errors.errorString.error   ô  0type.*errors.errorString   Š  type.error   ¢  Bgo.itab.*errors.errorString.error   ¶   runtime.typ2Itab   à  .runtime.writebarrierptr   ø  0runtime.morestack_noctxt   `  "".autotmp_0007 O0type.*errors.errorString "".autotmp_0006  0type.*errors.errorString "".~r0 ?type.error errors.textÂ·2 type.string "".~r2 @type.error "".~r1  type.net.Conn "".instance  type.string  ŸD  /Ì  [6 TgclocalsÂ·adb3347b296419e60da36d67f8b7ce43 TgclocalsÂ·11d28ee4a7546638afa514476454a63e   \$GOROOT/src/appengine/cloudsql/cloudsql_dev.goş"".init      eH‹%    H;av4¶    €û t¶    €ûuÃè    Æ    è    Æ    Ãè    ë¶ÌÌÌÌÌÌ
+      $  "".initdoneÂ·   <  "".initdoneÂ·   R  "runtime.throwinit   b "".initdoneÂ·   n  net.init   z "".initdoneÂ·   ˆ  0runtime.morestack_noctxt        P P P 
+ (( TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   \$GOROOT/src/appengine/cloudsql/cloudsql_dev.goş>Bgo.itab.*errors.errorString.error     şdgo.string.hdr."cloudsql: not supported in dev yet"             "          \go.string."cloudsql: not supported in dev yet"   ş\go.string."cloudsql: not supported in dev yet" P  Fcloudsql: not supported in dev yet  şTgclocalsÂ·6216f598a32a7c33e3ae207b0f9c60dd (  (          €       şTgclocalsÂ·adb3347b296419e60da36d67f8b7ce43 (  (                şTgclocalsÂ·11d28ee4a7546638afa514476454a63e (  (                 şTgclocalsÂ·adb3347b296419e60da36d67f8b7ce43 (  (                şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           şTgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb           ş>"".initdoneÂ·  type.uint8   ş"".DialÂ·f              "".Dial   ş"".connectÂ·f              "".connect   ş"".initÂ·f              "".init   ş&go.string.hdr."net"                       go.string."net"   şgo.string."net"   net  ş$go.importpath.net.                       go.string."net"   ş,go.string.hdr."errors"                       $go.string."errors"   ş$go.string."errors"   errors  ş*go.importpath.errors.                       $go.string."errors"   ÿÿgo13ld
