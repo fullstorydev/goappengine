@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 
 import google
 from google.appengine.tools import goroots
@@ -96,6 +97,8 @@ def list_go_files(application_root, nobuild_files, skip_files):
 
 class GoApplication(object):
   """An abstraction around the source and executable for a Go application."""
+
+  _lock = threading.Lock()
 
   def __init__(self, module_configuration, work_dir):
     """Initializer for Module.
@@ -274,7 +277,6 @@ class GoApplication(object):
     assert self._go_file_to_mtime, 'no .go files'
     module_name = self._module_configuration.module_name
     binary_name = '_go_app_' + module_name
-    logging.info('Building Go application %s in %s', module_name, self._work_dir)
 
     gab_args = [
         '-binary_name', binary_name,
@@ -284,7 +286,15 @@ class GoApplication(object):
         '-ldflags', _escape_tool_flags('-L', self._pkg_path),
     ]
     gab_args.extend(self._go_file_to_mtime)
-    gab_stdout, gab_stderr = self._run_gab(gab_args, env={})
+    # use a lock to prevent concurrent compilation in the same work dir (which can
+    # lead to compile errors due to race conditions between one thread generating
+    # files and the other reading incomplete artifacts)
+    GoApplication._lock.acquire()
+    try:
+      logging.info('Building Go application %s in %s', module_name, self._work_dir)
+      gab_stdout, gab_stderr = self._run_gab(gab_args, env={})
+    finally:
+      GoApplication._lock.release()
     logging.info('Build of %s succeeded:\n%s\n%s', module_name, gab_stdout, gab_stderr)
     self._go_executable = os.path.join(self._work_dir, binary_name)
 
