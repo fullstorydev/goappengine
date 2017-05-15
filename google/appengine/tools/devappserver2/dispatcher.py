@@ -673,7 +673,10 @@ class Dispatcher(request_info.Dispatcher):
     if module_name:
       _module = self._get_module_with_soft_routing(module_name, version)
     else:
-      _module = self._module_for_request(urlparse.urlsplit(relative_url).path)
+      hostname = wsgiref.headers.Headers(headers)['Host']
+      if hostname is not None and ':' in hostname:
+        hostname = hostname.split(':', 1)[0] # strip port
+      _module = self._module_for_request(hostname, urlparse.urlsplit(relative_url).path)
     inst = _module.get_instance(instance_id) if instance_id else None
     port = _module.get_instance_port(instance_id) if instance_id else (
         _module.balanced_port)
@@ -767,11 +770,7 @@ class Dispatcher(request_info.Dispatcher):
     else:
       default_address = '%s:%s' % (self.host, self._default_port)
     if not hostname or hostname == default_address:
-      return self._module_for_request(path), None
-
-
-
-
+      return self._module_for_request(self.host, path), None
 
     default_address_offset = hostname.find(default_address)
     if default_address_offset > 0:
@@ -789,7 +788,9 @@ class Dispatcher(request_info.Dispatcher):
 
     else:
       if ':' in hostname:
-        port = int(hostname.split(':', 1)[1])
+        parts = hostname.split(':', 1)
+        port = int(parts[1])
+        hostname = parts[0]
       else:
         port = 80
       try:
@@ -797,7 +798,7 @@ class Dispatcher(request_info.Dispatcher):
       except KeyError:
         raise request_info.ModuleDoesNotExistError(hostname)
     if not _module:
-      _module = self._module_for_request(path)
+      _module = self._module_for_request(hostname, path)
     return _module, inst
 
   def _handle_request(self, environ, start_response, _module,
@@ -830,8 +831,11 @@ class Dispatcher(request_info.Dispatcher):
         raise
 
   def __call__(self, environ, start_response):
-    return self._handle_request(
-        environ, start_response, self._module_for_request(environ['PATH_INFO']))
+    hostname = environ['HTTP_HOST']
+    if hostname and ':' in hostname:
+      hostname = hostname.split(':', 1)[0] # strip port
+    return self._handle_request(environ, start_response,
+        self._module_for_request(hostname, environ['PATH_INFO']))
 
   def _should_use_dispatch_config(self, path):
     """Determines whether or not to use the dispatch config.
@@ -850,11 +854,17 @@ class Dispatcher(request_info.Dispatcher):
                       'dispatchable path.', path)
       return False
 
-  def _module_for_request(self, path):
+  def _module_for_request(self, host, path):
     dispatch = self._configuration.dispatch
     if dispatch and self._should_use_dispatch_config(path):
       for url, module_name in dispatch.dispatch:
-        if (url.path_exact and path == url.path or
-            not url.path_exact and path.startswith(url.path)):
+        if not host and url.host:
+          continue # can't match host route without a host
+        if (host and
+            ((url.host_exact and host != url.host) or
+            (not url.host_exact and not host.endswith(url.host)))):
+          continue # host doesn't match
+        if ((url.path_exact and path == url.path) or
+            (not url.path_exact and path.startswith(url.path))):
           return self._get_module_with_soft_routing(module_name, None)
     return self._get_module_with_soft_routing(None, None)

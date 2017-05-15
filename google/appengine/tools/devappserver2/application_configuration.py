@@ -866,20 +866,11 @@ class DispatchConfiguration(object):
       self._process_dispatch_entries(dispatch_info_external)
 
   def _process_dispatch_entries(self, dispatch_info_external):  # pylint: disable=missing-docstring
-    path_only_entries = []
-    hostname_entries = []
+    entries = []
     for entry in dispatch_info_external.dispatch:
       parsed_url = dispatchinfo.ParsedURL(entry.url)
-      if parsed_url.host:
-        hostname_entries.append(entry)
-      else:
-        path_only_entries.append((parsed_url, entry.module))
-    if hostname_entries:
-      logging.warning(
-          'Hostname routing is not supported by the development server. The '
-          'following dispatch entries will not match any requests:\n%s',
-          '\n\t'.join(str(entry) for entry in hostname_entries))
-    self._entries = path_only_entries
+      entries.append((parsed_url, entry.module))
+    self._entries = entries
 
   @property
   def dispatch(self):
