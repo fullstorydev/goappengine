@@ -160,6 +160,8 @@ def list_go_files(application_root, nobuild_files, skip_files):
 class GoApplication(object):
   """An abstraction around the source and executable for a Go application."""
 
+  _work_dir = None
+
   def __init__(self, module_configuration):
     """Initializer for Module.
 
@@ -171,7 +173,6 @@ class GoApplication(object):
     self._go_file_to_mtime = {}
     self._extras_hash = None
     self._go_executable = None
-    self._work_dir = None
     self._arch = self._get_architecture()
     self._pkg_path = self._get_pkg_path()
 
@@ -268,10 +269,12 @@ class GoApplication(object):
 
   def _build(self):
     assert self._go_file_to_mtime, 'no .go files'
-    logging.debug('Building Go application')
+    module_name = self._module_configuration.module_name
+    binary_name = '_go_app_' + module_name
+    logging.info('Building Go application %s in %s', module_name, GoApplication._work_dir)
 
     gab_args = [
-        '-binary_name', '_go_app',
+        '-binary_name', binary_name,
         '-extra_imports', 'appengine_internal/init',
         '-work_dir', self._work_dir,
         '-gcflags', _escape_tool_flags('-I', self._pkg_path),
@@ -279,8 +282,8 @@ class GoApplication(object):
     ]
     gab_args.extend(self._go_file_to_mtime)
     gab_stdout, gab_stderr = self._run_gab(gab_args, env={})
-    logging.debug('Build succeeded:\n%s\n%s', gab_stdout, gab_stderr)
-    self._go_executable = os.path.join(self._work_dir, '_go_app')
+    logging.info('Build of %s succeeded:\n%s\n%s', module_name, gab_stdout, gab_stderr)
+    self._go_executable = os.path.join(GoApplication._work_dir, binary_name)
 
   def maybe_build(self, maybe_modified_since_last_build):
     """Builds an executable for the application if necessary.
@@ -299,9 +302,9 @@ class GoApplication(object):
     Raises:
       BuildError: if building the executable fails for any reason.
     """
-    if not self._work_dir:
-      self._work_dir = tempfile.mkdtemp('appengine-go-bin')
-      atexit.register(_rmtree, self._work_dir)
+    if not GoApplication._work_dir:
+      GoApplication._work_dir = tempfile.mkdtemp('appengine-go-bin')
+      atexit.register(_rmtree, GoApplication._work_dir)
 
     if not os.path.exists(_GAB_PATH):
       # TODO: This message should be more useful i.e. point the
