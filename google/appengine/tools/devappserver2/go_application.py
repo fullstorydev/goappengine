@@ -199,27 +199,34 @@ class GoApplication(object):
     return environ
 
   @staticmethod
+  def _get_platform():
+    for platform in os.listdir(os.path.join(GOROOT, 'pkg', 'tool')):
+      # Look for 'linux_amd64', 'windows_386', etc.
+      if '_' not in platform:
+        continue
+      return platform
+    raise go_errors.BuildError(
+        'No known compiler found in goroot (%s)' % GOROOT)
+
+  @staticmethod
   def _get_architecture():
     architecture_map = {
         'arm': '5',
         'amd64': '6',
         '386': '8',
     }
-    for platform in os.listdir(os.path.join(GOROOT, 'pkg', 'tool')):
-      # Look for 'linux_amd64', 'windows_386', etc.
-      if '_' not in platform:
-        continue
-      architecture = platform.split('_', 1)[1]
-      if architecture in architecture_map:
-        return architecture_map[architecture]
+    architecture = GoApplication._get_platform().split('_', 1)[1]
+    if architecture in architecture_map:
+      return architecture_map[architecture]
     raise go_errors.BuildError(
         'No known compiler found in goroot (%s)' % GOROOT)
 
   @staticmethod
   def _get_pkg_path():
+    target = GoApplication._get_platform() + '_appengine'
     for n in os.listdir(os.path.join(GOROOT, 'pkg')):
       # Look for 'linux_amd64_appengine', 'windows_386_appengine', etc.
-      if n.endswith('_appengine'):
+      if n.endswith(target):
         return os.path.join(GOROOT, 'pkg', n)
     raise go_errors.BuildError('No package path found in goroot (%s)' % GOROOT)
 
