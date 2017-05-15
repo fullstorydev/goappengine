@@ -181,6 +181,16 @@ class GoApplication(object):
     return environ
 
   @staticmethod
+  def _get_platform(goroot):
+    for platform in os.listdir(os.path.join(goroot, 'pkg', 'tool')):
+      # Look for 'linux_amd64', 'windows_386', etc.
+      if '_' not in platform:
+        continue
+      return platform
+    raise go_errors.BuildError(
+        'No known compiler found in goroot (%s)' % goroot)
+
+  @staticmethod
   def _get_architecture(goroot):
     """Get the architecture number for the go compiler.
 
@@ -198,13 +208,9 @@ class GoApplication(object):
         'amd64': '6',
         '386': '8',
     }
-    for platform in os.listdir(os.path.join(goroot, 'pkg', 'tool')):
-      # Look for 'linux_amd64', 'windows_386', etc.
-      if '_' not in platform:
-        continue
-      architecture = platform.split('_', 1)[1]
-      if architecture in architecture_map:
-        return architecture_map[architecture]
+    architecture = GoApplication._get_platform(goroot).split('_', 1)[1]
+    if architecture in architecture_map:
+      return architecture_map[architecture]
     raise go_errors.BuildError(
         'No known compiler found in goroot (%s)' % goroot)
 
@@ -221,9 +227,10 @@ class GoApplication(object):
     Raises:
       BuildError: If the no package dir was found.
     """
+    target = GoApplication._get_platform(goroot) + '_appengine'
     for n in os.listdir(os.path.join(goroot, 'pkg')):
       # Look for 'linux_amd64_appengine', 'windows_386_appengine', etc.
-      if n.endswith('_appengine'):
+      if n.endswith(target):
         return os.path.join(goroot, 'pkg', n)
     raise go_errors.BuildError('No package path found in goroot (%s)' % goroot)
 
