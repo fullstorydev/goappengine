@@ -110,7 +110,7 @@ func buildContext(goPath string) *build.Context {
 		GOROOT:      *goRoot,
 		GOPATH:      goPath,
 		Compiler:    "gc",
-		BuildTags:   []string{"appengine"},
+		BuildTags:   []string{"appengine", "dev_appserver"},
 		ReleaseTags: releaseTags(*apiVersion),
 	}
 	return ctxt
