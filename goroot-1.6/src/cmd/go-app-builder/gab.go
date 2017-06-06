@@ -63,11 +63,11 @@ var (
 	goPath          = flag.String("gopath", os.Getenv("GOPATH"), "Location of extra packages.")
 	goRoot          = flag.String("goroot", os.Getenv("GOROOT"), "Root of the Go installation.")
 	help            = flag.Bool("help", false, "Display help documentation.")
-	incremental     = flag.Bool("incremental_rebuild", false, "Allow re-use of previous build products during build.")
+	incremental     = flag.Bool("incremental_rebuild", true, "Allow re-use of previous build products during build.")
 	ldFlags         = flag.String("ldflags", "", "Comma-separated list of extra linker flags.")
 	logFile         = flag.String("log_file", "", "If set, a file to write messages to.")
 	noBuildFiles    = flag.String("nobuild_files", "", "Regular expression matching files to not build.")
-	parallelism     = flag.Int("parallelism", 1, "Maximum number of compiles to run in parallel.")
+	parallelism     = flag.Int("parallelism", 8, "Maximum number of compiles to run in parallel.")
 	pkgDupes        = flag.String("pkg_dupe_whitelist", "", "Comma-separated list of packages that are okay to duplicate.")
 	printExtras     = flag.Bool("print_extras", false, "Whether to skip building and just print extra-app files.")
 	printExtrasHash = flag.Bool("print_extras_hash", false, "Whether to skip building and just print a hash of the extra-app files.")
@@ -232,7 +232,7 @@ func buildApp(app *App) error {
 		if err != nil {
 			return fmt.Errorf("failed creating main: %v", err)
 		}
-		mainFile := filepath.Join(*workDir, "_go_main.go")
+		mainFile := filepath.Join(*workDir, *binaryName+".go")
 		defer os.Remove(mainFile)
 		if err := ioutil.WriteFile(mainFile, []byte(mainStr), 0640); err != nil {
 			return fmt.Errorf("failed writing main: %v", err)
@@ -450,16 +450,20 @@ func (c *compiler) compile(pkg *Package) error {
 		// and this avoids triggering a circular import.
 		if len(pkg.Files) > 0 && len(c.extra) > 0 && !pkg.Dupe {
 			// synthetic extra imports
-			extraImportsStr, err := MakeExtraImports(pkg.Files[0].PackageName, c.extra)
+			pkgName := pkg.Files[0].PackageName
+			extraImportsStr, err := MakeExtraImports(pkgName, c.extra)
 			if err != nil {
 				return fmt.Errorf("failed creating extra-imports file: %v", err)
 			}
 			pkgImportPathHash := sha1.Sum([]byte(pkg.ImportPath))
 			extraImportsFileName := fmt.Sprintf("_extra_imports_%s.go", hex.EncodeToString(pkgImportPathHash[:]))
 			extraImportsFile := filepath.Join(*workDir, extraImportsFileName)
-			c.removeLater(extraImportsFile)
-			if err := ioutil.WriteFile(extraImportsFile, []byte(extraImportsStr), 0640); err != nil {
-				return fmt.Errorf("failed writing extra-imports file: %v", err)
+			if _, err := os.Stat(extraImportsFile); os.IsNotExist(err) {
+				if err := ioutil.WriteFile(extraImportsFile, []byte(extraImportsStr), 0640); err != nil {
+					return fmt.Errorf("failed writing extra-imports file: %v", err)
+				}
+			} else if err != nil {
+				return fmt.Errorf("failed to stat %s: %v", extraImportsFile, err)
 			}
 			files = append(files, extraImportsFile)
 		}

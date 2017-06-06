@@ -123,6 +123,9 @@ var errTimeout = &appengine_internal.CallError{
 	Timeout: true,
 }
 
+var httpTransport = &http.Transport{}
+var httpClient = &http.Client{ Transport: httpTransport }
+
 // postWithTimeout issues a POST to the specified URL with a given timeout.
 func postWithTimeout(url, bodyType string, body io.Reader, timeout time.Duration) (b []byte, err error) {
 	req, err := http.NewRequest("POST", url, body)
@@ -130,15 +133,11 @@ func postWithTimeout(url, bodyType string, body io.Reader, timeout time.Duration
 		return nil, err
 	}
 	req.Header.Set("Content-Type", bodyType)
-	tr := &http.Transport{}
-	client := &http.Client{
-		Transport: tr,
-	}
 	if timeout != 0 {
 		var canceled int32 // atomic; set to 1 if canceled
 		t := time.AfterFunc(timeout, func() {
 			atomic.StoreInt32(&canceled, 1)
-			tr.CancelRequest(req)
+			httpTransport.CancelRequest(req)
 		})
 		defer t.Stop()
 		defer func() {
@@ -148,7 +147,7 @@ func postWithTimeout(url, bodyType string, body io.Reader, timeout time.Duration
 			}
 		}()
 	}
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
