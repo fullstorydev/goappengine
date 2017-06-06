@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     8036      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "3ef510da775bb1fe2179356962d0d04aa09653a9"
+__.PKGDEF       0           0     0     644     8034      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "686b0c17eaee4b9e7cbeba02074e93d4c8349a72"
 
 $$
 package token
@@ -158,8 +158,8 @@ package token
 	var @"".keywords map[string]@"".Token
 
 $$
-_go_.o          0           0     0     644     149230    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     149228    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

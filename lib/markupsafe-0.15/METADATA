@@ -11,10 +11,10 @@ third_party {
     value: "http://pypi.python.org/packages/source/M/MarkupSafe/MarkupSafe-0.15.tar.gz"
   }
   version: "0.15"
-  last_upgrade_date: {
-    year: 2011
-    month: 8
-    day: 8
+  last_upgrade_date: { year: 2011 month: 8 day: 8 }
+  multiple_versions {
+    type: PERMANENT
+    approval: "cl/22169881"
   }
 
   # NOTE: The "local_modifications" field is entirely optional and may be

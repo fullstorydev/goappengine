@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     20472     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "a08e004901ac7485d850d08315be98aee920f8af"
+__.PKGDEF       0           0     0     644     20470     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "072633844652d611678f618514ff524094049763"
 
 $$
 package sql
@@ -201,8 +201,8 @@ package sql
 	var @"io".EOF error
 
 $$
-_go_.o          0           0     0     644     510486    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     510484    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld*database/sql/driver.aerrors.a

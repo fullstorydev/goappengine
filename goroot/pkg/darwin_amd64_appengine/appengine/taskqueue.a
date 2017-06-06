@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     18944     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "88c36a8cf79cc0530417724a85615d79ef45ac7a"
+__.PKGDEF       0           0     0     644     18942     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "5dd2ce3bb032bf2aca83317bf5a4d6a138736c86"
 
 $$
 package taskqueue
@@ -136,8 +136,8 @@ package taskqueue
 	var @"time".UTC *@"time".Location
 
 $$
-_go_.o          0           0     0     644     174163    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     174161    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lderrors.a

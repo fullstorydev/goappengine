@@ -54,6 +54,7 @@ import logging
 import sys
 import urllib
 from google.pyglib import singleton
+from google.appengine.tools import sdk_update_checker
 
 
 # Google Analytics Config
@@ -76,10 +77,12 @@ START_ACTION = 'start'
 
 # Devappserver Google Analytics Custom Dimensions.
 # This maps the custom dimension name in GAFE to the enumerated cd# parameter
-# to be sent with HTTP requests.
+# to be sent with HTTP requests
 _GOOGLE_ANALYTICS_DIMENSIONS = {
     'IsInteractive': 'cd1',
-    'Runtimes': 'cd2'
+    'Runtimes': 'cd2',
+    'SdkVersion': 'cd3',
+    'PythonVersion': 'cd4'
 }
 
 
@@ -96,6 +99,10 @@ class _MetricsLogger(object):
     self._user_agent = None
     self._runtimes = None
     self._start_time = None
+    # self._python_version is in the form: major.minor.macro.
+    self._python_version = '.'.join(map(str, sys.version_info[:3]))
+    self._sdk_version = (
+        sdk_update_checker.GetVersionObject() or {}).get('release')
     self._log_once_on_stop_events = {}
 
   def Start(self, client_id, user_agent=None, runtimes=None):
@@ -106,18 +113,24 @@ class _MetricsLogger(object):
       user_agent: A string user agent to send with each log.
       runtimes: A set of strings containing the runtimes used.
     """
-    self._start_time = Now()
     self._client_id = client_id
     self._user_agent = user_agent
     self._runtimes = ','.join(sorted(list(runtimes))) if runtimes else None
     self.Log(DEVAPPSERVER_CATEGORY, START_ACTION)
+    self._start_time = Now()
 
   def Stop(self):
-    """Ends a Google Analytics session for the current client."""
-    total_run_time = int((Now() - self._start_time).total_seconds())
+    """Ends a Google Analytics session for the current client.
 
-    self.LogOnceOnStop(DEVAPPSERVER_CATEGORY, STOP_ACTION, value=total_run_time)
-    self.LogBatch(self._log_once_on_stop_events.itervalues())
+    A request to Stop the session is only made if the Start function has
+    executed to set self._start_time.
+    """
+    if self._start_time:
+      total_run_time = int((Now() - self._start_time).total_seconds())
+
+      self.LogOnceOnStop(
+          DEVAPPSERVER_CATEGORY, STOP_ACTION, value=total_run_time)
+      self.LogBatch(self._log_once_on_stop_events.itervalues())
 
   def Log(self, category, action, label=None, value=None, **kwargs):
     """Logs a single event to Google Analytics via HTTPS.
@@ -221,11 +234,12 @@ class _MetricsLogger(object):
         'cid': self._client_id,
         _GOOGLE_ANALYTICS_DIMENSIONS['IsInteractive']: IsInteractive(),
         _GOOGLE_ANALYTICS_DIMENSIONS['Runtimes']: self._runtimes,
+        _GOOGLE_ANALYTICS_DIMENSIONS['SdkVersion']: self._sdk_version,
+        _GOOGLE_ANALYTICS_DIMENSIONS['PythonVersion']: self._python_version,
 
         # Required event data
         'ec': category,
         'ea': action
-
     }
 
     # Optional event data

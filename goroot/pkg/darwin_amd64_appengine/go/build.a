@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     16713     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "6ed47f4e8b64d2cc09a27ab78c02421333db875d"
+__.PKGDEF       0           0     0     644     16711     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "4728c1c59aef518376b5b92ed3e862283849779e"
 
 $$
 package build
@@ -154,8 +154,8 @@ package build
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
- _go_.o          0           0     0     644     355948    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     355946    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aerrors.a

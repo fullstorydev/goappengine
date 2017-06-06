@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     168148    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "0d01283481a8997fabf4c74f7d40d1526f3faf5d"
+__.PKGDEF       0           0     0     644     168146    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "2b44964c4625695df49d1e3039262e5b9b45d4ab"
 
 $$
 package armasm
@@ -4657,8 +4657,8 @@ package armasm
 	func @"".init ()
 
 $$
-_go_.o          0           0     0     644     1069014   `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     1069012   `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld"encoding/binary.a

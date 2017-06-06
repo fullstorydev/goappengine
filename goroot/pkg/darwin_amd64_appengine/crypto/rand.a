@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     18321     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "76c5a6d876de11e74c3bbfee08a45b50234397ff"
+__.PKGDEF       0           0     0     644     18319     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "4c5fa293d447ff9e48c981af4c881d7a1a2b23d2"
 
 $$
 package rand
@@ -146,8 +146,8 @@ package rand
 	func @"math/big".low64 (@"math/big".zÂ·2 @"math/big".nat "esc:0x1") (? uint64) { if len(@"math/big".zÂ·2) == int(0x0) { return uint64(0x0) }; var @"math/big".vÂ·3 uint64; ; @"math/big".vÂ·3 = uint64(@"math/big".zÂ·2[int(0x0)]); if false && len(@"math/big".zÂ·2) > int(0x1) { @"math/big".vÂ·3 |= uint64(@"math/big".zÂ·2[int(0x1)]) << uint(0x20) }; return @"math/big".vÂ·3 }
 
 $$
- _go_.o          0           0     0     644     46079     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     46077     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldos.asyscall.aio.abufio.acrypto/aes.acrypto/cipher.aruntime.async.atime.aerrors.amath/big.a ş"".init.1      eH‹%    H;av7HƒìH    €=     uH‰    HƒÄÃH-    H‰,$H‰\$è    ëäè    ë³ÌÌÌ

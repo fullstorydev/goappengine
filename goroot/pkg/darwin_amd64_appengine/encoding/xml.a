@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     38126     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "de485678d1109278a0624b6aa18840a41b900e9a"
+__.PKGDEF       0           0     0     644     38124     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "c4111a0067c06148a38369c36015f6dd538b0499"
 
 $$
 package xml
@@ -321,8 +321,8 @@ package xml
 	func @"bufio".NewReaderSize (@"bufio".rd·2 @"io".Reader, @"bufio".size·3 int) (? *@"bufio".Reader) { var @"bufio".b·4 *@"bufio".Reader; ; var @"bufio".ok·5 bool; ; @"bufio".b·4, @"bufio".ok·5 = @"bufio".rd·2.(*@"bufio".Reader); if @"bufio".ok·5 && len(@"bufio".b·4.@"bufio".buf) >= @"bufio".size·3 { return @"bufio".b·4 }; if @"bufio".size·3 < int(0x10) { @"bufio".size·3 = int(0x10) }; var @"bufio".r·6 *@"bufio".Reader; ; @"bufio".r·6 = new(@"bufio".Reader); @"bufio".r·6.@"bufio".reset(make([]byte, @"bufio".size·3), @"bufio".rd·2); return @"bufio".r·6 }
 
 $$
-_go_.o          0           0     0     644     721659    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     721657    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.abytes.aencoding.a

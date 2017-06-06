@@ -78,6 +78,7 @@ from google.appengine.tools import appengine_rpc
 from google.appengine.tools import augment_mimetypes
 from google.appengine.tools import bulkloader
 from google.appengine.tools import context_util
+from google.appengine.tools import goroots
 from google.appengine.tools import sdk_update_checker
 
 
@@ -176,13 +177,6 @@ SERVICE_ACCOUNT_BASE = (
 
 
 APP_YAML_FILENAME = 'app.yaml'
-
-
-
-
-GO_APP_BUILDER = os.path.join('goroot', 'bin', 'go-app-builder')
-if sys.platform.startswith('win'):
-  GO_APP_BUILDER += '.exe'
 
 GCLOUD_ONLY_RUNTIMES = set(['custom', 'nodejs'])
 
@@ -3159,6 +3153,11 @@ class AppCfgApp(object):
     parser.add_option('--no_ignore_endpoints_failures', action='store_false',
                       dest='ignore_endpoints_failures',
                       help=optparse.SUPPRESS_HELP)
+
+
+
+
+
     return parser
 
   def _MakeSpecificParser(self, action):
@@ -3233,6 +3232,11 @@ class AppCfgApp(object):
 
     oauth2_parameters = self._GetOAuth2Parameters()
 
+    extra_headers = {}
+
+
+
+
 
     return self.rpc_server_class(self.options.server, oauth2_parameters,
                                  GetUserAgent(), source,
@@ -3242,6 +3246,7 @@ class AppCfgApp(object):
                                  account_type='HOSTED_OR_GOOGLE',
                                  secure=self.options.secure,
                                  ignore_certs=self.options.ignore_certs,
+                                 extra_headers=extra_headers,
                                  options=self.options)
 
   def _MaybeGetDevshellOAuth2AccessToken(self):
@@ -3423,11 +3428,11 @@ class AppCfgApp(object):
         self.parser.error('Directory %r does not contain configuration file '
                           '%s.yaml' %
                           (os.path.abspath(basepath), basename))
-    else:
 
 
-      appyaml.module = appyaml.module or appyaml.service
-      appyaml.service = None
+
+    appyaml.module = appyaml.module or appyaml.service
+    appyaml.service = None
 
     orig_application = appyaml.application
     orig_module = appyaml.module
@@ -3759,13 +3764,16 @@ class AppCfgApp(object):
 
 
 
-
-      goroot = os.path.join(sdk_base, 'goroot')
+      goroot = os.path.join(sdk_base, goroots.GOROOTS[appyaml.api_version])
       if not os.path.exists(goroot):
 
-        goroot = None
-      gab = os.path.join(sdk_base, GO_APP_BUILDER)
-      if os.path.exists(gab):
+        goroot = os.getenv('GOROOT')
+      gab = None
+      if goroot:
+        gab = os.path.join(sdk_base, goroot, 'bin', 'go-app-builder')
+        if sys.platform.startswith('win'):
+          gab += '.exe'
+      if gab and os.path.exists(gab):
         app_paths = list(paths)
         go_files = [f for f in app_paths
                     if f.endswith('.go') and not appyaml.nobuild_files.match(f)]

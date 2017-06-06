@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     16395     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "259446ac8a192d22d1c1d408bff546b1e6b8124c"
+__.PKGDEF       0           0     0     644     16393     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "d1fa2b1d5068fbe8fd034ed73c38e76cd76746a8"
 
 $$
 package socket
@@ -133,8 +133,8 @@ package socket
 	var @"net".v4InV6Prefix []byte
 
 $$
- _go_.o          0           0     0     644     91855     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     91853     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     9832      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "7ec039698fa25052daf75925b92a414f921d8491"
+__.PKGDEF       0           0     0     644     9830      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "24e7c06fa73c75272f1ea6506c5abbe677368000"
 
 $$
 package scanner
@@ -106,8 +106,8 @@ package scanner
 	func (@"sync".r·1 *@"sync".rlocker) Unlock ()
 
 $$
-_go_.o          0           0     0     644     145814    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     145812    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

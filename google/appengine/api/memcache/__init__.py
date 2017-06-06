@@ -621,6 +621,7 @@ class Client(object):
     except apiproxy_errors.Error:
       return {}
     for_cas = rpc.request.for_cas()
+    namespace = rpc.request.name_space()
     response = rpc.response
     user_key = rpc.user_data
     return_value = {}
@@ -629,7 +630,8 @@ class Client(object):
                             self._do_unpickle)
       raw_key = returned_item.key()
       if for_cas:
-        self._cas_ids[raw_key] = returned_item.cas_id()
+        ns = namespace if namespace else ''
+        self._cas_ids[(ns, raw_key)] = returned_item.cas_id()
       return_value[user_key[raw_key]] = value
     return return_value
 
@@ -735,7 +737,10 @@ class Client(object):
       elif status == MemcacheDeleteResponse.NOT_FOUND:
         result.append(DELETE_ITEM_MISSING)
       else:
-        result.append(DELETE_NETWORK_FAILURE)
+
+
+
+        return None
     return result
 
 
@@ -981,7 +986,9 @@ class Client(object):
       item.set_set_policy(policy)
       item.set_expiration_time(int(math.ceil(time)))
       if set_cas_id:
-        cas_id = self._cas_ids.get(server_key)
+
+        ns = namespace if namespace else ''
+        cas_id = self._cas_ids.get((ns, server_key))
 
         if cas_id is not None:
           item.set_cas_id(cas_id)
@@ -1007,6 +1014,12 @@ class Client(object):
     assert response.set_status_size() == len(server_keys)
     status_dict = {}
     for server_key, status in zip(server_keys, response.set_status_list()):
+
+
+      if status in (MemcacheSetResponse.DEADLINE_EXCEEDED,
+                    MemcacheSetResponse.UNREACHABLE,
+                    MemcacheSetResponse.OTHER_ERROR):
+        status = MemcacheSetResponse.ERROR
       status_dict[user_key[server_key]] = status
     return status_dict
 

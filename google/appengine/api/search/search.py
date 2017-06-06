@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
 """A Python Search API used by app developers.
 
 Contains methods used to interface with Search API.
@@ -276,12 +274,31 @@ class _RpcOperationFuture(object):
     self._rpc.make_call(call, request, response)
 
   def get_result(self):
-    self._rpc.wait();
+    self._rpc.wait()
     try:
-      self._rpc.check_success();
+      self._rpc.check_success()
     except apiproxy_errors.ApplicationError, e:
       raise _ToSearchError(e)
     return self._get_result_hook()
+
+
+class _PutOperationFuture(_RpcOperationFuture):
+  """Future specialized for Index put operations."""
+
+  def __init__(self, index, request, response, deadline, get_result_hook):
+    super(_PutOperationFuture, self).__init__('IndexDocument', request,
+                                              response, deadline,
+                                              get_result_hook)
+    self._index = index
+
+  def get_result(self):
+    try:
+      return super(_PutOperationFuture, self).get_result()
+    except apiproxy_errors.OverQuotaError, e:
+      message = e.message + '; index = ' + self._index.name
+      if self._index.namespace:
+        message = message + ' in namespace ' + self._index.namespace
+      raise apiproxy_errors.OverQuotaError(message)
 
 
 class _SimpleOperationFuture(object):
@@ -313,7 +330,7 @@ def _ConvertToUTF8(value):
              'nan': 'NaN'}.get(value, value)
   elif isinstance(value, (int, long)):
     value = str(value)
-  return _ConvertToUnicode(value).encode("utf-8")
+  return _ConvertToUnicode(value).encode('utf-8')
 
 
 class OperationResult(object):
@@ -1161,7 +1178,7 @@ class NumberFacet(Facet):
 
   @classmethod
   def _CheckValue(cls, value):
-    _CheckNumber(value, "number facet value", True)
+    _CheckNumber(value, 'number facet value', True)
     if value >= MIN_NUMBER_VALUE and value <= MAX_NUMBER_VALUE:
       return value
     raise ValueError('value must be between %f and %f (got %f)' %
@@ -1920,10 +1937,13 @@ class Document(object):
 
     self._facet_map = None
 
-    doc_rank = rank
-    if doc_rank is None:
-      doc_rank = self._GetDefaultRank()
-    self._rank = self._CheckRank(doc_rank)
+    if rank is None:
+      rank = self._GetDefaultRank()
+      self._rank_defaulted = True
+    else:
+      self._rank_defaulted = False
+
+    self._rank = self._CheckRank(rank)
 
     _CheckDocument(self)
 
@@ -2070,6 +2090,14 @@ def _CopyDocumentToProtocolBuffer(document, pb):
     facet_pb = pb.add_facet()
     facet._CopyToProtocolBuffer(facet_pb)
   pb.set_order_id(document.rank)
+
+
+  if hasattr(document, '_rank_defaulted'):
+    if document._rank_defaulted:
+      pb.set_order_id_source(document_pb.Document.DEFAULTED)
+    else:
+      pb.set_order_id_source(document_pb.Document.SUPPLIED)
+
   return pb
 
 
@@ -2558,7 +2586,8 @@ class ScoredDocument(Document):
       The list of numeric sort scores.
 
     """
-    logging.warning("sort_scores() is deprecated; please use _score in a FieldExpression.")
+    logging.warning(
+        'sort_scores() is deprecated; please use _score in a FieldExpression.')
     return self._sort_scores
 
   @property
@@ -2601,7 +2630,6 @@ class ScoredDocument(Document):
                         ('fields', self.fields),
                         ('language', self.language),
                         ('rank', self.rank),
-                        ('sort_scores', self.sort_scores),
                         ('expressions', self.expressions),
                         ('cursor', self.cursor)])
 
@@ -3595,8 +3623,7 @@ class Index(object):
               _ConcatenateErrorMessages(
                   'one or more put document operations failed', status), results)
       return results
-    return _RpcOperationFuture(
-        'IndexDocument', request, response, deadline, hook)
+    return _PutOperationFuture(self, request, response, deadline, hook)
 
   def _NewDeleteResultFromPb(self, status_pb, doc_id):
     """Constructs DeleteResult from RequestStatus pb and doc_id."""
@@ -4086,7 +4113,7 @@ def _MakeSyncSearchServiceCall(call, request, response, deadline):
     ValueError: If the deadline is less than zero.
   """
   _ValidateDeadline(deadline)
-  logging.warning("_MakeSyncSearchServiceCall is deprecated; please use API.")
+  logging.warning('_MakeSyncSearchServiceCall is deprecated; please use API.')
   try:
     if deadline is None:
       apiproxy_stub_map.MakeSyncCall('search', call, request, response)

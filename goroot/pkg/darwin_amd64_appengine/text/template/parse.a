@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     23300     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "30da14327bfa0ce5aa82d5e09c9bdfa142ca8b64"
+__.PKGDEF       0           0     0     644     23298     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "01856660f1f65b6c47c2ac5b19fd5e68b5d3f3e5"
 
 $$
 package parse
@@ -220,8 +220,8 @@ package parse
 	const @"".nodeEnd @"".NodeType = 0x7
 
 $$
-_go_.o          0           0     0     644     762256    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     762254    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

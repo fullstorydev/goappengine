@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     31511     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "b4244cd53c880db1a71bd5e358f8949004664964"
+__.PKGDEF       0           0     0     644     31509     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "6ad4d1bb72ab5a74639c28510fe0679af7a32a1e"
 
 $$
 package fetch
@@ -204,8 +204,8 @@ package fetch
 	var @"cmd/pprof/internal/profile".profileDecoder []@"cmd/pprof/internal/profile".decoder
 
 $$
- _go_.o          0           0     0     644     25175     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     25173     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

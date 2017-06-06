@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     18671     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "fffa6ab0c80e79d0f8ba84668aa71000ef3fefed"
+__.PKGDEF       0           0     0     644     18669     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "c716ee6999d69a3ca257c94148e9efc2ca05c4c1"
 
 $$
 package dwarf
@@ -282,8 +282,8 @@ package dwarf
 	func @"".init ()
 
 $$
- _go_.o          0           0     0     644     717266    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     717264    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld"encoding/binary.astrconv.a

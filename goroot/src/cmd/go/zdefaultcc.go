@@ -2,5 +2,5 @@
 
 package main
 
-const defaultCC = `clang`
-const defaultCXX = `clang++`
+const defaultCC = `gcc`
+const defaultCXX = `g++`

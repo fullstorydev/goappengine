@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     20551     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "1f4f1ebe67520c60a53f9ed10104c3b57a92aa83"
+__.PKGDEF       0           0     0     644     20549     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "875db200168fc5c7768868b479741450a251c441"
 
 $$
 package zip
@@ -193,8 +193,8 @@ package zip
 	func @"bufio".NewWriterSize (@"bufio".w·2 @"io".Writer, @"bufio".size·3 int) (? *@"bufio".Writer) { var @"bufio".b·4 *@"bufio".Writer; ; var @"bufio".ok·5 bool; ; @"bufio".b·4, @"bufio".ok·5 = @"bufio".w·2.(*@"bufio".Writer); if @"bufio".ok·5 && len(@"bufio".b·4.@"bufio".buf) >= @"bufio".size·3 { return @"bufio".b·4 }; if @"bufio".size·3 <= int(0x0) { @"bufio".size·3 = int(0x1000) }; return (&@"bufio".Writer{ @"bufio".buf:make([]byte, @"bufio".size·3), @"bufio".wr:@"bufio".w·2 }) }
 
 $$
- _go_.o          0           0     0     644     376481    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     376479    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.a"encoding/binary.aerrors.a

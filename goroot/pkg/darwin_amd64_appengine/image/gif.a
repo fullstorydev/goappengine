@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     8996      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "0b13c715a12123af3d04117f3e21841d4836edd0"
+__.PKGDEF       0           0     0     644     8994      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "ba4515eabbaa4973a30fe0a10c628d0b6b8512c0"
 
 $$
 package gif
@@ -82,8 +82,8 @@ package gif
 	var @"image/color".Alpha16Model @"image/color".Model
 
 $$
-_go_.o          0           0     0     644     152627    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     152625    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.acompress/lzw.aerrors.a

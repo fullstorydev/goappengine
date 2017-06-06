@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     12484     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "67348ad2abb915827e485b0657795aede297ab64"
+__.PKGDEF       0           0     0     644     12482     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "057acc0bb5723ce2e5bbef7cb9c2f3725f4c0452"
 
 $$
 package time
@@ -146,8 +146,8 @@ package time
 	const @"".omega = 0x7fffffffffffffff
 
 $$
-_go_.o          0           0     0     644     469162    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     469160    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lderrors.asyscall.async.aruntime.a þ,"".startsWithLowerCase  À  ÀeH‹%    H;av=H‹L$Hƒù uÆD$ ÃH‹\$Hƒù v¶+@€ýar

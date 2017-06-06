@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     43233     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "e88b0bf94597daebd9577ae2e1e0fda0a7aa6798"
+__.PKGDEF       0           0     0     644     43231     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "0ef17db5900a33ea7f9d426b0325c75033d3b65e"
 
 $$
 package ppc64
@@ -701,8 +701,8 @@ package ppc64
 	var @"bufio".ErrInvalidUnreadRune error
 
 $$
- _go_.o          0           0     0     644     554958    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     554956    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld$cmd/internal/obj.a"encoding/binary.a

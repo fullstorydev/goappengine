@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     36982     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "ba9161b58cd9949b6c25ba240d733a28479d43d9"
+__.PKGDEF       0           0     0     644     36980     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "553c4803fc814cb448f204d65756f306c7c8a8e8"
 
 $$
 package objfile
@@ -289,8 +289,8 @@ package objfile
 	var @"time".UTC *@"time".Location
 
 $$
-_go_.o          0           0     0     644     290860    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     290858    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.adebug/gosym.a"encoding/binary.a

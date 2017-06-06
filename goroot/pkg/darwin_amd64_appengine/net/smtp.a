@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     58365     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "ca052d6f1b179641a218ce27992c64da34911407"
+__.PKGDEF       0           0     0     644     58522     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "689a94e4ba1e9784a8e99eaed8785bfd07856838"
 
 $$
 package smtp
@@ -341,6 +341,7 @@ package smtp
 	func (@"crypto/x509".s·1 *@"crypto/x509".CertPool "esc:0x9") AddCert (@"crypto/x509".cert·2 *@"crypto/x509".Certificate)
 	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x9") AppendCertsFromPEM (@"crypto/x509".pemCerts·3 []byte) (@"crypto/x509".ok·1 bool)
 	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x9") Subjects () (@"crypto/x509".res·1 [][]byte)
+	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x1") @"crypto/x509".contains (@"crypto/x509".cert·3 *@"crypto/x509".Certificate "esc:0x1") (? bool)
 	func (@"crypto/x509".s·4 *@"crypto/x509".CertPool "esc:0x18a") @"crypto/x509".findVerifiedParents (@"crypto/x509".cert·5 *@"crypto/x509".Certificate "esc:0x9") (@"crypto/x509".parents·1 []int, @"crypto/x509".errCert·2 *@"crypto/x509".Certificate, @"crypto/x509".err·3 error)
 	type @"crypto/x509".VerifyOptions struct { DNSName string; Intermediates *@"crypto/x509".CertPool; Roots *@"crypto/x509".CertPool; CurrentTime @"time".Time; KeyUsages []@"crypto/x509".ExtKeyUsage }
 	type @"crypto/x509".Certificate struct { Raw []byte; RawTBSCertificate []byte; RawSubjectPublicKeyInfo []byte; RawSubject []byte; RawIssuer []byte; Signature []byte; SignatureAlgorithm @"crypto/x509".SignatureAlgorithm; PublicKeyAlgorithm @"crypto/x509".PublicKeyAlgorithm; PublicKey interface {}; Version int; SerialNumber *@"math/big".Int; Issuer @"crypto/x509/pkix".Name; Subject @"crypto/x509/pkix".Name; NotBefore @"time".Time; NotAfter @"time".Time; KeyUsage @"crypto/x509".KeyUsage; Extensions []@"crypto/x509/pkix".Extension; ExtraExtensions []@"crypto/x509/pkix".Extension; UnhandledCriticalExtensions []@"encoding/asn1".ObjectIdentifier; ExtKeyUsage []@"crypto/x509".ExtKeyUsage; UnknownExtKeyUsage []@"encoding/asn1".ObjectIdentifier; BasicConstraintsValid bool; IsCA bool; MaxPathLen int; MaxPathLenZero bool; SubjectKeyId []byte; AuthorityKeyId []byte; OCSPServer []string; IssuingCertificateURL []string; DNSNames []string; EmailAddresses []string; IPAddresses []@"net".IP; PermittedDNSDomainsCritical bool; PermittedDNSDomains []string; CRLDistributionPoints []string; PolicyIdentifiers []@"encoding/asn1".ObjectIdentifier }
@@ -431,8 +432,8 @@ package smtp
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
- _go_.o          0           0     0     644     128422    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     128420    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldcrypto/hmac.acrypto/md5.aerrors.a

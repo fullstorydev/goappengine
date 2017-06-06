@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     12447     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "43a9466b50690de0bdeb708feaa7320cd3eb6f28"
+__.PKGDEF       0           0     0     644     12445     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "31ad6feafa7e85b38cd8339420b7616b81027711"
 
 $$
 package testenv
@@ -124,8 +124,8 @@ package testenv
 	var @"testing".short *bool
 
 $$
- _go_.o          0           0     0     644     15799     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     15797     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldos.aruntime.astrings.atesting.a ş"".Builder  À  ÀeH‹%    H;avBHƒì 1ÛH‰\$(H‰\$0H    H‰$HÇD$   è    H‹L$H‹D$H‰L$(H‰D$0HƒÄ Ãè    ë¨ÌÌÌÌÌÌÌÌ

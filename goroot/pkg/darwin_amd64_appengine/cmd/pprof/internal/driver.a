@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     38542     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "165ddd111ac873bcb7765e688d7a69784b352c00"
+__.PKGDEF       0           0     0     644     38540     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "71dd91eeac165e9949daa1d3ecc7d4e04e40072a"
 
 $$
 package driver
@@ -246,8 +246,8 @@ package driver
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
-_go_.o          0           0     0     644     335546    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     335544    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.a

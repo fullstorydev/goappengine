@@ -16,6 +16,11 @@ third_party {
     day: 14
   }
 
+  multiple_versions {
+    type: PERMANENT
+    approval: "See //depot/google3/third_party/apphosting/python/MULTIPLE_VERSIONS_OK"
+  }
+
   # NOTE: The "local_modifications" field is entirely optional and may be
   # removed if it's not useful for the package.
   #     See go/thirdparty-metadata-local-modifications

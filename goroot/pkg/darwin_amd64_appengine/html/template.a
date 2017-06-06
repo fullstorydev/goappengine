@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     70051     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "d0bceced98acb45a42860f916ceb3686daa98deb"
+__.PKGDEF       0           0     0     644     70049     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "55cf9abf92cdaf03db78c24e4716c043806628fb"
 
 $$
 package template
@@ -416,8 +416,8 @@ package template
 	func @"reflect".toType (@"reflect".t·2 *@"reflect".rtype "esc:0x12") (? @"reflect".Type) { if @"reflect".t·2 == nil { return nil }; return @"reflect".t·2 }
 
 $$
- _go_.o          0           0     0     644     690084    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     690082    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldstrings.a
