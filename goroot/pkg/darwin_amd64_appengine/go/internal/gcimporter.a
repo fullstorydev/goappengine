@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     9315      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "25c930bbe98343510d8eb278c12df2774a830095"
+__.PKGDEF       0           0     0     644     9313      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "9bff42f222d5cec5418ce35f2d2000fe449968fc"
 
 $$
 package gcimporter
@@ -83,8 +83,8 @@ package gcimporter
 	var @"bufio".ErrInvalidUnreadRune error
 
 $$
- _go_.o          0           0     0     644     387139    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     387137    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld"encoding/binary.a

@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     23627     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "380165c334065135345260eacecee468f1b5ec4d"
+__.PKGDEF       0           0     0     644     23625     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "bf089ba9bffdf861b26836b4af0f79c28e21a89b"
 
 $$
 package macho
@@ -183,8 +183,8 @@ package macho
 	func (@"debug/dwarf".e·2 @"debug/dwarf".DecodeError "esc:0x1") Error () (? string)
 
 $$
- _go_.o          0           0     0     644     289475    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     289473    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld"encoding/binary.a

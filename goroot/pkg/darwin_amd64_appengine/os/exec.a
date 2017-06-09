@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     21004     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "0a780908f6fcf49cdab8f083e07c801b01d94037"
+__.PKGDEF       0           0     0     644     21002     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "b164f035af7dd5615ee445abe23c8b3562d9626e"
 
 $$
 package exec
@@ -193,8 +193,8 @@ package exec
 	var @"time".UTC *@"time".Location
 
 $$
-_go_.o          0           0     0     644     257314    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     257312    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aerrors.aio.aos.apath/filepath.aruntime.astrconv.astrings.async.asyscall.a ş""".(*Error).Error  €  €eH‹%    HD$øH;A†  Hìˆ   1ÛH‰œ$˜   H‰œ$    H‹´$   H‹H‰$H‹NH‰L$è    H‹\$H‰\$xH‹\$H‰œ$€   H‹œ$   Hƒû „ª   H‹KH‹kH‰l$`H‰,$H‰L$XH‹Y ÿÓH‹L$H‹D$HÇ$    H    H‰\$HÇD$   H‹\$xH‰\$H‹œ$€   H‰\$ H    H‰\$(HÇD$0   H‰L$hH‰L$8H‰D$pH‰D$@è    H‹\$HH‰œ$˜   H‹\$PH‰œ$    HÄˆ   Ã‰éOÿÿÿè    éÎşÿÿÌÌÌÌÌÌÌÌÌÌÌÌÌÌ

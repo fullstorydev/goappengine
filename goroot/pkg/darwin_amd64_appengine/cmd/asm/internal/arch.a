@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     28419     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "1ef0887bd6b68da5d514d8d84fda49389de1ea56"
+__.PKGDEF       0           0     0     644     28417     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "625c93aa95cd39afe23e61f2149b2f8096965033"
 
 $$
 package arch
@@ -220,8 +220,8 @@ package arch
 	var @"bufio".ErrInvalidUnreadRune error
 
 $$
- _go_.o          0           0     0     644     188221    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     188219    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld$cmd/internal/obj.a,cmd/internal/obj/arm.a0cmd/internal/obj/arm64.a.cmd/internal/obj/mips.a0cmd/internal/obj/ppc64.a,cmd/internal/obj/x86.a

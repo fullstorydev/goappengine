@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     28542     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "d41d763c6313a42fcf0c387e07ce3042c6dc08e3"
+__.PKGDEF       0           0     0     644     28540     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "5d8f74d372730ea85be0431cc1f103e26020649b"
 
 $$
 package arm
@@ -220,8 +220,8 @@ package arm
 	const @"cmd/internal/obj/arm".REG_F2 = 0xc12
 
 $$
-_go_.o          0           0     0     644     548397    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     548395    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld2cmd/compile/internal/gc.a$cmd/internal/obj.a,cmd/internal/obj/arm.a

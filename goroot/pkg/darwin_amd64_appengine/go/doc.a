@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     9986      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "5898a91f43e7f48346348b5816c296b3c9c2fc02"
+__.PKGDEF       0           0     0     644     9984      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "1107e6c1b134c4af3a4321efdb2137356f212f4d"
 
 $$
 package doc
@@ -109,8 +109,8 @@ package doc
 	var @"go/ast".objKindStrings [7]string
 
 $$
-_go_.o          0           0     0     644     438802    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     438800    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldio.aregexp.astrings.atext/template.aunicode.aunicode/utf8.ago/ast.ago/token.apath.asort.astrconv.a þ "".commentEscape  à

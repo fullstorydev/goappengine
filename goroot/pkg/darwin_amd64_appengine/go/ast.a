@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     44925     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "6a50688c0242ad8ab253047aca04fab931b02e63"
+__.PKGDEF       0           0     0     644     44923     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "ae3caaf9dd76f458d6c464401d5d4421d45ab883"
 
 $$
 package ast
@@ -479,8 +479,8 @@ package ast
 	func @"reflect".toType (@"reflect".t·2 *@"reflect".rtype "esc:0x12") (? @"reflect".Type) { if @"reflect".t·2 == nil { return nil }; return @"reflect".t·2 }
 
 $$
- _go_.o          0           0     0     644     777763    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     777761    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldgo/token.astrings.aunicode.aunicode/utf8.abytes.a

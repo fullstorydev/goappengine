@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     13606     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "d9544b286b964b3ba893a5e20893205f425d9972"
+__.PKGDEF       0           0     0     644     13604     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "b3ff7e0061d24b9b0f32d5355853c7f0f9bde893"
 
 $$
 package file
@@ -117,8 +117,8 @@ package file
 	func (@"".r·3 *@"".reader "esc:0x1") @"".seek (@"".off·4 int64) (? int64, ? error) {  var @"".delta·5 int64; @"".delta·5 = @"".off·4 - @"".r·3.@"".off; if @"".delta·5 >= int64(0x0) && @"".delta·5 < int64(len(@"".r·3.@"".buf)) { @"".r·3.@"".r = int(@"".delta·5); return @"".off·4, nil }; @"".r·3.@"".buf, @"".r·3.@"".r, @"".r·3.@"".off = nil, int(0x0), @"".off·4; return @"".off·4, nil }
 
 $$
-_go_.o          0           0     0     644     79883     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     79881     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lderrors.a

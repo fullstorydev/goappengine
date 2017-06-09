@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     12435     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "0a7682a13ab7929713684f93a3066d9800b27fdd"
+__.PKGDEF       0           0     0     644     12433     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "752abb89d3618a832f01316b8e85d0ad4cdc2d90"
 
 $$
 package csv
@@ -104,8 +104,8 @@ package csv
 	func @"bufio".NewWriterSize (@"bufio".w·2 @"io".Writer, @"bufio".size·3 int) (? *@"bufio".Writer) { var @"bufio".b·4 *@"bufio".Writer; ; var @"bufio".ok·5 bool; ; @"bufio".b·4, @"bufio".ok·5 = @"bufio".w·2.(*@"bufio".Writer); if @"bufio".ok·5 && len(@"bufio".b·4.@"bufio".buf) >= @"bufio".size·3 { return @"bufio".b·4 }; if @"bufio".size·3 <= int(0x0) { @"bufio".size·3 = int(0x1000) }; return (&@"bufio".Writer{ @"bufio".buf:make([]byte, @"bufio".size·3), @"bufio".wr:@"bufio".w·2 }) }
 
 $$
- _go_.o          0           0     0     644     68705     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     68703     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.abytes.aerrors.a

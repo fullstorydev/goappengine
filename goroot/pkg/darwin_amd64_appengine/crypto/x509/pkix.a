@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     29731     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "c495951f00839e039281bf3c0eefe0f9a3236ae3"
+__.PKGDEF       0           0     0     644     29729     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "d47bb8d2a21ca4e88f38557cfcc6a78eb1be36c1"
 
 $$
 package pkix
@@ -222,8 +222,8 @@ package pkix
 	func @"math/big".low64 (@"math/big".zÂ·2 @"math/big".nat "esc:0x1") (? uint64) { if len(@"math/big".zÂ·2) == int(0x0) { return uint64(0x0) }; var @"math/big".vÂ·3 uint64; ; @"math/big".vÂ·3 = uint64(@"math/big".zÂ·2[int(0x0)]); if false && len(@"math/big".zÂ·2) > int(0x1) { @"math/big".vÂ·3 |= uint64(@"math/big".zÂ·2[int(0x1)]) << uint(0x20) }; return @"math/big".vÂ·3 }
 
 $$
- _go_.o          0           0     0     644     63995     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     63993     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldencoding/asn1.amath/big.atime.a ş<"".(*Name).FillFromRDNSequence   -   -eH‹%    H„$pÿÿÿH;A†(  Hì  H‹œ$   Hƒû „  H‹H‹CH‹kH‰¬$à   HÇD$P    H‰„$Ø   H‰D$HH‰Œ$Ğ   H‰L$`H‹\$PH‹l$HH9ë}jH‹\$`Hƒû „­

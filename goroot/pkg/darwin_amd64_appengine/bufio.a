@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     7972      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "274ed06a5025be6ad8ecdb971f448c6753bce141"
+__.PKGDEF       0           0     0     644     7970      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "d1ef03d48b8279eb1f07b1cb2f106a861a7a30fb"
 
 $$
 package bufio
@@ -77,8 +77,8 @@ package bufio
 	var @"io".EOF error
 
 $$
-_go_.o          0           0     0     644     214229    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     214227    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aerrors.aio.aunicode/utf8.a ş "".NewReaderSize  à  àeH‹%    HD$ÀH;A†‚  HìÀ   H‹”$Ø   H‹œ$È   1íH9ëtH‹[H-    H9ë…G  H‹„$Ğ   HÇÁ   €ù tH‹XH9Ó|H‰„$à   HÄÀ   ÃHƒú}HÇ„$Ø      H    H‰$è    H‹Œ$Ø   H‹D$H‰D$0H‰D$8H    H‰$H‰L$H‰L$è    H‹t$H‹l$ H‹T$(H‹Œ$È   H‹„$Ğ   H|$hWÀHƒÇĞè    GøH‰t$PH‰t$hH‰l$XH‰l$pH‰T$`H‰T$xH‰L$@H‰Œ$€   H‰D$HH‰„$ˆ   HÇ„$°   ÿÿÿÿHÇ„$¸   ÿÿÿÿH‹\$8Hƒû t4Hl$hH‰\$H‰l$H-    H‰,$è    H‹\$0H‰œ$à   HÄÀ   Ã‰ëÈ1À1Éé¿şÿÿè    é\şÿÿÌÌÌÌÌÌÌÌÌÌÌÌ

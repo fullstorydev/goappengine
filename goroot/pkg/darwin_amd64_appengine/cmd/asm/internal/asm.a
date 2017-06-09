@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     35845     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "cb6e796d674f1c1860c4609a79df480346d09a15"
+__.PKGDEF       0           0     0     644     35843     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "8164c06da5d21597bd18ab992057bade3b34ae80"
 
 $$
 package asm
@@ -263,8 +263,8 @@ package asm
 	var @"os".Stderr *@"os".File
 
 $$
- _go_.o          0           0     0     644     369075    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     369073    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.a

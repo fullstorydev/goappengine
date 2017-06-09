@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     21639     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "10e27239411c4e9bee4e706da52877e5f8b7b57c"
+__.PKGDEF       0           0     0     644     21637     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "cf57d448187df6ebb8ab9d35539bed199cf00cd0"
 
 $$
 package pe
@@ -151,8 +151,8 @@ package pe
 	func (@"debug/dwarf".e·2 @"debug/dwarf".DecodeError "esc:0x1") Error () (? string)
 
 $$
- _go_.o          0           0     0     644     124646    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     124644    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lddebug/dwarf.a"encoding/binary.aerrors.a

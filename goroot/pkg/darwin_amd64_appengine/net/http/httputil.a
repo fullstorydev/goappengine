@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     68503     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "c3e50a4e6f8bbd5f4ca03c6ab1b5b65c7704e381"
+__.PKGDEF       0           0     0     644     68660     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "6f847f75c8cb9eda895337c91d7cb5aab8e4dbc8"
 
 $$
 package httputil
@@ -303,6 +303,7 @@ package httputil
 	func (@"crypto/x509".s·1 *@"crypto/x509".CertPool "esc:0x9") AddCert (@"crypto/x509".cert·2 *@"crypto/x509".Certificate)
 	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x9") AppendCertsFromPEM (@"crypto/x509".pemCerts·3 []byte) (@"crypto/x509".ok·1 bool)
 	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x9") Subjects () (@"crypto/x509".res·1 [][]byte)
+	func (@"crypto/x509".s·2 *@"crypto/x509".CertPool "esc:0x1") @"crypto/x509".contains (@"crypto/x509".cert·3 *@"crypto/x509".Certificate "esc:0x1") (? bool)
 	func (@"crypto/x509".s·4 *@"crypto/x509".CertPool "esc:0x18a") @"crypto/x509".findVerifiedParents (@"crypto/x509".cert·5 *@"crypto/x509".Certificate "esc:0x9") (@"crypto/x509".parents·1 []int, @"crypto/x509".errCert·2 *@"crypto/x509".Certificate, @"crypto/x509".err·3 error)
 	type @"crypto/x509".VerifyOptions struct { DNSName string; Intermediates *@"crypto/x509".CertPool; Roots *@"crypto/x509".CertPool; CurrentTime @"time".Time; KeyUsages []@"crypto/x509".ExtKeyUsage }
 	type @"crypto/x509".Certificate struct { Raw []byte; RawTBSCertificate []byte; RawSubjectPublicKeyInfo []byte; RawSubject []byte; RawIssuer []byte; Signature []byte; SignatureAlgorithm @"crypto/x509".SignatureAlgorithm; PublicKeyAlgorithm @"crypto/x509".PublicKeyAlgorithm; PublicKey interface {}; Version int; SerialNumber *@"math/big".Int; Issuer @"crypto/x509/pkix".Name; Subject @"crypto/x509/pkix".Name; NotBefore @"time".Time; NotAfter @"time".Time; KeyUsage @"crypto/x509".KeyUsage; Extensions []@"crypto/x509/pkix".Extension; ExtraExtensions []@"crypto/x509/pkix".Extension; UnhandledCriticalExtensions []@"encoding/asn1".ObjectIdentifier; ExtKeyUsage []@"crypto/x509".ExtKeyUsage; UnknownExtKeyUsage []@"encoding/asn1".ObjectIdentifier; BasicConstraintsValid bool; IsCA bool; MaxPathLen int; MaxPathLenZero bool; SubjectKeyId []byte; AuthorityKeyId []byte; OCSPServer []string; IssuingCertificateURL []string; DNSNames []string; EmailAddresses []string; IPAddresses []@"net".IP; PermittedDNSDomainsCritical bool; PermittedDNSDomains []string; CRLDistributionPoints []string; PolicyIdentifiers []@"encoding/asn1".ObjectIdentifier }
@@ -499,8 +500,8 @@ package httputil
 	func @"bufio".NewReaderSize (@"bufio".rd·2 @"io".Reader, @"bufio".size·3 int) (? *@"bufio".Reader) { var @"bufio".b·4 *@"bufio".Reader; ; var @"bufio".ok·5 bool; ; @"bufio".b·4, @"bufio".ok·5 = @"bufio".rd·2.(*@"bufio".Reader); if @"bufio".ok·5 && len(@"bufio".b·4.@"bufio".buf) >= @"bufio".size·3 { return @"bufio".b·4 }; if @"bufio".size·3 < int(0x10) { @"bufio".size·3 = int(0x10) }; var @"bufio".r·6 *@"bufio".Reader; ; @"bufio".r·6 = new(@"bufio".Reader); @"bufio".r·6.@"bufio".reset(make([]byte, @"bufio".size·3), @"bufio".rd·2); return @"bufio".r·6 }
 
 $$
- _go_.o          0           0     0     644     294191    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     294189    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.abytes.aerrors.a

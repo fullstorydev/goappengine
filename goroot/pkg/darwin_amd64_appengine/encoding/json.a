@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     31291     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "7a288dbd65912b4158203992ffd6f78ee8fa8fcf"
+__.PKGDEF       0           0     0     644     31289     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "176642604b8a0aa85b8910292035fcfbda996f0c"
 
 $$
 package json
@@ -278,8 +278,8 @@ package json
 	var @"io".EOF error
 
 $$
- _go_.o          0           0     0     644     649398    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     649396    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aencoding.a"encoding/base64.aerrors.a

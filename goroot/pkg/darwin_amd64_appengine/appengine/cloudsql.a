@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     9926      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "8e510448f54787cec9f36aa61e9002083e8c68a4"
+__.PKGDEF       0           0     0     644     9924      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "663216469ff62993a3ec908befc349f5832d8768"
 
 $$
 package cloudsql
@@ -84,8 +84,8 @@ package cloudsql
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
-_go_.o          0           0     0     644     4078      `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     4076      `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

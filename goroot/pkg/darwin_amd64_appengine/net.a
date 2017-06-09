@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     44264     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "7824d734bf8a37307dd886ce53bd3def68b98e14"
+__.PKGDEF       0           0     0     644     44262     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "6f4bd7c8776b954ca3ea93648f3c6cd7495d5f28"
 
 $$
 package net
@@ -454,8 +454,8 @@ package net
 	func (@"errors".eÂ·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".eÂ·2.@"errors".s }
 
 $$
-_go_.o          0           0     0     644     1915021   `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     1915019   `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldsort.aos.aruntime.async.asyscall.aerrors.atime.amath/rand.aio.async/atomic.a.internal/singleflight.a ş "".sortByRFC6724  à  àeH‹%    H;a†…   HƒìHH‹L$XHƒù}HƒÄHÃH‹\$PH‰$H‰L$H‹\$`H‰\$è    H‹T$H‹L$ H‹D$(H‹\$PH‰$H‹\$XH‰\$H‹\$`H‰\$H‰T$0H‰T$H‰L$8H‰L$ H‰D$@H‰D$(è    HƒÄHÃè    é^ÿÿÿÌÌÌÌÌÌÌÌÌÌÌÌÌÌ

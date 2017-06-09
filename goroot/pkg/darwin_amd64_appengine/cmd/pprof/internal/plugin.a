@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     48424     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "3d9c031e745a8a895aa0cf83d7fed8d5ec3fefb1"
+__.PKGDEF       0           0     0     644     48422     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "f749b9fd8aee143dd7374eb57563716a23ccd387"
 
 $$
 package plugin
@@ -339,8 +339,8 @@ package plugin
 	func @"bufio".NewReaderSize (@"bufio".rd·2 @"io".Reader, @"bufio".size·3 int) (? *@"bufio".Reader) { var @"bufio".b·4 *@"bufio".Reader; ; var @"bufio".ok·5 bool; ; @"bufio".b·4, @"bufio".ok·5 = @"bufio".rd·2.(*@"bufio".Reader); if @"bufio".ok·5 && len(@"bufio".b·4.@"bufio".buf) >= @"bufio".size·3 { return @"bufio".b·4 }; if @"bufio".size·3 < int(0x10) { @"bufio".size·3 = int(0x10) }; var @"bufio".r·6 *@"bufio".Reader; ; @"bufio".r·6 = new(@"bufio".Reader); @"bufio".r·6.@"bufio".reset(make([]byte, @"bufio".size·3), @"bufio".rd·2); return @"bufio".r·6 }
 
 $$
-_go_.o          0           0     0     644     99738     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     99736     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.a

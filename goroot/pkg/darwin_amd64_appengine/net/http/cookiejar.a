@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     15066     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "9b35bdac774051f8e12ed91867fd4ef592f83973"
+__.PKGDEF       0           0     0     644     15064     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "ba52052de73d8ede3c8d2dca7d38c4b0a12c8163"
 
 $$
 package cookiejar
@@ -124,8 +124,8 @@ package cookiejar
 	func @"strings".HasPrefix (@"strings".s·2 string "esc:0x1", @"strings".prefix·3 string "esc:0x1") (? bool) { return len(@"strings".s·2) >= len(@"strings".prefix·3) && @"strings".s·2[int(0x0):len(@"strings".prefix·3)] == @"strings".prefix·3 }
 
 $$
-_go_.o          0           0     0     644     130104    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     130102    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lderrors.a

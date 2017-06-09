@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     23308     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "652885eec340e7238d1effff6ff73538ec055808"
+__.PKGDEF       0           0     0     644     23306     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "d19e4f846782a0bb3d3bc012bc3019dcf05b3f47"
 
 $$
 package ecdsa
@@ -168,8 +168,8 @@ package ecdsa
 	var @"crypto".hashes []func() (? @"hash".Hash)
 
 $$
-_go_.o          0           0     0     644     112057    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     112055    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldcrypto.acrypto/aes.acrypto/cipher.a"crypto/elliptic.acrypto/sha512.aencoding/asn1.aerrors.aio.amath/big.a ş."".(*PrivateKey).Public  `  `1ÛH‹\$Hƒû tH‰\$H    H‰\$Ã‰ëêÌÌÌÌÌÌÌÌÌÌÌÌÌ*  $type.*"".PublicKey   0   "".~r0 *type.crypto.PublicKey "".priv  &type.*"".PrivateKey 0 0 €.  TgclocalsÂ·0b86ef39f3fed835f14ba5f4d7c62fa2 TgclocalsÂ·33cdeccccebe80329f1fdbee7f5874cb   B$GOROOT/src/crypto/ecdsa/ecdsa.goş*"".(*PrivateKey).Sign      eH‹%    H;a†k  Hƒìp1ÛH‰œ$¸   H‰œ$À   H‰œ$È   1ÛH‰œ$Ğ   H‰œ$Ø   H‹œ$€   H‰$H‹œ$ˆ   H‰\$H‹\$xH‰\$H‹œ$   H‰\$H‹œ$˜   H‰\$ H‹œ$    H‰\$(è    H‹T$0H‹L$8H‹D$@H‹l$HH‰l$XH‰D$PHƒø t/1ÛH‰œ$¸   H‰œ$À   H‰œ$È   H‰„$Ğ   H‰¬$Ø   HƒÄpÃ1ÛH‰\$`H‰\$hH‰T$`H‰L$hH    H‰$H\$`H‰\$HÇD$    è    H\$H‹H‰$H‹KH‰L$è    H‹t$H‹l$H‹T$ H‹L$(H‹D$0H‰´$¸   H‰¬$À   H‰”$È   H‰Œ$Ğ   H‰„$Ø   HƒÄpÃè    éxşÿÿÌÌÌÌÌÌÌÌ

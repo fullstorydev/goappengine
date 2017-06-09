@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     12720     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "15428c4e19f054155381eed1f8aef9893e1cefc9"
+__.PKGDEF       0           0     0     644     12718     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "4cd77752d8a3b3c45cb39a77c58274aace133fa8"
 
 $$
 package tempfile
@@ -116,8 +116,8 @@ package tempfile
 	var @"time".UTC *@"time".Location
 
 $$
-_go_.o          0           0     0     644     15788     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     15786     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

@@ -255,7 +255,7 @@ def CalculateExtendedSourceContexts(source_directory):
   return source_contexts
 
 
-def BestSourceContext(source_contexts, source_directory=None):
+def BestSourceContext(source_contexts):
   """Returns the "best" source context from a list of contexts.
 
   "Best" is a heuristic that attempts to define the most useful context in
@@ -280,14 +280,11 @@ def BestSourceContext(source_contexts, source_directory=None):
 
   Args:
     source_contexts: A list of extended source contexts.
-    source_directory: [DEPRECATED] The source directory used to generate the
-      contexts. Not used.
   Returns:
     A single source context, or None if source_contexts is empty.
   Raises:
     KeyError if any extended source context is malformed.
   """
-  del source_directory
   source_context = None
   best_type = None
   best_remote_name = None

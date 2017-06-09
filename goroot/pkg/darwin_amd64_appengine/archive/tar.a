@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     13522     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "2696e41a9fd457ddcaaa6fca4e5e76c499082568"
+__.PKGDEF       0           0     0     644     13520     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "64de86662fd2d76a814d1f84a2048dbe13fdfa3f"
 
 $$
 package tar
@@ -143,8 +143,8 @@ package tar
 	func (@"".fi·2 @"".headerFileInfo "esc:0x12") Sys () (? interface {}) { return @"".fi·2.@"".h }
 
 $$
-_go_.o          0           0     0     644     295008    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     295006    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aerrors.a

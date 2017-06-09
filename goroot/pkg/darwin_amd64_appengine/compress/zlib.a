@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     10825     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "884293d8f3f4257dd07da21e6b74e544485ad156"
+__.PKGDEF       0           0     0     644     10823     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "9ac6438b4273518ba55d87e66b7743bc32a860b0"
 
 $$
 package zlib
@@ -81,8 +81,8 @@ package zlib
 	func @"".init ()
 
 $$
- _go_.o          0           0     0     644     52122     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     52120     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.a compress/flate.aerrors.ahash.ahash/adler32.aio.a

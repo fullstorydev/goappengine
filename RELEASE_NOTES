@@ -3,6 +3,12 @@ App Engine Go SDK - Release Notes
 Changes that are not backward compatible
 are marked with an exclamation mark ("!").
 
+Version 1.9.47 - November 2016
+=============================
+This release includes the go-app-stager binary that will be used by the Cloud
+SDK in order to properly stage App Engine Standard Go applications for
+deployment with gcloud app deploy.
+
 Version 20160927 - September 2016
 =================================
 This release is based on Go 1.6.3 with the systime patch for MacOS Sierra from

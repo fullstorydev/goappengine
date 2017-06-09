@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     131008    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "61fe02197f960a39f47c77415de0533602c67964"
+__.PKGDEF       0           0     0     644     132725    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "0b2363fb1bdcc7a0e854e1644bf4ccc7a462862e"
 
 $$
 package datastore
@@ -400,6 +400,10 @@ package datastore
 	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Query_Hint) Enum () (? *@"appengine_internal/datastore".Query_Hint) { var @"appengine_internal/datastore".p·3 *@"appengine_internal/datastore".Query_Hint; ; @"appengine_internal/datastore".p·3 = new(@"appengine_internal/datastore".Query_Hint); *@"appengine_internal/datastore".p·3 = @"appengine_internal/datastore".x·2; return @"appengine_internal/datastore".p·3 }
 	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Query_Hint) String () (? string)
 	func (@"appengine_internal/datastore".x·2 *@"appengine_internal/datastore".Query_Hint "esc:0x1") UnmarshalJSON (@"appengine_internal/datastore".data·3 []byte) (? error)
+	type @"appengine_internal/datastore".Index_Version int32
+	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Index_Version) Enum () (? *@"appengine_internal/datastore".Index_Version) { var @"appengine_internal/datastore".p·3 *@"appengine_internal/datastore".Index_Version; ; @"appengine_internal/datastore".p·3 = new(@"appengine_internal/datastore".Index_Version); *@"appengine_internal/datastore".p·3 = @"appengine_internal/datastore".x·2; return @"appengine_internal/datastore".p·3 }
+	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Index_Version) String () (? string)
+	func (@"appengine_internal/datastore".x·2 *@"appengine_internal/datastore".Index_Version "esc:0x1") UnmarshalJSON (@"appengine_internal/datastore".data·3 []byte) (? error)
 	type @"appengine_internal/datastore".Index_Property_Direction int32
 	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Index_Property_Direction) Enum () (? *@"appengine_internal/datastore".Index_Property_Direction) { var @"appengine_internal/datastore".p·3 *@"appengine_internal/datastore".Index_Property_Direction; ; @"appengine_internal/datastore".p·3 = new(@"appengine_internal/datastore".Index_Property_Direction); *@"appengine_internal/datastore".p·3 = @"appengine_internal/datastore".x·2; return @"appengine_internal/datastore".p·3 }
 	func (@"appengine_internal/datastore".x·2 @"appengine_internal/datastore".Index_Property_Direction) String () (? string)
@@ -415,10 +419,12 @@ package datastore
 	func (? *@"appengine_internal/datastore".Index_Property) ProtoMessage () {  }
 	func (@"appengine_internal/datastore".m·1 *@"appengine_internal/datastore".Index_Property "esc:0x1") Reset () { *@"appengine_internal/datastore".m·1 = (@"appengine_internal/datastore".Index_Property{  }) }
 	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index_Property) String () (? string)
-	type @"appengine_internal/datastore".Index struct { EntityType *string "protobuf:\"bytes,1,req,name=entity_type,json=entityType\" json:\"entity_type,omitempty\""; Ancestor *bool "protobuf:\"varint,5,req,name=ancestor\" json:\"ancestor,omitempty\""; Property []*@"appengine_internal/datastore".Index_Property "protobuf:\"group,2,rep,name=Property,json=property\" json:\"property,omitempty\""; XXX_unrecognized []byte "json:\"-\"" }
+	type @"appengine_internal/datastore".Index struct { EntityType *string "protobuf:\"bytes,1,req,name=entity_type,json=entityType\" json:\"entity_type,omitempty\""; Ancestor *bool "protobuf:\"varint,5,req,name=ancestor\" json:\"ancestor,omitempty\""; Parent *bool "protobuf:\"varint,7,opt,name=parent\" json:\"parent,omitempty\""; Version *@"appengine_internal/datastore".Index_Version "protobuf:\"varint,8,opt,name=version,enum=datastore.Index_Version,def=0\" json:\"version,omitempty\""; Property []*@"appengine_internal/datastore".Index_Property "protobuf:\"group,2,rep,name=Property,json=property\" json:\"property,omitempty\""; XXX_unrecognized []byte "json:\"-\"" }
 	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index "esc:0x1") GetAncestor () (? bool) { if @"appengine_internal/datastore".m·2 != nil && @"appengine_internal/datastore".m·2.Ancestor != nil { return *@"appengine_internal/datastore".m·2.Ancestor }; return bool(false) }
 	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index "esc:0x32") GetEntityType () (? string) { if @"appengine_internal/datastore".m·2 != nil && @"appengine_internal/datastore".m·2.EntityType != nil { return *@"appengine_internal/datastore".m·2.EntityType }; return string("") }
+	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index "esc:0x1") GetParent () (? bool) { if @"appengine_internal/datastore".m·2 != nil && @"appengine_internal/datastore".m·2.Parent != nil { return *@"appengine_internal/datastore".m·2.Parent }; return bool(false) }
 	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index "esc:0x22") GetProperty () (? []*@"appengine_internal/datastore".Index_Property) { if @"appengine_internal/datastore".m·2 != nil { return @"appengine_internal/datastore".m·2.Property }; return nil }
+	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index "esc:0x1") GetVersion () (? @"appengine_internal/datastore".Index_Version) { if @"appengine_internal/datastore".m·2 != nil && @"appengine_internal/datastore".m·2.Version != nil { return *@"appengine_internal/datastore".m·2.Version }; return @"appengine_internal/datastore".Index_Version(0x0) }
 	func (? *@"appengine_internal/datastore".Index) ProtoMessage () {  }
 	func (@"appengine_internal/datastore".m·1 *@"appengine_internal/datastore".Index "esc:0x1") Reset () { *@"appengine_internal/datastore".m·1 = (@"appengine_internal/datastore".Index{  }) }
 	func (@"appengine_internal/datastore".m·2 *@"appengine_internal/datastore".Index) String () (? string)
@@ -617,8 +623,8 @@ package datastore
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
-_go_.o          0           0     0     644     629304    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     629302    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13lderrors.a

@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     39855     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "477d15b576ad4a693071b1c1dadafb2bd4faf970"
+__.PKGDEF       0           0     0     644     39853     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "da66f140cbdc138f47533a33cd325c517edce63f"
 
 $$
 package lex
@@ -320,8 +320,8 @@ package lex
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
- _go_.o          0           0     0     644     233543    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     233541    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ld

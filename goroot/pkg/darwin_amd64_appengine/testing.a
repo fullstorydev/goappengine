@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     16849     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "6f5e4aca19ff300eafdbd31cb198ee919f25e37b"
+__.PKGDEF       0           0     0     644     16847     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "7daa281b55f9e97f82de33b25591ad5197c4b166"
 
 $$
 package testing
@@ -165,8 +165,8 @@ package testing
 	var @"".chatty *bool
 
 $$
- _go_.o          0           0     0     644     301299    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     301297    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldruntime.aflag.a

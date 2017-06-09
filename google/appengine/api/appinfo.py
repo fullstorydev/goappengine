@@ -76,6 +76,8 @@ _DELTA_REGEX = r'([0-9]+)([DdHhMm]|[sS]?)'
 _EXPIRATION_REGEX = r'\s*(%s)(\s+%s)*\s*' % (_DELTA_REGEX, _DELTA_REGEX)
 _START_PATH = '/_ah/start'
 
+_NON_WHITE_SPACE_REGEX = r'^\S+$'
+
 
 
 
@@ -152,7 +154,6 @@ MODULE_VERSION_ID_RE_STRING = (r'^(?!-)[a-z\d\-]{0,%d}[a-z\d]$' %
 _IDLE_INSTANCES_REGEX = r'^([\d]+|automatic)$'
 
 _INSTANCES_REGEX = r'^[1-9][\d]*$'
-_INSTANCE_CLASS_REGEX = r'^([fF](1|2|4|4_1G)|[bB](1|2|4|8|4_1G))$'
 
 _CONCURRENT_REQUESTS_REGEX = r'^([1-9]\d*)$'
 
@@ -173,7 +174,7 @@ BUILTIN_NAME_PREFIX = 'ah-builtin'
 RUNTIME_RE_STRING = r'[a-z][a-z0-9\-]{0,29}'
 
 API_VERSION_RE_STRING = r'[\w.]{1,32}'
-ENV_RE_STRING = r'[\w.]{1,32}'
+ENV_RE_STRING = r'(1|2|standard|flex|flexible)'
 
 SOURCE_LANGUAGE_RE_STRING = r'[\w.\-]{1,32}'
 
@@ -245,12 +246,15 @@ BETA_SETTINGS = 'beta_settings'
 VM_HEALTH_CHECK = 'vm_health_check'
 HEALTH_CHECK = 'health_check'
 RESOURCES = 'resources'
+LIVENESS_CHECK = 'liveness_check'
+READINESS_CHECK = 'readiness_check'
 NETWORK = 'network'
 VERSION = 'version'
 MAJOR_VERSION = 'major_version'
 MINOR_VERSION = 'minor_version'
 RUNTIME = 'runtime'
 API_VERSION = 'api_version'
+ENDPOINTS_API_SERVICE = 'endpoints_api_service'
 ENV = 'env'
 ENTRYPOINT = 'entrypoint'
 RUNTIME_CONFIG = 'runtime_config'
@@ -329,6 +333,10 @@ PAGES = 'pages'
 NAME = 'name'
 
 
+ENDPOINTS_NAME = 'name'
+CONFIG_ID = 'config_id'
+
+
 ERROR_CODE = 'error_code'
 FILE = 'file'
 _ERROR_CODE_REGEX = r'(default|over_quota|dos_api_denial|timeout)'
@@ -348,7 +356,9 @@ TIMEOUT_SEC = 'timeout_sec'
 UNHEALTHY_THRESHOLD = 'unhealthy_threshold'
 HEALTHY_THRESHOLD = 'healthy_threshold'
 RESTART_THRESHOLD = 'restart_threshold'
+INITIAL_DELAY_SEC = 'initial_delay_sec'
 HOST = 'host'
+PATH = 'path'
 
 
 CPU = 'cpu'
@@ -365,6 +375,7 @@ SIZE_GB = 'size_gb'
 FORWARDED_PORTS = 'forwarded_ports'
 INSTANCE_TAG = 'instance_tag'
 NETWORK_NAME = 'name'
+SUBNETWORK_NAME = 'subnetwork_name'
 
 
 class _VersionedLibrary(object):
@@ -378,7 +389,8 @@ class _VersionedLibrary(object):
                latest_version,
                default_version=None,
                deprecated_versions=None,
-               experimental_versions=None):
+               experimental_versions=None,
+               hidden_versions=None):
     """Initializer for `_VersionedLibrary`.
 
     Args:
@@ -398,9 +410,14 @@ class _VersionedLibrary(object):
           in the Python 2.7 runtime, or `None` if the library is not available
           by default; for example, `v1`.
       deprecated_versions: A list of the versions of the library that have been
-          deprecated; for example, `["v1", "v2"]`.
+          deprecated; for example, `["v1", "v2"]`. Order by release version.
       experimental_versions: A list of the versions of the library that are
-          currently experimental; for example, `["v1"]`.
+          currently experimental; for example, `["v1"]`. Order by release
+          version.
+      hidden_versions: A list of versions that will not show up in public
+          documentation for release purposes.  If, as a result, the library
+          has no publicly documented versions, the entire library won't show
+          up in the docs. Order by release version.
     """
     self.name = name
     self.url = url
@@ -410,6 +427,16 @@ class _VersionedLibrary(object):
     self.default_version = default_version
     self.deprecated_versions = deprecated_versions or []
     self.experimental_versions = experimental_versions or []
+    self.hidden_versions = hidden_versions or []
+
+  @property
+  def hidden(self):
+    """Determines if the entire library should be hidden from public docs.
+
+    Returns:
+      True if there is every supported version is hidden.
+    """
+    return sorted(self.supported_versions) == sorted(self.hidden_versions)
 
   @property
   def non_deprecated_versions(self):
@@ -429,6 +456,7 @@ _SUPPORTED_LIBRARIES = [
         'A fast, powerful, and language-neutral HTML template system.',
         ['0.10.5'],
         latest_version='0.10.5',
+        hidden_versions=['0.10.5'],
         ),
     _VersionedLibrary(
         'django',
@@ -452,6 +480,14 @@ _SUPPORTED_LIBRARIES = [
         latest_version='1.0',
         ),
     _VersionedLibrary(
+        'grpcio',
+        'http://http://www.grpc.io/',
+        'A high performance general RPC framework',
+        ['1.0.0'],
+        latest_version='1.0.0',
+        default_version='1.0.0',
+        ),
+    _VersionedLibrary(
         'jinja2',
         'http://jinja.pocoo.org/docs/',
         'A modern and designer friendly templating language for Python.',
@@ -462,9 +498,10 @@ _SUPPORTED_LIBRARIES = [
         'lxml',
         'http://lxml.de/',
         'A Pythonic binding for the C libraries libxml2 and libxslt.',
-        ['2.3', '2.3.5'],
+        ['2.3', '2.3.5', '3.7.3'],
         latest_version='2.3',
         experimental_versions=['2.3.5'],
+        hidden_versions=['3.7.3'],
         ),
     _VersionedLibrary(
         'markupsafe',
@@ -526,7 +563,6 @@ _SUPPORTED_LIBRARIES = [
         ['1.7'],
         latest_version='1.7',
         ),
-
     _VersionedLibrary(
         'PyAMF',
         'http://pyamf.appspot.com/index.html',
@@ -653,9 +689,9 @@ _MAX_URL_LENGTH = 2047
 
 _MAX_HEADER_SIZE_FOR_EXEMPTED_HEADERS = 10240
 
-_CANNED_RUNTIMES = ('contrib-dart', 'dart', 'go', 'php', 'php55', 'python',
-                    'python27', 'python-compat', 'java', 'java7', 'vm',
-                    'custom', 'nodejs', 'ruby')
+_CANNED_RUNTIMES = ('contrib-dart', 'dart', 'go', 'php', 'php55', 'php7',
+                    'python', 'python27', 'python-compat', 'java', 'java7',
+                    'vm', 'custom', 'nodejs', 'ruby')
 _all_runtimes = _CANNED_RUNTIMES
 
 
@@ -1489,6 +1525,14 @@ class CpuUtilization(validation.Validated):
   }
 
 
+class EndpointsApiService(validation.Validated):
+  """Class representing EndpointsApiService in AppInfoExternal."""
+  ATTRIBUTES = {
+      ENDPOINTS_NAME: validation.Regex(_NON_WHITE_SPACE_REGEX),
+      CONFIG_ID: validation.Regex(_NON_WHITE_SPACE_REGEX),
+  }
+
+
 class AutomaticScaling(validation.Validated):
   """Class representing automatic scaling settings in AppInfoExternal."""
   ATTRIBUTES = {
@@ -1697,6 +1741,29 @@ class HealthCheck(validation.Validated):
       HOST: validation.Optional(validation.TYPE_STR)}
 
 
+class LivenessCheck(validation.Validated):
+  """Class representing the liveness check configuration."""
+  ATTRIBUTES = {
+      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      UNHEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+      HEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+      INITIAL_DELAY_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      PATH: validation.Optional(validation.TYPE_STR),
+      HOST: validation.Optional(validation.TYPE_STR)}
+
+
+class ReadinessCheck(validation.Validated):
+  """Class representing the readiness check configuration."""
+  ATTRIBUTES = {
+      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      UNHEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+      HEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+      PATH: validation.Optional(validation.TYPE_STR),
+      HOST: validation.Optional(validation.TYPE_STR)}
+
+
 class VmHealthCheck(HealthCheck):
   """Class representing the configuration of the VM health check.
 
@@ -1740,6 +1807,9 @@ class Network(validation.Validated):
           GCE_RESOURCE_NAME_REGEX)),
 
       NETWORK_NAME: validation.Optional(validation.Regex(
+          GCE_RESOURCE_NAME_REGEX)),
+
+      SUBNETWORK_NAME: validation.Optional(validation.Regex(
           GCE_RESOURCE_NAME_REGEX)),
   }
 
@@ -1993,10 +2063,14 @@ class AppInfoExternal(validation.Validated):
       API_VERSION: validation.Optional(API_VERSION_RE_STRING),
 
       ENV: validation.Optional(ENV_RE_STRING),
+      ENDPOINTS_API_SERVICE: validation.Optional(EndpointsApiService),
 
-      ENTRYPOINT: validation.Optional(validation.Type(str)),
+
+      ENTRYPOINT: validation.Optional(
+          validation.Exec() if hasattr(
+              validation, 'Exec') else validation.Type(str)),
       RUNTIME_CONFIG: validation.Optional(RuntimeConfig),
-      INSTANCE_CLASS: validation.Optional(_INSTANCE_CLASS_REGEX),
+      INSTANCE_CLASS: validation.Optional(validation.Type(str)),
       SOURCE_LANGUAGE: validation.Optional(
           validation.Regex(SOURCE_LANGUAGE_RE_STRING)),
       AUTOMATIC_SCALING: validation.Optional(AutomaticScaling),
@@ -2008,6 +2082,8 @@ class AppInfoExternal(validation.Validated):
       VM_HEALTH_CHECK: validation.Optional(VmHealthCheck),
       HEALTH_CHECK: validation.Optional(HealthCheck),
       RESOURCES: validation.Optional(Resources),
+      LIVENESS_CHECK: validation.Optional(LivenessCheck),
+      READINESS_CHECK: validation.Optional(ReadinessCheck),
       NETWORK: validation.Optional(Network),
       BUILTINS: validation.Optional(validation.Repeated(BuiltinHandler)),
       INCLUDES: validation.Optional(validation.Type(list)),
@@ -2082,9 +2158,6 @@ class AppInfoExternal(validation.Validated):
       raise appinfo_errors.TooManyURLMappings(
           'Found more than %d URLMap entries in application configuration' %
           MAX_URL_MAPS)
-    if self.service and self.module:
-      raise appinfo_errors.ModuleAndServiceDefined(
-          'Cannot define both "module" and "service" in configuration')
 
     vm_runtime_python27 = (
         self.runtime == 'vm' and
@@ -2382,6 +2455,15 @@ def LoadSingleAppInfo(app_info):
   elif appyaml.project:
     appyaml.application = appyaml.project
     appyaml.project = None
+
+
+
+  if appyaml.service and appyaml.module:
+    raise appinfo_errors.ModuleAndServiceDefined(
+        'Cannot define both "module" and "service" in configuration')
+  elif appyaml.service:
+    appyaml.module = appyaml.service
+    appyaml.service = None
 
   appyaml.NormalizeVmSettings()
   return appyaml

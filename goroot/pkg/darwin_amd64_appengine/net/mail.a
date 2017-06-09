@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     14697     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "58796946b1614ed7d14db534cdf8d6527a1e1f4b"
+__.PKGDEF       0           0     0     644     14695     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "cbad35270ce4f849f19669d62dfc0af0f2c3e591"
 
 $$
 package mail
@@ -132,8 +132,8 @@ package mail
 	func (@"errors".e·2 *@"errors".errorString "esc:0x22") Error () (? string) { return @"errors".e·2.@"errors".s }
 
 $$
- _go_.o          0           0     0     644     158690    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+ _go_.o          0           0     0     644     158688    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbufio.abytes.aerrors.a

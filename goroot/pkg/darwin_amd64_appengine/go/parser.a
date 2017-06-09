@@ -1,7 +1,7 @@
 !<arch>
-__.PKGDEF       0           0     0     644     20898     `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
-build id "ca396db92fac1a330d0902579b8bd247b9a5c4bb"
+__.PKGDEF       0           0     0     644     20896     `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+build id "c6f0de1f35ebef724014f61d5c8dd2d453eee326"
 
 $$
 package parser
@@ -197,8 +197,8 @@ package parser
 	var @"time".UTC *@"time".Location
 
 $$
-_go_.o          0           0     0     644     485361    `
-go object darwin amd64 go1.6.3 (appengine-1.9.46) X:none
+_go_.o          0           0     0     644     485359    `
+go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
 
 !
   go13ldbytes.aerrors.ago/ast.ago/token.aio.aio/ioutil.aos.apath/filepath.astrings.a

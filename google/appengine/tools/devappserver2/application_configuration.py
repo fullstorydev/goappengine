@@ -35,10 +35,8 @@ from google.appengine.api import backendinfo
 from google.appengine.api import dispatchinfo
 from google.appengine.client.services import port_manager
 from google.appengine.tools import app_engine_web_xml_parser
-from google.appengine.tools import java_quickstart
 from google.appengine.tools import queue_xml_parser
 from google.appengine.tools import web_xml_parser
-from google.appengine.tools import xml_parser_utils
 from google.appengine.tools import yaml_translator
 from google.appengine.tools.devappserver2 import errors
 
@@ -470,20 +468,10 @@ class ModuleConfiguration(object):
         app_engine_web_xml_parser.AppEngineWebXmlParser().ProcessXml(
             app_engine_web_xml_str))
 
-    quickstart = xml_parser_utils.BooleanValue(
-        app_engine_web_xml.beta_settings.get('java_quickstart', 'false'))
-
     web_inf_dir = os.path.dirname(app_engine_web_xml_path)
-    if quickstart:
-      app_dir = os.path.dirname(web_inf_dir)
-      web_xml_str, web_xml_path = java_quickstart.quickstart_generator(app_dir)
-      webdefault_xml_str = java_quickstart.get_webdefault_xml()
-      web_xml_str = java_quickstart.remove_mappings(
-          web_xml_str, webdefault_xml_str)
-    else:
-      web_xml_path = os.path.join(web_inf_dir, 'web.xml')
-      with open(web_xml_path) as f:
-        web_xml_str = f.read()
+    web_xml_path = os.path.join(web_inf_dir, 'web.xml')
+    with open(web_xml_path) as f:
+      web_xml_str = f.read()
 
     has_jsps = False
     for _, _, filenames in os.walk(self.application_root):
@@ -937,6 +925,19 @@ class ApplicationConfiguration(object):
     return app_yamls + backend_yamls
 
   def _config_files_from_web_inf_dir(self, web_inf):
+    """Return a list of the configuration files found in a WEB-INF directory.
+
+    We expect to find web.xml and application-web.xml in the directory.
+
+    Args:
+      web_inf: a string that is the path to a WEB-INF directory.
+
+    Raises:
+      AppConfigNotFoundError: If the xml files are not found.
+
+    Returns:
+      A list of strings that are file paths.
+    """
     required = ['appengine-web.xml', 'web.xml']
     missing = [f for f in required
                if not os.path.exists(os.path.join(web_inf, f))]
@@ -948,6 +949,21 @@ class ApplicationConfiguration(object):
 
   @staticmethod
   def _files_in_dir_matching(dir_path, names):
+    """Return a single-element list containing an absolute path to a file.
+
+    The method accepts a list of filenames. If multiple are found, an error is
+    raised. If only one match is found, the full path to this file is returned.
+
+    Args:
+      dir_path: A string base directory for searching for filenames.
+      names: A list of string relative file names to seek within dir_path.
+
+    Raises:
+      InvalidAppConfigError: If the xml files are not found.
+
+    Returns:
+      A single-element list containing a full path to a file.
+    """
     abs_names = [os.path.join(dir_path, name) for name in names]
     files = [f for f in abs_names if os.path.exists(f)]
     if len(files) > 1:

@@ -12,9 +12,9 @@ third_party {
     value: "http://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.6.tar.gz"
   }
   version: "2.6"
-  last_upgrade_date: {
-    year: 2011
-    month: 8
-    day: 9
+  last_upgrade_date: { year: 2011 month: 8 day: 9 }
+  multiple_versions {
+    type: PERMANENT
+    approval: "cl/22169881"
   }
 }

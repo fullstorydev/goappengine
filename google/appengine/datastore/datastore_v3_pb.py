@@ -21,9 +21,6 @@ from google.net.proto import ProtocolBuffer
 import array
 import dummy_thread as thread
 
-__pychecker__ = """maxreturns=0 maxbranches=0 no-callinit
-                   unusednames=printElemNumber,debug_strs no-special"""
-
 if hasattr(ProtocolBuffer, 'ExtendableProtocolMessage'):
   _extension_runtime = True
   _ExtendableProtocolMessage = ProtocolBuffer.ExtendableProtocolMessage
@@ -4308,6 +4305,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
   NOT_FOUND    =   13
   ALREADY_EXISTS =   14
   FAILED_PRECONDITION =   15
+  UNAUTHENTICATED =   16
 
   _ErrorCode_NAMES = {
     1: "BAD_REQUEST",
@@ -4325,6 +4323,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
     13: "NOT_FOUND",
     14: "ALREADY_EXISTS",
     15: "FAILED_PRECONDITION",
+    16: "UNAUTHENTICATED",
   }
 
   def ErrorCode_Name(cls, x): return cls._ErrorCode_NAMES.get(x, "")
