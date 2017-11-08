@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     10971     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "68227892bc48360dddc3e7028a995c049674976a"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "4d2adadd9fcbf3c34f094c475dc41cc7ef535e80"
 
 $$
 package mail
@@ -95,7 +95,7 @@ package mail
 
 $$
  _go_.o          0           0     0     644     43234     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldnet/mail.aappengine.a(appengine_internal.ajappengine_internal/github.com/golang/protobuf/proto.a2appengine_internal/base.a2appengine_internal/mail.a ş"".Send  €  €eH‹%    H;av`Hƒì81ÛH‰\$XH‰\$`H‹\$@H‰$H‹\$HH‰\$H    H‰\$HÇD$   H‹\$PH‰\$ è    H‹L$(H‹D$0H‰L$XH‰D$`HƒÄ8Ãè    ëŠÌÌÌÌÌÌÌÌÌÌ

@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     11540     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "2a452a06bbe1f33b1af375131fe92e020b8690ab"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "02ca33b836b0635bcf1f4e4717d09d6b9f5a194b"
 
 $$
 package textproto
@@ -115,7 +115,7 @@ package textproto
 
 $$
 _go_.o          0           0     0     644     213233    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldsync.abufio.abytes.aio.aio/ioutil.astrconv.astrings.a

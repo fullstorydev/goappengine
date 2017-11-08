@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     86596     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "c1ad01f1e53e60bed550ab78b3056a3392862f70"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "37431291bbb1858afcf52aa36aa42e99a64edcf5"
 
 $$
 package httptest
@@ -631,7 +631,7 @@ package httptest
 
 $$
 _go_.o          0           0     0     644     119611    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldbytes.anet/http.acrypto/tls.aflag.a

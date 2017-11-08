@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     80798     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "cf108cee8d2aa62fc61bf6340d51673370f2df3c"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "9609b56ee90fc2a820b6d40287eb2f173c18100d"
 
 $$
 package rpc
@@ -622,7 +622,7 @@ package rpc
 
 $$
 _go_.o          0           0     0     644     412399    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldbufio.aencoding/gob.aerrors.aio.a

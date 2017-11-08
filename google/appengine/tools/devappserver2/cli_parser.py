@@ -62,6 +62,25 @@ class PortParser(object):
     return port
 
 
+class ServicePortParser(PortParser):
+  """An argparse type parser exclusively for --specified_service_port flag."""
+
+  def __init__(self):
+    super(ServicePortParser, self).__init__()
+
+  def __call__(self, value):
+    res = {}
+    for service_port_str in value.split(','):
+      service_port = service_port_str.split(':')
+      if len(service_port) is not 2:
+        raise argparse.ArgumentTypeError(
+            ' %s is not in the format of service-name:port,service-name:port'
+            % value)
+      service, port = service_port
+      res[service] = super(ServicePortParser, self).__call__(port)
+    return res
+
+
 def parse_per_module_option(
     value, value_type, value_predicate,
     single_bad_type_error, single_bad_predicate_error,
@@ -251,7 +270,7 @@ class ConfigurableArgumentParser(argparse.ArgumentParser):
       *args: Arguments passed on to the argument group.
       **kwargs: Keyword arguments passed on to the argument group, can
           optionally contain a 'restrict_configuration' kwarg that will be
-          popped. This should be the list of configurations the the argument is
+          popped. This should be the list of configurations the argument is
           applicable for. Omitting this kwarg, or providing an empty list,
           signifies that the added argument is valid for all configurations.
     """
@@ -305,7 +324,7 @@ class ConfigurableArgumentGroup(argparse._ArgumentGroup):  # pylint: disable=pro
       *args: Arguments passed on to the argument group.
       **kwargs: Keyword arguments passed on to the argument group, can
           optionally contain a 'restrict_configuration' kwarg that will be
-          popped. This should be the list of configurations the the argument is
+          popped. This should be the list of configurations the argument is
           applicable for. Omitting this kwarg, or providing an empty list,
           signifies that the added argument is valid for all configurations.
     """
@@ -355,12 +374,23 @@ def create_command_line_parser(configuration=None):
       '-A', '--application', action='store', dest='app_id',
       help='Set the application, overriding the application value from the '
       'app.yaml file.')
+  # The default application ID prefix for use in API stubs. This flag is
+  # suppressed because users should not be changing this. It is used only for
+  # testing purposes.
+  # TODO: Unify py/java use of dev~ prefix.
+  common_group.add_argument(
+      '--application_prefix', dest='app_id_prefix', default='dev~',
+      help=argparse.SUPPRESS)
   common_group.add_argument(
       '--host', default=default_server_host,
       help='host name to which application modules should bind')
   common_group.add_argument(
       '--port', type=PortParser(), default=8080,
       help='lowest port to which application modules should bind')
+  common_group.add_argument(
+      '--specified_service_ports', type=ServicePortParser(), default=None,
+      help='A sequence of service-name:port-number to port number mapping. E.g:'
+      ' service-a:22222,service-b:33333')
   common_group.add_argument(
       '--admin_host', default=default_server_host,
       help='host name to which the admin server should bind')
@@ -437,6 +467,17 @@ def create_command_line_parser(configuration=None):
                          restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
                          help='path to the xdebug extension')
 
+
+
+
+
+
+
+
+
+
+
+
   # App Identity
   appidentity_group = parser.add_argument_group('Application Identity')
   appidentity_group.add_argument(
@@ -462,7 +503,7 @@ def create_command_line_parser(configuration=None):
       '--python_startup_script',
       restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
       help='the script to run at the startup of new Python runtime instances '
-      '(useful for tools such as debuggers.')
+      '(useful for tools such as debuggers).')
   python_group.add_argument(
       '--python_startup_args',
       restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
@@ -695,15 +736,24 @@ def create_command_line_parser(configuration=None):
       '--api_port', type=PortParser(), default=0,
       help='port to which the server for API calls should bind')
   misc_group.add_argument(
-      '--grpc_api', action='append', dest='grpc_apis',
-      restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
-      help='apis that talk grpc to api_server. For example: '
-      '--grpc_api memcache --grpc_api datastore. Setting --grpc_api all '
-      'lets every api talk grpc.')
+      '--api_server_supports_grpc',
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=False,
+      help=argparse.SUPPRESS)
+
+
+
+
+  misc_group.add_argument(
+      '--support_datastore_emulator',
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=False,
+      help=argparse.SUPPRESS)
   misc_group.add_argument(
       '--grpc_api_port', type=PortParser(), default=0,
-      restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
-      help='port to which the server for grpc API calls should bind')
+      help='port on which the gRPC API server listens.')
   misc_group.add_argument(
       '--automatic_restart',
       action=boolean_action.BooleanAction,
@@ -738,20 +788,18 @@ def create_command_line_parser(configuration=None):
       'in the format of key=value, and you can define multiple envrionment '
       'variables. For example: --env_var KEY_1=val1 --env_var KEY_2=val2. '
       'You can also define environment variables in app.yaml.')
+  # The client id used for Google Analytics usage reporting. If this is set,
+  # usage metrics will be sent to Google Analytics. This should only be set by
+  # the Cloud SDK dev_appserver.py wrapper.
   misc_group.add_argument(
       '--google_analytics_client_id', default=None,
       restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
-      help='the client id user for Google Analytics usage reporting. If this '
-      'is set, usage metrics will be sent to Google Analytics.')
+      help=argparse.SUPPRESS)
+  # The user agent to use for Google Analytics usage reporting. This should only
+  # be set by the Cloud SDK dev_appserver.py wrapper.
   misc_group.add_argument(
       '--google_analytics_user_agent', default=None,
       restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
-      help='the user agent to use for Google Analytics usage reporting.')
-
-
-
-
-
-
+      help=argparse.SUPPRESS)
 
   return parser

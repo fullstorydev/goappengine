@@ -153,9 +153,8 @@ MAXIMUM_QUERY_LENGTH = 2000
 MAXIMUM_DOCUMENTS_RETURNED_PER_SEARCH = 1000
 MAXIMUM_DEPTH_FOR_FACETED_SEARCH = 10000
 MAXIMUM_FACETS_TO_RETURN = 100
-MAXIMUM_FACET_VALUES_TO_RETURN = 20
+MAXIMUM_FACET_VALUES_TO_RETURN = 100
 MAXIMUM_SEARCH_OFFSET = 1000
-
 MAXIMUM_SORTED_DOCUMENTS = 10000
 MAXIMUM_NUMBER_FOUND_ACCURACY = 25000
 MAXIMUM_FIELDS_RETURNED_PER_SEARCH = 1000
@@ -2875,7 +2874,7 @@ def _CheckFacetDiscoveryLimit(facet_limit):
     return None
   else:
     return _CheckInteger(
-        facet_limit, 'discover_facet_limit',
+        facet_limit, 'discovery_limit',
         upper_bound=MAXIMUM_FACETS_TO_RETURN)
 
 
@@ -2934,8 +2933,8 @@ class FacetOptions(object):
     If you wish to discovering 5 facets with 10 values each in 6000 search
     results, you can use a FacetOption object like this:
 
-    facet_option = FacetOptions(discover_facet_limit=5,
-                                discover_facet_value_limit=10,
+    facet_option = FacetOptions(discovery_limit=5,
+                                discovery_value_limit=10,
                                 depth=6000)
 
     Args:

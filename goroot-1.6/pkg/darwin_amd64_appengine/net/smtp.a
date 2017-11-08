@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     58522     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "297d991b2d0603df77958b19e5502400cad8894f"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "7b9cd51b8470dd69d0c413f1c9aa2a3aa144fd5b"
 
 $$
 package smtp
@@ -433,7 +433,7 @@ package smtp
 
 $$
 _go_.o          0           0     0     644     128420    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldcrypto/hmac.acrypto/md5.aerrors.a

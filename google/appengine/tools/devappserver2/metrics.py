@@ -51,10 +51,13 @@ import functools
 import httplib
 import json
 import logging
+import os
+import platform
 import sys
 import urllib
 from google.pyglib import singleton
 from google.appengine.tools import sdk_update_checker
+from google.appengine.tools.devappserver2 import constants
 
 
 # Google Analytics Config
@@ -74,20 +77,33 @@ API_STUB_USAGE_ACTION_TEMPLATE = 'use-%s'
 ERROR_ACTION = 'error'
 STOP_ACTION = 'stop'
 START_ACTION = 'start'
+FILE_CHANGE_ACTION = 'file_change'
+
+# Devappserver Google Analytics Event Labels
+AVERAGE_TIME_LABEL = 'average_time'
+WATCHER_TYPE_LABEL = 'watcher_type'
 
 # Devappserver Google Analytics Custom Dimensions.
-# This maps the custom dimension name in GAFE to the enumerated cd# parameter
-# to be sent with HTTP requests
-_GOOGLE_ANALYTICS_DIMENSIONS = {
+# This maps the custom dimension name in Devappserver to the enumerated cd#
+# parameter to be sent with HTTP requests. More details in measurement protocol:
+# https://developers.google.com/analytics/devguides/collection/protocol
+GOOGLE_ANALYTICS_DIMENSIONS = {
     'IsInteractive': 'cd1',
     'Runtimes': 'cd2',
     'SdkVersion': 'cd3',
-    'PythonVersion': 'cd4'
+    'PythonVersion': 'cd4',
+    'AppEngineEnvironment': 'cd5',
+    'FileWatcherType': 'cd6',
+    'IsDevShell': 'cd7',
+    'Platform': 'cd8',
+    'Is64Bits': 'cd9',
 }
 
-
-class MetricsLoggerError(Exception):
-  """Used for MetricsLogger related errors."""
+# Devappserver Google Analytics Custom Metrics.
+GOOGLE_ANALYTICS_METRICS = {
+    'FileChangeDetectionAverageTime': 'cm1',
+    'FileChangeEventCount': 'cm2'
+}
 
 
 class _MetricsLogger(object):
@@ -95,41 +111,55 @@ class _MetricsLogger(object):
 
   def __init__(self):
     """Initializes a _MetricsLogger."""
+    # Attributes that will be set later and sent with logging HTTP requests.
     self._client_id = None
     self._user_agent = None
     self._runtimes = None
     self._start_time = None
+    self._environment = None
+
     # self._python_version is in the form: major.minor.macro.
     self._python_version = '.'.join(map(str, sys.version_info[:3]))
     self._sdk_version = (
         sdk_update_checker.GetVersionObject() or {}).get('release')
+    self._is_dev_shell = constants.DEVSHELL_ENV in os.environ
+    self._is_64_bits = sys.maxsize > 2**32
+    self._platform = platform.platform()
+
+    # Stores events for batch logging once Stop has been called.
     self._log_once_on_stop_events = {}
 
-  def Start(self, client_id, user_agent=None, runtimes=None):
+  def Start(self, client_id, user_agent=None, runtimes=None, environment=None):
     """Starts a Google Analytics session for the current client.
 
     Args:
       client_id: A string Client ID representing a unique anonyized user.
       user_agent: A string user agent to send with each log.
       runtimes: A set of strings containing the runtimes used.
+      environment: A set of strings containing the environments used.
     """
     self._client_id = client_id
     self._user_agent = user_agent
     self._runtimes = ','.join(sorted(list(runtimes))) if runtimes else None
+    self._environment = ','.join(
+        sorted(list(environment))) if environment else None
     self.Log(DEVAPPSERVER_CATEGORY, START_ACTION)
     self._start_time = Now()
 
-  def Stop(self):
+  def Stop(self, **kwargs):
     """Ends a Google Analytics session for the current client.
 
     A request to Stop the session is only made if the Start function has
     executed to set self._start_time.
+
+    Args:
+      **kwargs: Additional Google Analytics event parameters to include in the
+        request body.
     """
     if self._start_time:
       total_run_time = int((Now() - self._start_time).total_seconds())
-
       self.LogOnceOnStop(
-          DEVAPPSERVER_CATEGORY, STOP_ACTION, value=total_run_time)
+          DEVAPPSERVER_CATEGORY, STOP_ACTION, value=total_run_time, **kwargs)
       self.LogBatch(self._log_once_on_stop_events.itervalues())
 
   def Log(self, category, action, label=None, value=None, **kwargs):
@@ -137,15 +167,11 @@ class _MetricsLogger(object):
 
     Args:
       category: A string to use as the Google Analytics event category.
-      action: A string to use as the Google Analytics event category.
+      action: A string to use as the Google Analytics event action.
       label: A string to use as the Google Analytics event label.
       value: A number to use as the Google Analytics event value.
       **kwargs: Additional Google Analytics event parameters to include in the
         request body.
-
-    Raises:
-      MetricsLoggerError: Raised if the _client_id attribute has not been set
-        on the MetricsLogger.
     """
     self._SendRequestToGoogleAnalytics(
         _GOOGLE_ANALYTICS_COLLECT_ENDPOINT,
@@ -190,14 +216,11 @@ class _MetricsLogger(object):
     Args:
       endpoint: The string endpoint path for the request, eg "/collect".
       body: The string body to send with the request.
-
-    Raises:
-      MetricsLoggerError: Raised if the _client_id attribute has not been set
-        on the MetricsLogger.
     """
     if not self._client_id:
-      raise MetricsLoggerError(
-          'The Client ID must be set to log devappserver metrics.')
+      logging.debug('Google Analytics is not configured. '
+                    'If it were, we would send %r:', body)
+      return
 
     headers = {'User-Agent': self._user_agent} if self._user_agent else {}
 
@@ -232,11 +255,15 @@ class _MetricsLogger(object):
         'tid': _GOOGLE_ANALYTICS_TRACKING_ID,
         't': _GOOGLE_ANALYTICS_EVENT_TYPE,
         'cid': self._client_id,
-        _GOOGLE_ANALYTICS_DIMENSIONS['IsInteractive']: IsInteractive(),
-        _GOOGLE_ANALYTICS_DIMENSIONS['Runtimes']: self._runtimes,
-        _GOOGLE_ANALYTICS_DIMENSIONS['SdkVersion']: self._sdk_version,
-        _GOOGLE_ANALYTICS_DIMENSIONS['PythonVersion']: self._python_version,
-
+        GOOGLE_ANALYTICS_DIMENSIONS['IsInteractive']: IsInteractive(),
+        GOOGLE_ANALYTICS_DIMENSIONS['Runtimes']: self._runtimes,
+        GOOGLE_ANALYTICS_DIMENSIONS['SdkVersion']: self._sdk_version,
+        GOOGLE_ANALYTICS_DIMENSIONS['PythonVersion']: self._python_version,
+        GOOGLE_ANALYTICS_DIMENSIONS['AppEngineEnvironment']:
+            self._environment,
+        GOOGLE_ANALYTICS_DIMENSIONS['IsDevShell']: self._is_dev_shell,
+        GOOGLE_ANALYTICS_DIMENSIONS['Platform']: self._platform,
+        GOOGLE_ANALYTICS_DIMENSIONS['Is64Bits']: self._is_64_bits,
         # Required event data
         'ec': category,
         'ea': action

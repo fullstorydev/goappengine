@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     26986     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "d94ba28d746e573f4c691ea2dcccac2824afa4f8"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "4ffa7dc707b5b4de4ea1afeff7fb79fa2cb95894"
 
 $$
 package x86asm
@@ -831,7 +831,7 @@ package x86asm
 
 $$
 _go_.o          0           0     0     644     539026    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ld"encoding/binary.aerrors.a

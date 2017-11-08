@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     23625     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "1c5befa5c8749b82b36c543441cf358fbfbf6f1c"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "292bce5986838827a14f926ffbcbb7df15c2f6c9"
 
 $$
 package macho
@@ -184,7 +184,7 @@ package macho
 
 $$
  _go_.o          0           0     0     644     289473    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ld"encoding/binary.a

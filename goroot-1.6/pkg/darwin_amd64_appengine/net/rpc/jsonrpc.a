@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     33683     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "27a44ece2b04fb8b96587bcdb61dc4d6a0cbdc9b"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "8adcd73cafe36bab59b23ee9a383aed0d9bc6458"
 
 $$
 package jsonrpc
@@ -256,7 +256,7 @@ package jsonrpc
 
 $$
  _go_.o          0           0     0     644     89548     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldencoding/json.a

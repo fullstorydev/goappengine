@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     38124     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "4879d9b77a07733de2dc4efcfcaa28e72666764a"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "3c4ca435dc08b46f4f490674a0a74331db9a49b8"
 
 $$
 package xml
@@ -322,7 +322,7 @@ package xml
 
 $$
 _go_.o          0           0     0     644     721657    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldbufio.abytes.aencoding.a

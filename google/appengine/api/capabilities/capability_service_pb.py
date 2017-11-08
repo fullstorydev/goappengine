@@ -30,6 +30,7 @@ else:
 
 from google.appengine.base.capabilities_pb import *
 import google.appengine.base.capabilities_pb
+google_dot_apphosting_dot_base_dot_capabilities__pb = __import__('google.appengine.base.capabilities_pb', {}, {}, [''])
 class IsEnabledRequest(ProtocolBuffer.ProtocolMessage):
   has_package_ = 0
   package_ = ""

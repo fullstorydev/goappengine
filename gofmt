@@ -5,15 +5,40 @@
 # license that can be found in the LICENSE file.
 
 """Convenience wrapper for starting a Go tool in the App Engine SDK."""
+from __future__ import print_function
 
 import argparse
 import os
 import sys
 
-from google.appengine.tools import goroots
-
 SDK_BASE = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
-GOROOT = os.path.join(SDK_BASE, goroots.GOROOTS['go1'])
+
+
+def FixGooglePath():
+  """Adds the python libraries vendored with the SDK to sys.path.
+
+  This allows us to run gotool.py directly and import the dependencies under the
+  google/ directory.
+  """
+  # pylint: disable=g-import-not-at-top
+  import wrapper_util
+  # pylint: enable=g-import-not-at-top
+  sys.path = wrapper_util.Paths(SDK_BASE).v1_extra_paths + sys.path
+  if 'google' in sys.modules:
+    google_path = os.path.join(os.path.dirname(__file__), 'google')
+    google_module = sys.modules['google']
+    google_module.__path__.append(google_path)
+    if not hasattr(google_module, '__file__') or not google_module.__file__:
+      google_module.__file__ = os.path.join(google_path, '__init__.py')
+
+
+FixGooglePath()
+
+
+# pylint: disable=g-import-not-at-top
+from google.appengine.api import appinfo_includes
+from google.appengine.tools import goroots
+# pylint: enable=g-import-not-at-top
 
 
 def GetArgsAndArgv():
@@ -27,6 +52,9 @@ def GetArgsAndArgv():
   parser = argparse.ArgumentParser(add_help=False)
   parser.add_argument(
       '--dev_appserver', default=os.path.join(SDK_BASE, 'dev_appserver.py'))
+  parser.add_argument(
+      '--print-command', dest='print_command', default=False,
+      action='store_true')
   namespace, rest = parser.parse_known_args()
   flags = vars(namespace)
   rem = [sys.argv[0]]
@@ -34,19 +62,88 @@ def GetArgsAndArgv():
   return flags, rem
 
 
+def GetAppYamlPaths(gopath, app_path):
+  """Generate possible paths to app.yaml.
+
+  Args:
+    gopath: String path to gopath directory.
+    app_path: String path to the app.
+
+  Yields:
+    Possible paths for app.yaml from app_path up to the gopath root.
+  """
+  gopath = os.path.abspath(gopath)
+  app_path = os.path.abspath(app_path)
+  # If we were given an app.yaml, return only it
+  if app_path.endswith('.yaml'):
+    yield app_path
+    raise StopIteration()
+  # Always include the app_path, even if not on gopath
+  yield os.path.join(app_path, 'app.yaml')
+  # But only walk up if we're still on the gopath
+  while app_path.startswith(gopath) and app_path != gopath:
+    app_path = os.path.abspath(os.path.join(app_path, '..'))
+    yield os.path.join(app_path, 'app.yaml')
+
+
+def _ParseAppYaml(file_name):
+  with open(file_name, 'r') as f:
+    return appinfo_includes.Parse(f)
+
+
+def GetGoRoot(gopath, argv):
+  """Find the goroot.
+
+  Args:
+    gopath: String path to gopath directory.
+    argv: A list of strings that looks like sys.argv. The last element of this
+      list is checked to see if it's a valid path and, if so, is included in the
+      search.
+
+  Returns:
+    The path to the correct goroot for the project.
+  """
+  # First, look for an app.yaml starting in the pwd
+  paths = [os.path.realpath(os.path.curdir)]
+  # Check if the last cli arg was a path, and look there as well
+  if len(argv) > 2:
+    app_path = argv[-1]
+    if not app_path.startswith('-'):
+      app_path = app_path.rstrip('...')
+      paths += [os.path.realpath(app_path)]
+  for path in paths:
+    for app_yaml_path in GetAppYamlPaths(gopath, path):
+      if os.path.exists(app_yaml_path):
+        app_yaml = _ParseAppYaml(app_yaml_path)
+        if hasattr(app_yaml, 'api_version'):
+          return os.path.join(SDK_BASE, goroots.GOROOTS[app_yaml.api_version])
+
+  # Default to the goroot for go1
+  return os.path.join(SDK_BASE, goroots.GOROOTS['go1'])
+
+
 if __name__ == '__main__':
   vals, new_argv = GetArgsAndArgv()
   tool = os.path.basename(__file__)
-  bin = os.path.join(GOROOT, 'bin', tool)
-  os.environ['GOROOT'] = GOROOT
+
+  # Set a GOPATH if one is not set.
+  if not os.environ.get('GOPATH'):
+    os.environ['GOPATH'] = os.path.join(SDK_BASE, 'gopath')
   os.environ['APPENGINE_DEV_APPSERVER'] = vals['dev_appserver']
+
+  # Find the correct goroot for the app and make sure we're running the given
+  # tool from there.
+  goroot = GetGoRoot(os.environ['GOPATH'], sys.argv)
+  os.environ['GOROOT'] = goroot
+  tool = os.path.join(goroot, 'bin', tool)
 
   # Remove env variables that may be incompatible with the SDK.
   for e in ('GOARCH', 'GOBIN', 'GOOS'):
     os.environ.pop(e, None)
 
-  # Set a GOPATH if one is not set.
-  if not os.environ.get('GOPATH'):
-    os.environ['GOPATH'] = os.path.join(SDK_BASE, 'gopath')
-
-  os.execve(bin, new_argv, os.environ)
+  # Replace the path to this file with the path to the underlying tool
+  new_argv[0] = tool
+  if vals['print_command']:
+    print(' '.join(new_argv))
+  else:
+    os.execve(tool, new_argv, os.environ)

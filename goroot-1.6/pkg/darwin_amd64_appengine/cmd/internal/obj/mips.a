@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     38222     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "3ab444f5f81739060105ddcd9dfe65bf82d95319"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "8d9ddb07d7e8295e1167692cf95d6d892fd99148"
 
 $$
 package mips
@@ -528,7 +528,7 @@ package mips
 
 $$
 _go_.o          0           0     0     644     311524    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ld$cmd/internal/obj.a

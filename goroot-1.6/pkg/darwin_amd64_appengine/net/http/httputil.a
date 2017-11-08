@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     68660     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "4800b356ab3c7db1ceec63fac4d6ab5040153c25"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "50368d59a3c42294be964e5e4e32ce2c3ce51b3e"
 
 $$
 package httputil
@@ -501,7 +501,7 @@ package httputil
 
 $$
 _go_.o          0           0     0     644     294189    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldbufio.abytes.aerrors.a

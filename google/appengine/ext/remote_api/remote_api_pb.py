@@ -30,8 +30,10 @@ else:
 
 from google.appengine.datastore.datastore_v3_pb import *
 import google.appengine.datastore.datastore_v3_pb
+google_dot_apphosting_dot_datastore_dot_datastore__v3__pb = __import__('google.appengine.datastore.datastore_v3_pb', {}, {}, [''])
 from google.appengine.datastore.entity_pb import *
 import google.appengine.datastore.entity_pb
+google_dot_storage_dot_onestore_dot_v3_dot_entity__pb = __import__('google.appengine.datastore.entity_pb', {}, {}, [''])
 class Request(ProtocolBuffer.ProtocolMessage):
   has_service_name_ = 0
   service_name_ = ""
