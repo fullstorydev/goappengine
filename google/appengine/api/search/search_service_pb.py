@@ -30,6 +30,7 @@ else:
 
 from google.appengine.datastore.document_pb import *
 import google.appengine.datastore.document_pb
+google_dot_storage_dot_onestore_dot_v3_dot_document__pb = __import__('google.appengine.datastore.document_pb', {}, {}, [''])
 class SearchServiceError(ProtocolBuffer.ProtocolMessage):
 
 

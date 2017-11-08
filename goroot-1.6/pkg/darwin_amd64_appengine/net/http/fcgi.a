@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     58649     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "6df6e5c3fb6c84ae439467ea4964e033ac20b574"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "5fd772799a594a0a9fc48f1360d7e33f7ce8984a"
 
 $$
 package fcgi
@@ -427,7 +427,7 @@ package fcgi
 
 $$
  _go_.o          0           0     0     644     208945    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13lderrors.a

@@ -50,6 +50,7 @@ from google.appengine.api import apiproxy_stub
 from google.appengine.api import urlfetch
 from google.appengine.api import urlfetch_errors
 from google.appengine.api import urlfetch_service_pb
+from google.appengine.api import urlfetch_stub_cert_path
 from google.appengine.runtime import apiproxy_errors
 
 
@@ -126,9 +127,9 @@ def _SetupSSL(path):
                     'validate SSL certificates.')
 
 
-_SetupSSL(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..',
-                                        '..', 'lib', 'cacerts',
-                                        'urlfetch_cacerts.txt')))
+
+
+_SetupSSL(os.path.normpath(urlfetch_stub_cert_path.CERT_PATH))
 
 def _IsAllowedPort(port):
 
@@ -476,6 +477,11 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
         raise apiproxy_errors.ApplicationError(
           urlfetch_service_pb.URLFetchServiceError.FETCH_ERROR, str(e))
 
+      if http_response.status >= 600:
+        raise apiproxy_errors.ApplicationError(
+            urlfetch_service_pb.URLFetchServiceError.FETCH_ERROR,
+            'Status %s unknown' % http_response.status)
+
 
 
 
@@ -483,7 +489,7 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
 
         url = http_response.getheader('Location', None)
         if url is None:
-          error_msg = 'Redirecting response was missing "Location" header'
+          error_msg = 'Missing "Location" header for redirect.'
           logging.error(error_msg)
           raise apiproxy_errors.ApplicationError(
               urlfetch_service_pb.URLFetchServiceError.MALFORMED_REPLY,

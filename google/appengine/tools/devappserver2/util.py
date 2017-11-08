@@ -20,8 +20,14 @@
 
 
 import BaseHTTPServer
+import os
 import socket
 import wsgiref.headers
+from google.appengine.tools import sdk_update_checker
+
+
+# The SDK version returned when there is no available VERSION file.
+_DEFAULT_SDK_VERSION = '(Internal)'
 
 
 def get_headers_from_environ(environ):
@@ -74,3 +80,29 @@ class HTTPServerIPv6(BaseHTTPServer.HTTPServer):
   The standard HTTPServer has address_family hardcoded to socket.AF_INET.
   """
   address_family = socket.AF_INET6
+
+
+def get_sdk_version():
+  """Parses the SDK VERSION file for the SDK version.
+
+  Returns:
+    A semver string representing the SDK version, eg 1.9.55. If no VERSION file
+    is available, eg for internal SDK builds, a non-semver default string is
+    provided.
+  """
+  version_object = sdk_update_checker.GetVersionObject()
+  if version_object:
+    return version_object['release']
+  else:
+    return _DEFAULT_SDK_VERSION
+
+
+def setup_environ(app_id):
+  """Sets up the os.environ dictionary for the front-end server and API server.
+
+  This function should only be called once.
+
+  Args:
+    app_id: The id of the application.
+  """
+  os.environ['APPLICATION_ID'] = app_id

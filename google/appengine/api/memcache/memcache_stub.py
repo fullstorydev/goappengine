@@ -45,10 +45,31 @@ MemcacheDeleteResponse = memcache_service_pb.MemcacheDeleteResponse
 MAX_REQUEST_SIZE = 32 << 20
 
 
-class CacheEntry(object):
+
+
+
+DEFAULT_MAX_SIZE = 1e15
+
+
+class _LRUChainableElement(object):
+  """A base class for elements in the LRU cache."""
+
+  def __init__(self, key='', value=''):
+    """Initializes an _LRUChainableElement."""
+    self.newer = None
+    self.older = None
+    self.value = value
+    self.key = key
+
+  @property
+  def byte_size(self):
+    return len(self.key + self.value)
+
+
+class CacheEntry(_LRUChainableElement):
   """An entry in the cache."""
 
-  def __init__(self, value, expiration, flags, cas_id, gettime):
+  def __init__(self, value, expiration, flags, cas_id, gettime, namespace, key):
     """Initializer.
 
     Args:
@@ -58,18 +79,21 @@ class CacheEntry(object):
       flags: Opaque flags used by the memcache implementation.
       cas_id: Unique Compare-And-Set ID.
       gettime: Used for testing. Function that works like time.time().
+      namespace: String namespace that this entry is stored under.
+      key: String key used to retrieve the item from the namespace.
     """
+    super(CacheEntry, self).__init__(key, value)
     assert isinstance(value, basestring)
     assert len(value) <= memcache.MAX_VALUE_SIZE
     assert isinstance(expiration, (int, long))
 
     self._gettime = gettime
-    self.value = value
     self.flags = flags
     self.cas_id = cas_id
     self.created_time = self._gettime()
     self.will_expire = expiration != 0
     self.locked = False
+    self.namespace = namespace
     self._SetExpiration(expiration)
 
   def _SetExpiration(self, expiration):
@@ -116,18 +140,24 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
 
   THREADSAFE = True
 
-  def __init__(self, gettime=time.time, service_name='memcache'):
+  def __init__(self,
+               gettime=time.time,
+               service_name='memcache',
+               max_size=DEFAULT_MAX_SIZE):
     """Initializer.
 
     Args:
       gettime: time.time()-like function used for testing.
       service_name: Service name expected for all calls.
+      max_size: The maximum total cache size, used for LRU evictions.
     """
-    super(MemcacheServiceStub, self).__init__(service_name,
-                                              max_request_size=MAX_REQUEST_SIZE)
+    super(MemcacheServiceStub, self).__init__(
+        service_name, max_request_size=MAX_REQUEST_SIZE)
+    self._lru = LRU()
     self._next_cas_id = 1
     self._gettime = lambda: int(gettime())
     self._ResetStats()
+    self._max_size = max_size
 
 
     self._the_cache = {}
@@ -171,10 +201,13 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
     if entry is None:
       return None
     elif entry.CheckExpired():
+      self._lru.Remove(entry)
       del namespace_dict[key]
       return None
-    else:
-      return entry
+    elif not entry.will_expire:
+      self._lru.Update(entry)
+
+    return entry
 
   @apiproxy_stub.Synchronized
   def _Dynamic_Get(self, request, response):
@@ -192,7 +225,7 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
         self._misses += 1
         continue
       self._hits += 1
-      self._byte_hits += len(entry.value)
+      self._byte_hits += len(key) + len(entry.value)
       item = response.add_item()
       item.set_key(key)
       item.set_value(entry.value)
@@ -235,11 +268,21 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
       if set_status == MemcacheSetResponse.STORED:
         if namespace not in self._the_cache:
           self._the_cache[namespace] = {}
-        self._the_cache[namespace][key] = CacheEntry(item.value(),
-                                                     item.expiration_time(),
-                                                     item.flags(),
-                                                     self._next_cas_id,
-                                                     gettime=self._gettime)
+        if old_entry:
+          self._lru.Remove(old_entry)
+        self._the_cache[namespace][key] = CacheEntry(
+            item.value(),
+            item.expiration_time(),
+            item.flags(),
+            self._next_cas_id,
+            gettime=self._gettime,
+            namespace=namespace,
+            key=key)
+        self._lru.Update(self._the_cache[namespace][key])
+        while self._lru.total_byte_size > self._max_size:
+          oldest = self._lru.oldest
+          self._lru.Remove(oldest)
+          del self._the_cache[oldest.namespace][oldest.key]
         self._next_cas_id += 1
 
       response.add_set_status(set_status)
@@ -261,9 +304,11 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
       if entry is None:
         delete_status = MemcacheDeleteResponse.NOT_FOUND
       elif item.delete_time() == 0:
+        self._lru.Remove(entry)
         del self._the_cache[namespace][key]
       else:
 
+        self._lru.Remove(entry)
         entry.ExpireAndLock(item.delete_time())
 
       response.add_delete_status(delete_status)
@@ -295,7 +340,9 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
           expiration=0,
           flags=flags,
           cas_id=self._next_cas_id,
-          gettime=self._gettime)
+          gettime=self._gettime,
+          namespace=namespace,
+          key=key)
       self._next_cas_id += 1
       entry = self._GetKey(namespace, key)
       assert entry is not None
@@ -363,8 +410,7 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
       request: A MemcacheFlushRequest.
       response: A MemcacheFlushResponse.
     """
-    self._the_cache.clear()
-    self._ResetStats()
+    self.Clear()
 
   @apiproxy_stub.Synchronized
   def _Dynamic_Stats(self, request, response):
@@ -378,14 +424,102 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
     stats.set_hits(self._hits)
     stats.set_misses(self._misses)
     stats.set_byte_hits(self._byte_hits)
-    items = 0
-    total_bytes = 0
-    for namespace in self._the_cache.itervalues():
-      items += len(namespace)
-      for entry in namespace.itervalues():
-        total_bytes += len(entry.value)
-    stats.set_items(items)
-    stats.set_bytes(total_bytes)
+    stats.set_items(len(self._lru))
+    stats.set_bytes(self._lru.total_byte_size)
+    if self._lru.oldest:
+      stats.set_oldest_item_age(self._gettime() - self._lru.oldest.created_time)
+    else:
+      stats.set_oldest_item_age(0)
+
+  @apiproxy_stub.Synchronized
+  def Clear(self):
+    """Clears the memcache stub and resets stats."""
+    self._the_cache.clear()
+    self._ResetStats()
+    self._lru.Clear()
 
 
-    stats.set_oldest_item_age(self._gettime() - self._cache_creation_time)
+class LRU(object):
+  """Implements an LRU cache by intrusive chaining on elements.
+
+  Also keeps track of the total size of the elements in bytes, as well as the
+  length of the LRU chain.
+
+  Heavily inspired by //j/c/g/appengine/api/memcache/dev/LRU.java.
+  """
+
+  def __init__(self):
+    self._newest = None
+    self._oldest = None
+    self._total_byte_size = 0
+    self._length = 0
+
+  def __len__(self):
+    return self._length
+
+  @property
+  def newest(self):
+    return self._newest
+
+  @property
+  def oldest(self):
+    return self._oldest
+
+  def Clear(self):
+    """Clears the LRU chain."""
+    self._newest = None
+    self._oldest = None
+    self._total_byte_size = 0
+    self._length = 0
+
+  @property
+  def total_byte_size(self):
+    return self._total_byte_size
+
+  def IsEmpty(self):
+    """Checks if the LRU chain is empty."""
+    return self._newest is None and self._oldest is None
+
+  def Update(self, element):
+    """Updates an item in the LRU chain."""
+    if not element:
+      raise ValueError('LRU Cache element cannot be empty')
+    self.Remove(element)
+    if self._newest is not None:
+      self._newest.newer = element
+    element.newer = None
+    element.older = self._newest
+    self._newest = element
+    if self._oldest is None:
+      self._oldest = element
+    self._total_byte_size += element.byte_size
+    self._length += 1
+
+  def Remove(self, element):
+    """Removes an item from the LRU chain."""
+    if not element:
+      raise ValueError('LRU Cache element cannot be empty')
+    newer = element.newer
+    older = element.older
+    element_acted_on = False
+    if newer is not None:
+      element_acted_on = True
+      newer.older = older
+    if older is not None:
+      element_acted_on = True
+      older.newer = newer
+    if element == self._newest:
+      element_acted_on = True
+      self._newest = older
+    if element == self._oldest:
+      element_acted_on = True
+      self._oldest = newer
+    element.newer = None
+    element.older = None
+    if element_acted_on:
+      self._length -= 1
+      self._total_byte_size -= element.byte_size
+
+  def RemoveOldest(self):
+    """Removes the oldest item from the LRU chain."""
+    self.Remove(self.oldest)

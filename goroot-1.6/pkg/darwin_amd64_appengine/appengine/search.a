@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     75518     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "a7efbff60833601050cb70836121e632c44093a1"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "af31b364e155d8b0c6a11084439892d16e22ba38"
 
 $$
 package search
@@ -420,7 +420,7 @@ package search
 
 $$
 _go_.o          0           0     0     644     387352    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13lderrors.a

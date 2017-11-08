@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     26444     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "3a2c343de953f0b649d8597d4ec9f2e62b5d0891"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "826b38b613271721a2936219b4d1d32b87fb2916"
 
 $$
 package log
@@ -140,7 +140,7 @@ package log
 
 $$
 _go_.o          0           0     0     644     77874     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13lderrors.a

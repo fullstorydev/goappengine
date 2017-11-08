@@ -38,6 +38,7 @@ from google.appengine.tools import app_engine_web_xml_parser
 from google.appengine.tools import queue_xml_parser
 from google.appengine.tools import web_xml_parser
 from google.appengine.tools import yaml_translator
+from google.appengine.tools.devappserver2 import constants
 from google.appengine.tools.devappserver2 import errors
 
 # Constants passed to functions registered with
@@ -89,9 +90,9 @@ class ModuleConfiguration(object):
       ('runtime', 'runtime'),
       ('threadsafe', 'threadsafe'),
       ('module', 'module_name'),
-      ('basic_scaling', 'basic_scaling'),
-      ('manual_scaling', 'manual_scaling'),
-      ('automatic_scaling', 'automatic_scaling')]
+      ('basic_scaling', 'basic_scaling_config'),
+      ('manual_scaling', 'manual_scaling_config'),
+      ('automatic_scaling', 'automatic_scaling_config')]
 
   def __init__(self, config_path, app_id=None, runtime=None,
                env_variables=None):
@@ -149,11 +150,24 @@ class ModuleConfiguration(object):
     self._module_name = self._app_info_external.module
     self._version = self._app_info_external.version
     self._threadsafe = self._app_info_external.threadsafe
-    self._basic_scaling = self._app_info_external.basic_scaling
-    self._manual_scaling = self._app_info_external.manual_scaling
-    self._automatic_scaling = self._app_info_external.automatic_scaling
+    self._basic_scaling_config = self._app_info_external.basic_scaling
+    self._manual_scaling_config = self._app_info_external.manual_scaling
+    self._automatic_scaling_config = self._app_info_external.automatic_scaling
     self._runtime = runtime or self._app_info_external.runtime
     self._effective_runtime = self._app_info_external.GetEffectiveRuntime()
+
+    if self._runtime == 'python-compat':
+      logging.warn(
+          'The python-compat runtime is deprecated, please consider upgrading '
+          'your application to use the Flexible runtime. See '
+          'https://cloud.google.com/appengine/docs/flexible/python/upgrading '
+          'for more details.')
+    elif self._runtime == 'vm':
+      logging.warn(
+          'The Managed VMs runtime is deprecated, please consider migrating '
+          'your application to use the Flexible runtime. See '
+          'https://cloud.google.com/appengine/docs/flexible/python/migrating '
+          'for more details.')
 
     dockerfile_dir = os.path.dirname(self._config_path)
     dockerfile = os.path.join(dockerfile_dir, 'Dockerfile')
@@ -219,6 +233,30 @@ class ModuleConfiguration(object):
       health_check = self._app_info_external.vm_health_check
 
     self._health_check = _set_health_check_defaults(health_check)
+
+    # Configure the _is_{typeof}_scaling, _instance_class, and _memory_limit
+    # attributes.
+    self._is_manual_scaling = None
+    self._is_basic_scaling = None
+    self._is_automatic_scaling = None
+    self._instance_class = self._app_info_external.instance_class
+    if self._manual_scaling_config or self._runtime == 'vm':
+      # TODO: Remove this 'or' when we support auto-scaled VMs.
+      self._is_manual_scaling = True
+      self._instance_class = (
+          self._instance_class or
+          constants.DEFAULT_MANUAL_SCALING_INSTANCE_CLASS)
+    elif self._basic_scaling_config:
+      self._is_basic_scaling = True
+      self._instance_class = (
+          self._instance_class or
+          constants.DEFAULT_BASIC_SCALING_INSTANCE_CLASS)
+    else:
+      self._is_automatic_scaling = True
+      self._instance_class = (
+          self._instance_class or constants.DEFAULT_AUTO_SCALING_INSTANCE_CLASS)
+    self._memory_limit = constants.INSTANCE_CLASS_MEMORY_LIMIT.get(
+        self._instance_class)
 
   @property
   def application_root(self):
@@ -291,16 +329,28 @@ class ModuleConfiguration(object):
     return self._threadsafe
 
   @property
-  def basic_scaling(self):
-    return self._basic_scaling
+  def basic_scaling_config(self):
+    return self._basic_scaling_config
 
   @property
-  def manual_scaling(self):
-    return self._manual_scaling
+  def manual_scaling_config(self):
+    return self._manual_scaling_config
 
   @property
-  def automatic_scaling(self):
-    return self._automatic_scaling
+  def automatic_scaling_config(self):
+    return self._automatic_scaling_config
+
+  @property
+  def is_basic_scaling(self):
+    return self._is_basic_scaling
+
+  @property
+  def is_manual_scaling(self):
+    return self._is_manual_scaling
+
+  @property
+  def is_automatic_scaling(self):
+    return self._is_automatic_scaling
 
   @property
   def normalized_libraries(self):
@@ -325,6 +375,14 @@ class ModuleConfiguration(object):
   @property
   def inbound_services(self):
     return self._app_info_external.inbound_services
+
+  @property
+  def instance_class(self):
+    return self._instance_class
+
+  @property
+  def memory_limit(self):
+    return self._memory_limit
 
   @property
   def env_variables(self):
@@ -614,12 +672,12 @@ class BackendConfiguration(object):
     self._backend_entry = backend_entry
 
     if backend_entry.dynamic:
-      self._basic_scaling = appinfo.BasicScaling(
+      self._basic_scaling_config = appinfo.BasicScaling(
           max_instances=backend_entry.instances or 1)
-      self._manual_scaling = None
+      self._manual_scaling_config = None
     else:
-      self._basic_scaling = None
-      self._manual_scaling = appinfo.ManualScaling(
+      self._basic_scaling_config = None
+      self._manual_scaling_config = appinfo.ManualScaling(
           instances=backend_entry.instances or 1)
     self._minor_version_id = ''.join(random.choice(string.digits) for _ in
                                      range(18))
@@ -685,16 +743,36 @@ class BackendConfiguration(object):
     return self._module_configuration.threadsafe
 
   @property
-  def basic_scaling(self):
-    return self._basic_scaling
+  def basic_scaling_config(self):
+    return self._basic_scaling_config
 
   @property
-  def manual_scaling(self):
-    return self._manual_scaling
+  def manual_scaling_config(self):
+    return self._manual_scaling_config
 
   @property
-  def automatic_scaling(self):
+  def automatic_scaling_config(self):
     return None
+
+  @property
+  def is_basic_scaling(self):
+    return bool(self._basic_scaling_config)
+
+  @property
+  def is_manual_scaling(self):
+    return bool(self._manual_scaling_config)
+
+  @property
+  def is_automatic_scaling(self):
+    return False
+
+  @property
+  def instance_class(self):
+    return self._module_configuration.instance_class
+
+  @property
+  def memory_limit(self):
+    return self._module_configuration.memory_limit
 
   @property
   def normalized_libraries(self):

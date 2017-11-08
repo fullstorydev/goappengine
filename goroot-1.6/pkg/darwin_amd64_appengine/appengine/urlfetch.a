@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     62347     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "78e274782f65863d10348468af10d8b8fa5d9440"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "a5f1aca6229492e3e6059452c517e0a009854912"
 
 $$
 package urlfetch
@@ -445,7 +445,7 @@ package urlfetch
 
 $$
  _go_.o          0           0     0     644     103236    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13lderrors.a

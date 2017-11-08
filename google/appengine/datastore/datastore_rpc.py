@@ -41,6 +41,7 @@ __all__ = ['AbstractAdapter',
            'IdentityAdapter',
            'MultiRpc',
            'TransactionalConnection',
+           'TransactionMode',
            'TransactionOptions',
           ]
 
@@ -985,6 +986,19 @@ class MultiRpc(object):
       rpcs: A list of UserRPC and MultiRpc objects.
     """
     apiproxy_stub_map.UserRPC.wait_all(cls.flatten(rpcs))
+
+
+class TransactionMode(object):
+  """The mode of a Datastore transaction.
+
+  Specifying the mode of the transaction can help to improve throughput, as it
+  provides additional information about the intent (or lack of intent, in the
+  case of a read only transaction) to perform a write as part of the
+  transaction.
+  """
+  UNKNOWN = 0
+  READ_ONLY = 1
+  READ_WRITE = 2
 
 
 class BaseConnection(object):
@@ -1989,8 +2003,11 @@ class BaseConnection(object):
 
 
 
-  def begin_transaction(self, app, previous_transaction=None):
-    """Syncnronous BeginTransaction operation.
+  def begin_transaction(self,
+                        app,
+                        previous_transaction=None,
+                        mode=TransactionMode.UNKNOWN):
+    """Synchronous BeginTransaction operation.
 
     NOTE: In most cases the new_transaction() method is preferred,
     since that returns a TransactionalConnection object which will
@@ -1999,14 +2016,19 @@ class BaseConnection(object):
     Args:
       app: Application ID.
       previous_transaction: The transaction to reset.
+      mode: The transaction mode.
 
     Returns:
       An object representing a transaction or None.
     """
-    return (self.async_begin_transaction(None, app, previous_transaction)
+    return (self.async_begin_transaction(None, app, previous_transaction, mode)
             .get_result())
 
-  def async_begin_transaction(self, config, app, previous_transaction=None):
+  def async_begin_transaction(self,
+                              config,
+                              app,
+                              previous_transaction=None,
+                              mode=TransactionMode.UNKNOWN):
     """Asynchronous BeginTransaction operation.
 
     Args:
@@ -2014,6 +2036,7 @@ class BaseConnection(object):
         the connection's default configuration.
       app: Application ID.
       previous_transaction: The transaction to reset.
+      mode: The transaction mode.
 
     Returns:
       A MultiRpc object.
@@ -2022,14 +2045,43 @@ class BaseConnection(object):
       raise datastore_errors.BadArgumentError(
           'begin_transaction requires an application id argument (%r)' % (app,))
 
+    if previous_transaction is not None and mode == TransactionMode.READ_ONLY:
+      raise datastore_errors.BadArgumentError(
+          'begin_transaction requires mode != READ_ONLY when '
+          'previous_transaction is not None'
+      )
+
     if self._api_version == _CLOUD_DATASTORE_V1:
       req = googledatastore.BeginTransactionRequest()
       resp = googledatastore.BeginTransactionResponse()
+
+
+      if previous_transaction is not None:
+        mode = TransactionMode.READ_WRITE
+
+      if mode == TransactionMode.UNKNOWN:
+        pass
+      elif mode == TransactionMode.READ_ONLY:
+        req.transaction_options.read_only.SetInParent()
+      elif mode == TransactionMode.READ_WRITE:
+        if previous_transaction is not None:
+          (req.transaction_options.read_write
+           .previous_transaction) = previous_transaction
+        else:
+          req.transaction_options.read_write.SetInParent()
     else:
       req = datastore_pb.BeginTransactionRequest()
       req.set_app(app)
       if (TransactionOptions.xg(config, self.__config)):
         req.set_allow_multiple_eg(True)
+
+      if mode == TransactionMode.UNKNOWN:
+        pass
+      elif mode == TransactionMode.READ_ONLY:
+        req.set_mode(datastore_pb.BeginTransactionRequest.READ_ONLY)
+      elif mode == TransactionMode.READ_WRITE:
+        req.set_mode(datastore_pb.BeginTransactionRequest.READ_WRITE)
+
       if previous_transaction is not None:
         req.mutable_previous_transaction().CopyFrom(previous_transaction)
       resp = datastore_pb.Transaction()
@@ -2072,7 +2124,8 @@ class Connection(BaseConnection):
 
 
 
-  def new_transaction(self, config=None, previous_transaction=None):
+  def new_transaction(self, config=None, previous_transaction=None,
+                      mode=TransactionMode.UNKNOWN):
     """Create a new transactional connection based on this one.
 
     This is different from, and usually preferred over, the
@@ -2083,11 +2136,13 @@ class Connection(BaseConnection):
       config: A configuration object for the new connection, merged
         with this connection's config.
       previous_transaction: The transaction being reset.
+      mode: The transaction mode.
     """
     config = self.__config.merge(config)
     return TransactionalConnection(adapter=self.__adapter, config=config,
                                    _api_version=self._api_version,
-                                   previous_transaction=previous_transaction)
+                                   previous_transaction=previous_transaction,
+                                   mode=mode)
 
 
 
@@ -2316,7 +2371,8 @@ class TransactionalConnection(BaseConnection):
   @_positional(1)
   def __init__(self,
                adapter=None, config=None, transaction=None, entity_group=None,
-               _api_version=_DATASTORE_V3, previous_transaction=None):
+               _api_version=_DATASTORE_V3, previous_transaction=None,
+               mode=TransactionMode.UNKNOWN):
     """Constructor.
 
     All arguments should be specified as keyword arguments.
@@ -2329,6 +2385,8 @@ class TransactionalConnection(BaseConnection):
       entity_group: Deprecated, do not use.
       previous_transaction: Optional datastore_db.Transaction object
         representing the transaction being reset.
+      mode: Optional datastore_db.TransactionMode representing the transaction
+        mode.
 
     Raises:
       datastore_errors.BadArgumentError: If previous_transaction and transaction
@@ -2350,7 +2408,7 @@ class TransactionalConnection(BaseConnection):
       app = TransactionOptions.app(self.config)
       app = datastore_types.ResolveAppId(TransactionOptions.app(self.config))
       self.__transaction_rpc = self.async_begin_transaction(
-          None, app, previous_transaction)
+          None, app, previous_transaction, mode)
     else:
       if self._api_version == _CLOUD_DATASTORE_V1:
         txn_class = str

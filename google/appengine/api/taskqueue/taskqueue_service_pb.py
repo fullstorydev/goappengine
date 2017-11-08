@@ -30,6 +30,7 @@ else:
 
 from google.appengine.datastore.datastore_v3_pb import *
 import google.appengine.datastore.datastore_v3_pb
+google_dot_apphosting_dot_datastore_dot_datastore__v3__pb = __import__('google.appengine.datastore.datastore_v3_pb', {}, {}, [''])
 from google.net.proto.message_set import MessageSet
 class TaskQueueServiceError(ProtocolBuffer.ProtocolMessage):
 

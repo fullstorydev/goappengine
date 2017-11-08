@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     14695     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "1d0ed9a884ce58b614d76adc53aaf6cd86a48585"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "0315810dce31654b7f1c2b630e9e6c143147d8fc"
 
 $$
 package mail
@@ -133,7 +133,7 @@ package mail
 
 $$
  _go_.o          0           0     0     644     158688    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldbufio.abytes.aerrors.a

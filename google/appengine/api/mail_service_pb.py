@@ -30,6 +30,7 @@ else:
 
 from google.appengine.api.api_base_pb import *
 import google.appengine.api.api_base_pb
+google_dot_apphosting_dot_api_dot_api__base__pb = __import__('google.appengine.api.api_base_pb', {}, {}, [''])
 class MailServiceError(ProtocolBuffer.ProtocolMessage):
 
 

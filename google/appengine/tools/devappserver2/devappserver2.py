@@ -33,6 +33,7 @@ from google.appengine.tools.devappserver2 import metrics
 from google.appengine.tools.devappserver2 import runtime_config_pb2
 from google.appengine.tools.devappserver2 import shutdown
 from google.appengine.tools.devappserver2 import update_checker
+from google.appengine.tools.devappserver2 import util
 from google.appengine.tools.devappserver2 import wsgi_request_info
 from google.appengine.tools.devappserver2.admin import admin_server
 
@@ -48,22 +49,11 @@ PARSER = cli_parser.create_command_line_parser(
     cli_parser.DEV_APPSERVER_CONFIGURATION)
 
 
-def _setup_environ(app_id):
-  """Sets up the os.environ dictionary for the front-end server and API server.
-
-  This function should only be called once.
-
-  Args:
-    app_id: The id of the application.
-  """
-  os.environ['APPLICATION_ID'] = app_id
-
-
 class DevelopmentServer(object):
   """Encapsulates the logic for the development server.
 
   Only a single instance of the class may be created per process. See
-  _setup_environ.
+  util.setup_environ.
   """
 
   def __init__(self):
@@ -96,13 +86,11 @@ class DevelopmentServer(object):
     logging.getLogger().setLevel(
         constants.LOG_LEVEL_TO_PYTHON_CONSTANT[options.dev_appserver_log_level])
 
-    runtime = 'vm' if options.runtime == 'python-compat' else options.runtime
     parsed_env_variables = dict(options.env_variables or [])
-
     configuration = application_configuration.ApplicationConfiguration(
         config_paths=options.config_paths,
         app_id=options.app_id,
-        runtime=runtime,
+        runtime=options.runtime,
         env_variables=parsed_env_variables)
 
     if options.google_analytics_client_id:
@@ -110,7 +98,8 @@ class DevelopmentServer(object):
       metrics_logger.Start(
           options.google_analytics_client_id,
           options.google_analytics_user_agent,
-          {module.runtime for module in configuration.modules})
+          {module.runtime for module in configuration.modules},
+          {module.env or 'standard' for module in configuration.modules})
 
     if options.skip_sdk_update_check:
       logging.info('Skipping SDK update check.')
@@ -132,14 +121,16 @@ class DevelopmentServer(object):
       logging.warn('DEFAULT_VERSION_HOSTNAME will not be set correctly with '
                    '--port=0')
 
-    _setup_environ(configuration.app_id)
+    util.setup_environ(configuration.app_id)
 
     self._dispatcher = dispatcher.Dispatcher(
-        configuration,
-        options.host,
-        options.port,
-        options.auth_domain,
+        configuration, options.host, options.port, options.auth_domain,
         constants.LOG_LEVEL_TO_RUNTIME_CONSTANT[options.log_level],
+
+
+
+
+
         self._create_php_config(options),
         self._create_python_config(options),
         self._create_java_config(options),
@@ -149,13 +140,14 @@ class DevelopmentServer(object):
         self._create_vm_config(options),
         self._create_module_to_setting(options.max_module_instances,
                                        configuration, '--max_module_instances'),
-        options.use_mtime_file_watcher,
-        options.watcher_ignore_re,
-        options.automatic_restart,
-        options.allow_skipped_files,
-        self._create_module_to_setting(options.threadsafe_override,
-                                       configuration, '--threadsafe_override'),
-        options.external_port)
+        options.use_mtime_file_watcher, options.watcher_ignore_re,
+        options.automatic_restart, options.allow_skipped_files,
+        self._create_module_to_setting(
+            options.threadsafe_override,
+            configuration,
+            '--threadsafe_override'),
+        options.external_port,
+        options.specified_service_ports)
 
     wsgi_request_info_ = wsgi_request_info.WSGIRequestInfo(self._dispatcher)
     storage_path = api_server.get_storage_path(
@@ -167,13 +159,8 @@ class DevelopmentServer(object):
     apiserver.start()
     self._running_modules.append(apiserver)
 
-    if options.grpc_apis:
-      grpc_apiserver = api_server.GRPCAPIServer(options.grpc_api_port)
-      grpc_apiserver.start()
-      self._running_modules.append(grpc_apiserver)
-
     self._dispatcher.start(
-        options.api_host, apiserver.port, wsgi_request_info_, options.grpc_apis)
+        options.api_host, apiserver.port, wsgi_request_info_)
 
     xsrf_path = os.path.join(storage_path, 'xsrf')
     admin = admin_server.AdminServer(options.admin_host, options.admin_port,
@@ -187,13 +174,38 @@ class DevelopmentServer(object):
       logging.warning('No default module found. Ignoring.')
 
   def stop(self):
-    """Stops all running devappserver2 modules."""
+    """Stops all running devappserver2 modules and report metrics."""
     while self._running_modules:
       self._running_modules.pop().quit()
     if self._dispatcher:
       self._dispatcher.quit()
     if self._options.google_analytics_client_id:
-      metrics.GetMetricsLogger().Stop()
+      kwargs = {}
+      watcher_results = (self._dispatcher.get_watcher_results()
+                         if self._dispatcher else None)
+      # get_watcher_results() only returns results for modules that have at
+      # least one record of file change. Hence avoiding divide by zero error
+      # when computing avg_time.
+      if watcher_results:
+        zipped = zip(*watcher_results)
+        total_time = sum(zipped[0])
+        total_changes = sum(zipped[1])
+
+        # Google Analytics Event value cannot be float numbers, so we round the
+        # value into integers, and measure in microseconds to ensure accuracy.
+        avg_time = int(1000000*total_time/total_changes)
+
+        # watcher_class is same on all modules.
+        watcher_class = zipped[2][0]
+        kwargs = {
+            metrics.GOOGLE_ANALYTICS_DIMENSIONS['FileWatcherType']:
+            watcher_class,
+            metrics.GOOGLE_ANALYTICS_METRICS['FileChangeDetectionAverageTime']:
+            avg_time,
+            metrics.GOOGLE_ANALYTICS_METRICS['FileChangeEventCount']:
+            total_changes
+        }
+      metrics.GetMetricsLogger().Stop(**kwargs)
 
   @staticmethod
   def _create_php_config(options):
@@ -210,6 +222,18 @@ class DevelopmentServer(object):
           options.php_xdebug_extension_path)
 
     return php_config
+
+
+
+
+
+
+
+
+
+
+
+
 
   @staticmethod
   def _create_python_config(options):

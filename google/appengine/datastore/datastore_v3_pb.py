@@ -30,10 +30,13 @@ else:
 
 from google.appengine.datastore.action_pb import *
 import google.appengine.datastore.action_pb
+google_dot_storage_dot_onestore_dot_v3_dot_action__pb = __import__('google.appengine.datastore.action_pb', {}, {}, [''])
 from google.appengine.datastore.entity_pb import *
 import google.appengine.datastore.entity_pb
+google_dot_storage_dot_onestore_dot_v3_dot_entity__pb = __import__('google.appengine.datastore.entity_pb', {}, {}, [''])
 from google.appengine.datastore.snapshot_pb import *
 import google.appengine.datastore.snapshot_pb
+google_dot_storage_dot_onestore_dot_v3_dot_snapshot__pb = __import__('google.appengine.datastore.snapshot_pb', {}, {}, [''])
 class Transaction(ProtocolBuffer.ProtocolMessage):
   has_handle_ = 0
   handle_ = 0
@@ -4306,6 +4309,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
   ALREADY_EXISTS =   14
   FAILED_PRECONDITION =   15
   UNAUTHENTICATED =   16
+  ABORTED      =   17
 
   _ErrorCode_NAMES = {
     1: "BAD_REQUEST",
@@ -4324,6 +4328,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
     14: "ALREADY_EXISTS",
     15: "FAILED_PRECONDITION",
     16: "UNAUTHENTICATED",
+    17: "ABORTED",
   }
 
   def ErrorCode_Name(cls, x): return cls._ErrorCode_NAMES.get(x, "")

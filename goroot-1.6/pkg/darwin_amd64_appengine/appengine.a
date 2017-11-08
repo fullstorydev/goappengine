@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     62982     `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "c18bbe537e914d0516a96862decdc06b8753f7cb"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "9666b4ec04729109da314ca1e8b28047c66a99e8"
 
 $$
 package appengine
@@ -461,7 +461,7 @@ package appengine
 
 $$
 _go_.o          0           0     0     644     152976    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldnet/http.a(appengine_internal.a

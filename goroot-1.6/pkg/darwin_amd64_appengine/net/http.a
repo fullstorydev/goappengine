@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     120148    `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
-build id "660bf65ae8dc9541c6948d5f03d9979dd1a9d7a4"
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+build id "6b72fd059fea24597003a1722eea7eb89a1ee708"
 
 $$
 package http
@@ -983,7 +983,7 @@ package http
 
 $$
 _go_.o          0           0     0     644     3740078   `
-go object darwin amd64 1.6.4 (appengine-1.9.54) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
 
 !
   go13ldcrypto/tls.a"encoding/base64.aerrors.a

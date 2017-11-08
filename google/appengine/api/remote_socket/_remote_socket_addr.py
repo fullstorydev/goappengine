@@ -206,7 +206,7 @@ def inet_pton(af, ip):
       parts[-1:] = [hex(n)[2:] for n in ipv4_shorts]
 
     if '' in parts:
-      if len(parts) == 1 or len(parts) >= 8:
+      if len(parts) == 1 or len(parts) > 8:
         raise error('illegal IP address string passed to inet_pton')
 
       idx = parts.index('')

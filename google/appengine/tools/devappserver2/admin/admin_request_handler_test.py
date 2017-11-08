@@ -27,7 +27,6 @@ import google
 import mox
 import webapp2
 
-from google.appengine.tools import sdk_update_checker
 from google.appengine.tools.devappserver2 import metrics
 from google.appengine.tools.devappserver2.admin import admin_request_handler
 
@@ -170,29 +169,6 @@ class AdminRequestHandlerMetricsLoggingTest(unittest.TestCase):
         'admin-console', 'MyAdminServerHandler.post')
     self.mox.ReplayAll()
     handler.post()
-    self.mox.VerifyAll()
-
-
-class GetSDKVersionTest(unittest.TestCase):
-  """Tests for _get_sdk_version."""
-
-  def setUp(self):
-    self.mox = mox.Mox()
-
-  def tearDown(self):
-    self.mox.UnsetStubs()
-
-  def test_version_file_exists(self):
-    self.assertNotEqual(admin_request_handler._DEFAULT_SDK_VERSION,
-                        admin_request_handler._get_sdk_version())
-
-  def test_version_file_missing(self):
-    self.mox.StubOutWithMock(sdk_update_checker, 'GetVersionObject')
-    sdk_update_checker.GetVersionObject().AndReturn(None)
-
-    self.mox.ReplayAll()
-    self.assertEqual(admin_request_handler._DEFAULT_SDK_VERSION,
-                     admin_request_handler._get_sdk_version())
     self.mox.VerifyAll()
 
 

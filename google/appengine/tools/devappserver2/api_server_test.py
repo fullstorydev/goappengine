@@ -38,11 +38,13 @@ from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import urlfetch_service_pb
 from google.appengine.api import user_service_pb
+from google.appengine.datastore import datastore_pb
 from google.appengine.datastore import datastore_stub_util
 from google.appengine.datastore import datastore_v4_pb
 from google.appengine.ext.remote_api import remote_api_pb
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.tools.devappserver2 import api_server
+from google.appengine.tools.devappserver2 import datastore_grpc_stub
 from google.appengine.tools.devappserver2 import wsgi_request_info
 from google.appengine.tools.devappserver2 import wsgi_test_utils
 
@@ -89,7 +91,7 @@ class FakeDatastoreV4ServiceStub(apiproxy_stub.APIProxyStub):
 
 def setup_stubs():
   """Setup the API stubs. This can only be done once."""
-  api_server.test_setup_stubs(
+  api_server.setup_test_stubs(
       request_data,
       app_id=APP_ID,
       application_root=APPLICATION_ROOT,
@@ -116,7 +118,7 @@ def setup_stubs():
       'datastore_v4', FakeDatastoreV4ServiceStub())
 
 
-class TestAPIServer(wsgi_test_utils.WSGITestCase):
+class APIServerTestBase(wsgi_test_utils.WSGITestCase):
   """Tests for api_server.APIServer."""
 
   def setUp(self):
@@ -159,6 +161,9 @@ class TestAPIServer(wsgi_test_utils.WSGITestCase):
                           expected_remote_response.Encode(),
                           self.server,
                           environ)
+
+
+class TestAPIServer(APIServerTestBase):
 
   def test_user_api_call(self):
     logout_response = user_service_pb.CreateLogoutURLResponse()
@@ -241,6 +246,27 @@ class TestAPIServer(wsgi_test_utils.WSGITestCase):
 
     self._assert_remote_call(
         expected_remote_response, urlfetch_request, 'urlfetch', 'Fetch')
+
+
+class TestAPIServerWithEmulator(APIServerTestBase):
+  """Test ApiServer working with cloud datastore emulator."""
+
+  def setUp(self):
+    super(TestAPIServerWithEmulator, self).setUp()
+    apiproxy_stub_map.apiproxy.ReplaceStub(
+        'datastore_v3', datastore_grpc_stub.DatastoreGrpcStub(''))
+
+  def test_datastore_emulator_request_too_large(self):
+    fake_put_request = datastore_pb.PutRequest()
+    fake_put_request.Encode = lambda: 'x' * (apiproxy_stub.MAX_REQUEST_SIZE + 1)
+
+    expected_remote_response = remote_api_pb.Response()
+    expected_remote_response.set_exception(pickle.dumps(
+        apiproxy_errors.RequestTooLargeError(
+            apiproxy_stub.REQ_SIZE_EXCEEDS_LIMIT_MSG_TEMPLATE % (
+                'datastore_v3', 'Put'))))
+    self._assert_remote_call(expected_remote_response, fake_put_request,
+                             'datastore_v3', 'Put')
 
 
 class GetStoragePathTest(unittest.TestCase):
