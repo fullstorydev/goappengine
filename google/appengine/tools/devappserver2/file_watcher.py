@@ -169,6 +169,10 @@ def get_file_watcher(directories, use_mtime_file_watcher):
     return _create_linux_watcher(directories)
   elif sys.platform.startswith('win'):
     return _create_watcher(directories, win32_file_watcher.Win32FileWatcher)
+  elif sys.platform.startswith('darwin'):
+    # Import this conditionally, because fsevents only exists on Darwin.
+    from google.appengine.tools.devappserver2 import fsevents_file_watcher
+    return _create_watcher(directories, fsevents_file_watcher.FSEventsFileWatcher)
   else:
     return _create_watcher(directories, mtime_file_watcher.MtimeFileWatcher)
 
