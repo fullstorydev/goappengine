@@ -1,84 +1,175 @@
 #!/usr/bin/env python
 #
-# Replacement `MtimeFileWatcher` for App Engine SDK's dev_appserver.py,
-# designed for OS X. Improves upon existing file watcher (under OS X) in
-# numerous ways:
+# Copyright 2007 Google Inc.
 #
-#   - Uses FSEvents API to watch for changes instead of polling. This saves a
-#     dramatic amount of CPU, especially in projects with several modules.
-#   - Tries to be smarter about which modules reload when files change, only
-#     modified module should reload.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Install:
-#   $ pip install macfsevents
-#   $ cp mtime_file_watcher.py \
-#        sdk/google/appengine/tools/devappserver2/mtime_file_watcher.py
-import os
-import time
-from fsevents import Observer
-from fsevents import Stream
-from os.path import abspath, join
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+"""Monitors a directory tree for changes using the Mac OS X FSEvents API."""
 
-GOPATH = os.environ['GOPATH'].split(':')[0]
-PROJECT_DIR = abspath(join(GOPATH, '..', '..'))
 
-# Set of packages I want to watch for changes in that are shared among modules.
-# That is, when any of these change, ALL of the modules should be restarted.
-NON_MODULE_DIRS = [join(PROJECT_DIR, p) for p in os.listdir(PROJECT_DIR) if
-                   p not in set(['api', 'checkout', 'platform', 'preorder', 'store']) and
-                   not p.startswith('.') and
-                   p != "assets" and
-                   p != "node_modules" and
-                   p != "resources" and
-                   p != "static" and
-                   p != "test"]
+import logging
+import os.path
+import threading
 
-# Only watch for changes to .go or .yaml files
-WATCHED_EXTENSIONS = set(['.go', '.yaml'])
+from google.appengine.tools.devappserver2 import watcher_common
+
+try:
+  import AppKit
+  import FSEvents
+except ImportError:
+  AppKit = None
+  FSEvents = None
 
 
 class FSEventsFileWatcher(object):
-    SUPPORTS_MULTIPLE_DIRECTORIES = True
+  """Monitors a directory tree for changes using FSEvents.
 
-    def __init__(self, directories, **kwargs):
-        self._changes = _changes = []
+  Note that this class does not provide file-level change precision on Mac OS X
+  version 10.7 or older. It also does not detect changes in symlinked files or
+  directories. It would still be possible to do that efficiently by watching
+  all symlinked directories and using mtime checking for symlinked files. On
+  any change in a directory, it would have to be rescanned to see if a new
+  symlinked file or directory was added. It also might be possible to use
+  kevents instead of the Carbon API to detect files changes.
+  """
 
-        # Path to current module
-        module_dir = directories[0]
+  SUPPORTS_MULTIPLE_DIRECTORIES = True
 
-        # Paths to watch
-        paths = [module_dir]
+  def __init__(self, directories):
+    """Initializer for FSEventsFileWatcher.
 
-        # Explicitly adding paths outside of module dir.
-        for path in NON_MODULE_DIRS:
-            paths.append(path)
+    Args:
+      directories: An iterable of strings representing the path to a directory
+          that should be monitored for changes i.e. files and directories
+          added, renamed, deleted or changed.
+    """
+    self._directories = [os.path.abspath(d) for d in directories]
+    self._watcher_ignore_re = None
+    self._skip_files_re = None
+    self._changes = set()
+    self._change_event = threading.Event()
+    self._quit_event = threading.Event()
+    self._event_watcher_thread = threading.Thread(target=self._watch_changes)
 
-        self.observer = Observer()
+  @staticmethod
+  def is_available():
+    return FSEvents is not None
 
-        def callback(event, mask=None):
-            # Get extension
-            try:
-                ext = os.path.splitext(event.name)[1]
-            except IndexError:
-                ext = None
+  def _fsevents_callback(self, stream_ref, client_call_back_info, num_events,
+                         event_paths, event_flags, event_ids):
+    changes = set()
+    for absolute_path, flag in zip(event_paths, event_flags):
+      directory = next(
+        d for d in self._directories if absolute_path.startswith(d))
+      skip_files_re = self._skip_files_re
+      watcher_ignore_re = self._watcher_ignore_re
 
-            # Add to changes if we're watching a file with this extension.
-            if ext in WATCHED_EXTENSIONS:
-                _changes.append(event.name)
+      if not flag & (FSEvents.kFSEventStreamEventFlagItemCreated |
+                       FSEvents.kFSEventStreamEventFlagItemRemoved |
+                       FSEvents.kFSEventStreamEventFlagItemInodeMetaMod |
+                       FSEvents.kFSEventStreamEventFlagItemRenamed |
+                       FSEvents.kFSEventStreamEventFlagItemModified |
+                       FSEvents.kFSEventStreamEventFlagItemFinderInfoMod |
+                       FSEvents.kFSEventStreamEventFlagItemChangeOwner |
+                       FSEvents.kFSEventStreamEventFlagItemXattrMod):
+        continue
 
-        self.stream = Stream(callback, file_events=True, *paths)
+      if watcher_common.ignore_file(absolute_path, skip_files_re, watcher_ignore_re):
+        continue
 
-    def start(self):
-        self.observer.schedule(self.stream)
-        self.observer.start()
+      # We also want to ignore a path if we should ignore any directory
+      # that the path is in.
+      def _recursive_ignore_dir(dirname):
+        assert not os.path.isabs(dirname)  # or the while will never terminate
+        (dir_dirpath, dir_base) = os.path.split(dirname)
+        while dir_base:
+          if watcher_common.ignore_dir(dir_dirpath, dir_base, skip_files_re):
+            return True
+          if watcher_common.ignore_dir(dir_dirpath, dir_base, watcher_ignore_re):
+            return True
+          (dir_dirpath, dir_base) = os.path.split(dir_dirpath)
+        return False
 
-    def changes(self, timeout=None):
-        time.sleep(0.1)
-        changed = set(self._changes)
-        del self._changes[:]
-        return changed
+      relpath = os.path.relpath(absolute_path, directory)
+      if _recursive_ignore_dir(os.path.dirname(relpath)):
+        continue
 
-    def quit(self):
-        self.observer.unschedule(self.stream)
-        self.observer.stop()
-        self.observer.join()
+      #logging.warning("Reloading instances due to change in %s", relpath)
+      changes.add(absolute_path)
+
+      self._changes = changes
+      self._change_event.set()
+
+  def _watch_changes(self):
+    # Do the file watching in a thread to ensure that
+    # FSEventStreamScheduleWithRunLoop and CFRunLoopRunInMode are called in the
+    # same thread.
+
+    # Each thread needs its own AutoreleasePool.
+    pool = AppKit.NSAutoreleasePool.alloc().init()
+    event_stream = FSEvents.FSEventStreamCreate(
+      None,
+      self._fsevents_callback,
+      None,
+      self._directories,
+      FSEvents.kFSEventStreamEventIdSinceNow,
+      1,  # Seconds to wait to between received events.
+      FSEvents.kFSEventStreamCreateFlagFileEvents,
+    )
+
+    FSEvents.FSEventStreamScheduleWithRunLoop(event_stream,
+                                              FSEvents.CFRunLoopGetCurrent(),
+                                              FSEvents.kCFRunLoopDefaultMode)
+
+    assert FSEvents.FSEventStreamStart(event_stream), (
+      'event stream could not be started')
+    while not self._quit_event.is_set():
+      FSEvents.CFRunLoopRunInMode(FSEvents.kCFRunLoopDefaultMode,
+                                  0.1,    # seconds
+                                  False)  # returnAfterSourceHandled
+
+    FSEvents.FSEventStreamRelease(event_stream)
+    del pool  # del is recommended by the PyObjc programming guide.
+
+  def start(self):
+    """Start watching the directory for changes."""
+    self._changes = set()
+    self._event_watcher_thread.start()
+
+  def set_watcher_ignore_re(self, watcher_ignore_re):
+    """Allows the file watcher to ignore a custom pattern set by the user.
+
+    Args:
+      watcher_ignore_re: A RegexObject that optionally defines a pattern for the
+          file watcher to ignore.
+    """
+    self._watcher_ignore_re = watcher_ignore_re
+
+  def set_skip_files_re(self, skip_files_re):
+    """All re's in skip_files_re are taken to be relative to its base-dir."""
+    self._skip_files_re = skip_files_re
+
+  def quit(self):
+    """Stop watching the directory for changes."""
+    self._quit_event.set()
+    self._event_watcher_thread.join()
+
+  def changes(self, timeout_ms=0):
+    assert self._event_watcher_thread.is_alive(), (
+      'watcher thread exited or was not started')
+    try:
+      self._change_event.wait(timeout_ms / 1000.0)
+      return self._changes
+    finally:
+      self._changes = set()
+      self._change_event.clear()
