@@ -74,14 +74,7 @@ class FSEventsFileWatcher(object):
       skip_files_re = self._skip_files_re
       watcher_ignore_re = self._watcher_ignore_re
 
-      if not flag & (FSEvents.kFSEventStreamEventFlagItemCreated |
-                       FSEvents.kFSEventStreamEventFlagItemRemoved |
-                       FSEvents.kFSEventStreamEventFlagItemInodeMetaMod |
-                       FSEvents.kFSEventStreamEventFlagItemRenamed |
-                       FSEvents.kFSEventStreamEventFlagItemModified |
-                       FSEvents.kFSEventStreamEventFlagItemFinderInfoMod |
-                       FSEvents.kFSEventStreamEventFlagItemChangeOwner |
-                       FSEvents.kFSEventStreamEventFlagItemXattrMod):
+      if flag == FSEvents.kFSEventStreamEventFlagNone:
         continue
 
       if watcher_common.ignore_file(absolute_path, skip_files_re, watcher_ignore_re):

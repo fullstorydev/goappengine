@@ -25,6 +25,7 @@ import types
 from google.appengine.tools.devappserver2 import inotify_file_watcher
 from google.appengine.tools.devappserver2 import mtime_file_watcher
 from google.appengine.tools.devappserver2 import win32_file_watcher
+from google.appengine.tools.devappserver2 import fsevents_file_watcher
 
 
 class _MultipleFileWatcher(object):
