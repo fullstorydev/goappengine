@@ -104,10 +104,10 @@ class FSEventsFileWatcher(object):
       if _recursive_ignore_dir(os.path.dirname(relpath)):
         continue
 
-      #logging.warning("Reloading instances due to change in %s", relpath)
+      logging.warning("Reloading instances due to change in %s", relpath)
       changes.add(absolute_path)
 
-      self._changes = changes
+      self._changes = self._changes | changes
       self._change_event.set()
 
   def _watch_changes(self):

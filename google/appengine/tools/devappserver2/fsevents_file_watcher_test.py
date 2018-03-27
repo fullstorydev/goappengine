@@ -31,13 +31,13 @@ def _sync():
   time.sleep(.1)  # just to stay over the FS timestamp resolution
 
 
-class TestMtimeFileWatcher(unittest.TestCase):
+class TestFSEventsFileWatcher(unittest.TestCase):
   """Tests for mtime_file_watcher.MtimeFileWatcher."""
 
   def setUp(self):
     self._directory = os.path.realpath(tempfile.mkdtemp())  # The watched directory
     self._junk_directory = os.path.realpath(tempfile.mkdtemp())  # A scrap directory.
-    self._watcher = fsevents_file_watcher.FSEventsFileWatcher(self._directory)
+    self._watcher = fsevents_file_watcher.FSEventsFileWatcher([self._directory])
 
   def tearDown(self):
     self._watcher.quit()
