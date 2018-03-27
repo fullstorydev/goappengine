@@ -24,20 +24,20 @@ import tempfile
 import time
 import unittest
 
-from google.appengine.tools.devappserver2 import mtime_file_watcher
+from google.appengine.tools.devappserver2 import fsevents_file_watcher
 
 
 def _sync():
   time.sleep(.1)  # just to stay over the FS timestamp resolution
 
 
-class TestMtimeFileWatcher(unittest.TestCase):
+class TestFSEventsFileWatcher(unittest.TestCase):
   """Tests for mtime_file_watcher.MtimeFileWatcher."""
 
   def setUp(self):
     self._directory = os.path.realpath(tempfile.mkdtemp())  # The watched directory
     self._junk_directory = os.path.realpath(tempfile.mkdtemp())  # A scrap directory.
-    self._watcher = mtime_file_watcher.MtimeFileWatcher(self._directory)
+    self._watcher = fsevents_file_watcher.FSEventsFileWatcher([self._directory])
 
   def tearDown(self):
     self._watcher.quit()
@@ -79,14 +79,14 @@ class TestMtimeFileWatcher(unittest.TestCase):
 
   def test_file_created(self):
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     path = self._create_file('test')
     self.assertEqual(self._watcher.changes(), {path})
 
   def test_watcher_ignore_re(self):
     self._watcher.set_watcher_ignore_re(re.compile('^.*ignored-watcher'))
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     self._create_file('ignored-watcher')
     self.assertEqual(self._watcher.changes(), set())
 
@@ -102,7 +102,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
   def test_skip_file_re(self):
     self._watcher.set_skip_files_re(re.compile('^.*skipped_file'))
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     self._create_file('skipped_file')
     self.assertEqual(self._watcher.changes(), set())
 
@@ -119,7 +119,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     path = self._create_file('test')
     _sync()
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     with open(path, 'w') as f:
       f.write('testing')
     self.assertEqual(self._watcher.changes(), {path})
@@ -129,7 +129,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     with open(path, 'w') as f:
       f.write('testing')
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     with open(path, 'r') as f:
       f.read()
     # Reads should not trigger updates.
@@ -138,7 +138,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
   def test_file_deleted(self):
     path = self._create_file('test')
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.remove(path)
     self.assertEqual(self._watcher.changes(), {path})
 
@@ -146,20 +146,20 @@ class TestMtimeFileWatcher(unittest.TestCase):
     source = self._create_file('test')
     target = os.path.join(os.path.dirname(source), 'test2')
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.rename(source, target)
     self.assertEqual(self._watcher.changes(), {source, target})
 
   def test_create_directory(self):
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     path = self._create_directory('test')
     self.assertEqual(self._watcher.changes(), {path})
 
   def test_skip_file_re_directory(self):
     self._watcher.set_skip_files_re(re.compile('.*skipped_dir'))
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     self._create_directory('skipped_dir/')
     self.assertEqual(self._watcher.changes(), set())
     # If a directory is skipped, the files and directories in that directory
@@ -180,7 +180,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     self._create_directory('test')
     _sync()
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     path = self._create_file('test/file')
     # Keep behavior consistency with inofiy_file_watcher,
     # parent directory of path should not be considered as changed.
@@ -190,7 +190,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     source = self._create_directory('test')
     target = os.path.join(os.path.dirname(source), 'test2')
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.rename(source, target)
     self.assertEqual(self._watcher.changes(), {source, target})
 
@@ -198,7 +198,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     source = self._create_directory('test')
     target = os.path.join(self._junk_directory, 'test')
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.rename(source, target)
     self.assertEqual(self._watcher.changes(), {source})
     with open(os.path.join(target, 'file'), 'w'):
@@ -212,7 +212,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     os.mkdir(source)
     _sync()
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.rename(source, target)
     self.assertEqual(self._watcher.changes(), {target})
     file_path = os.path.join(target, 'file')
@@ -226,7 +226,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     path = self._create_directory('test')
     _sync()
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     os.rmdir(path)
     self.assertEqual(self._watcher.changes(), {path})
 
@@ -238,7 +238,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
     sym_subdir_path = os.path.join(sym_target, 'subdir')
     _sync()
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
 
     # Check that an added symlinked directory is reported.
     os.symlink(self._junk_directory, sym_target)
@@ -268,7 +268,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
 
   def test_too_many_files(self):
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
     for i in range(10001):
       self._create_file('file%d' % i)
     self.assertEqual(len(self._watcher.changes()), 10000)
@@ -276,7 +276,7 @@ class TestMtimeFileWatcher(unittest.TestCase):
   @unittest.skipUnless(hasattr(os, 'symlink'), 'requires os.symlink')
   def test_symlink_loop(self):
     self._watcher.start()
-    self._watcher._startup_thread.join()
+    # self._watcher._startup_thread.join()
 
     for i in range(1000):
       self._create_file('file%d' % i)
