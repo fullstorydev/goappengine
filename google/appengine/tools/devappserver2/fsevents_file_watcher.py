@@ -159,6 +159,10 @@ class FSEventsFileWatcher(object):
     """All re's in skip_files_re are taken to be relative to its base-dir."""
     self._skip_files_re = skip_files_re
 
+  def _path_ignored(self, file_path):
+    """Determines if a path is ignored or not."""
+    return watcher_common.ignore_file(file_path, self._skip_files_re, self._watcher_ignore_re)
+
   def quit(self):
     """Stop watching the directory for changes."""
     self._quit_event.set()
