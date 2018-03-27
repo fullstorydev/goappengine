@@ -39,15 +39,11 @@ class FSEventsFileWatcher(object):
         self._change_event = threading.Event()
         self.observer = Observer()
 
+        logging.info("FSEventsFileWatcher created for %s", self._directories)
+
         def callback(event, mask=None):
-            if not event.mask & (FSEvents.kFSEventStreamEventFlagItemCreated |
-                             FSEvents.kFSEventStreamEventFlagItemRemoved |
-                             FSEvents.kFSEventStreamEventFlagItemInodeMetaMod |
-                             FSEvents.kFSEventStreamEventFlagItemRenamed |
-                             FSEvents.kFSEventStreamEventFlagItemModified |
-                             FSEvents.kFSEventStreamEventFlagItemFinderInfoMod |
-                             FSEvents.kFSEventStreamEventFlagItemChangeOwner |
-                             FSEvents.kFSEventStreamEventFlagItemXattrMod):
+            logging.debug("FSEventsFileWatcher event %s", event)
+            if event.mask == FSEvents.kFSEventStreamEventFlagNone:
                 return
 
             absolute_path = event.name
@@ -74,7 +70,7 @@ class FSEventsFileWatcher(object):
             if _recursive_ignore_dir(os.path.dirname(relpath)):
                 return
 
-            logging.warning("Reloading instances due to change in %s", absolute_path)
+            logging.info("Reloading instances due to change in %s", absolute_path)
             self._changes.append(absolute_path)
             self._change_event.set()
 
@@ -82,10 +78,12 @@ class FSEventsFileWatcher(object):
 
     def set_watcher_ignore_re(self, watcher_ignore_re):
         """Allows the file watcher to ignore a custom pattern set by the user."""
+        logging.debug("FSEventsFileWatcher.set_watcher_ignore_re %s", watcher_ignore_re)
         self._watcher_ignore_re = watcher_ignore_re
 
     def set_skip_files_re(self, skip_files_re):
         """All re's in skip_files_re are taken to be relative to its base-dir."""
+        logging.debug("FSEventsFileWatcher.set_skip_files_re %s", skip_files_re)
         self._skip_files_re = skip_files_re
 
 
