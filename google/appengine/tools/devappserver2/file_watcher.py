@@ -166,9 +166,7 @@ def _create_mac_watcher(directories):
                            fsevents_file_watcher.FSEventsFileWatcher)
   else:
     logging.warning('Could not create FSEventsFileWatcher; falling back to '
-                    'the slower MTimeFileWatcher. To fix this, run '
-                    '"pip install -r requirements.txt" from your '
-                    'frankenserver directory.')
+                    'the slower MTimeFileWatcher.')
     return _create_watcher(directories, mtime_file_watcher.MtimeFileWatcher)
 
 
@@ -189,6 +187,8 @@ def get_file_watcher(directories, use_mtime_file_watcher):
     return _create_watcher(directories, mtime_file_watcher.MtimeFileWatcher)
   elif sys.platform.startswith('linux'):
     return _create_linux_watcher(directories)
+  elif sys.platform.startswith('win'):
+    return _create_watcher(directories, win32_file_watcher.Win32FileWatcher)
   elif sys.platform.startswith('darwin'):
     return _create_mac_watcher(directories)
   else:
