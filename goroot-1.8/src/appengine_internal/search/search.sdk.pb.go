@@ -1123,6 +1123,7 @@ type IndexMetadata struct {
 	Storage          *IndexMetadata_Storage    `protobuf:"bytes,3,opt,name=storage" json:"storage,omitempty"`
 	IndexState       *IndexMetadata_IndexState `protobuf:"varint,4,opt,name=index_state,json=indexState,enum=search.IndexMetadata_IndexState,def=0" json:"index_state,omitempty"`
 	IndexDeleteTime  *int64                    `protobuf:"varint,5,opt,name=index_delete_time,json=indexDeleteTime" json:"index_delete_time,omitempty"`
+	NumShards        *int32                    `protobuf:"varint,6,opt,name=num_shards,json=numShards,def=1" json:"num_shards,omitempty"`
 	XXX_unrecognized []byte                    `json:"-"`
 }
 
@@ -1131,6 +1132,7 @@ func (m *IndexMetadata) String() string { return proto.CompactTextString(m) }
 func (*IndexMetadata) ProtoMessage()    {}
 
 const Default_IndexMetadata_IndexState IndexMetadata_IndexState = IndexMetadata_ACTIVE
+const Default_IndexMetadata_NumShards int32 = 1
 
 func (m *IndexMetadata) GetIndexSpec() *IndexSpec {
 	if m != nil {
@@ -1165,6 +1167,13 @@ func (m *IndexMetadata) GetIndexDeleteTime() int64 {
 		return *m.IndexDeleteTime
 	}
 	return 0
+}
+
+func (m *IndexMetadata) GetNumShards() int32 {
+	if m != nil && m.NumShards != nil {
+		return *m.NumShards
+	}
+	return Default_IndexMetadata_NumShards
 }
 
 type IndexMetadata_Storage struct {

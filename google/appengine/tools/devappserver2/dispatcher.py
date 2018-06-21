@@ -44,7 +44,8 @@ ResponseTuple = collections.namedtuple('ResponseTuple',
 
 # This must be kept in sync with dispatch_ah_url_path_prefix_whitelist in
 # google/production/borg/apphosting/templates/frontend.borg.
-DISPATCH_AH_URL_PATH_PREFIX_WHITELIST = ('/_ah/queue/deferred',)
+DISPATCH_AH_URL_PATH_PREFIX_WHITELIST = ('/_ah/queue/deferred',
+                                         '/_ah/api',)
 
 
 class PortRegistry(object):
@@ -106,7 +107,8 @@ class Dispatcher(request_info.Dispatcher):
                allow_skipped_files,
                module_to_threadsafe_override,
                external_port,
-               specified_service_ports=None):
+               specified_service_ports=None,
+               enable_host_checking=True):
     """Initializer for Dispatcher.
 
     Args:
@@ -165,6 +167,8 @@ class Dispatcher(request_info.Dispatcher):
           ports is more flexible.
       specified_service_ports: A dict of string(service_name)->int(port number).
           This allows services of given names to run on specified ports.
+      enable_host_checking: A bool indicating that HTTP Host checking should
+          be enforced for incoming requests.
     """
     self._configuration = configuration
 
@@ -203,6 +207,7 @@ class Dispatcher(request_info.Dispatcher):
     self._port_registry = PortRegistry()
     self._external_port = external_port
     self._specified_service_ports = specified_service_ports or {}
+    self._enable_host_checking = enable_host_checking
 
   def start(self, api_host, api_port, request_data):
     """Starts the configured modules.
@@ -357,7 +362,8 @@ class Dispatcher(request_info.Dispatcher):
         watcher_ignore_re=self._watcher_ignore_re,
         automatic_restarts=self._automatic_restart,
         allow_skipped_files=self._allow_skipped_files,
-        threadsafe_override=threadsafe_override)
+        threadsafe_override=threadsafe_override,
+        enable_host_checking=self._enable_host_checking)
 
     return module_instance
 

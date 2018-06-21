@@ -25,13 +25,14 @@ from google.net.proto2.python.public import message as _message
 from google.net.proto2.python.public import reflection as _reflection
 from google.net.proto2.python.public import symbol_database as _symbol_database
 from google.net.proto2.proto import descriptor_pb2
+import abc
 import sys
 try:
-  __import__('google.net.rpc.python.rpc_internals_lite')
+  __import__('google.net.rpc.python.proto_python_api_2_stub')
   __import__('google.net.rpc.python.pywraprpc_lite')
-  rpc_internals = sys.modules.get('google.net.rpc.python.rpc_internals_lite')
+  proto_python_api_2_stub = sys.modules.get('google.net.rpc.python.proto_python_api_2_stub')
   pywraprpc = sys.modules.get('google.net.rpc.python.pywraprpc_lite')
-  _client_stub_base_class = rpc_internals.StubbyRPCBaseStub
+  _client_stub_base_class = proto_python_api_2_stub.Stub
 except ImportError:
   _client_stub_base_class = object
 try:
@@ -769,7 +770,101 @@ DESCRIPTOR.services_by_name['SqlService'] = _SQLSERVICE
 
 
 
-class _SqlService_ClientBaseStub(_client_stub_base_class):
+class SqlServiceStub(object):
+  """Makes Stubby RPC calls to a SqlService server."""
+
+  __metaclass__ = abc.ABCMeta
+
+  __slots__ = ()
+
+  @abc.abstractmethod
+  def Exec(self, request, rpc=None, callback=None, response=None):
+    """Make a Exec RPC call.
+
+    Args:
+      request: a ExecRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The ExecResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def ExecOp(self, request, rpc=None, callback=None, response=None):
+    """Make a ExecOp RPC call.
+
+    Args:
+      request: a ExecOpRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The ExecOpResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def GetMetadata(self, request, rpc=None, callback=None, response=None):
+    """Make a GetMetadata RPC call.
+
+    Args:
+      request: a MetadataRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The MetadataResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def OpenConnection(self, request, rpc=None, callback=None, response=None):
+    """Make a OpenConnection RPC call.
+
+    Args:
+      request: a OpenConnectionRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The OpenConnectionResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def CloseConnection(self, request, rpc=None, callback=None, response=None):
+    """Make a CloseConnection RPC call.
+
+    Args:
+      request: a CloseConnectionRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The CloseConnectionResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+
+class _SqlService_ClientBaseStub(
+    SqlServiceStub, _client_stub_base_class):
   """Makes Stubby RPC calls to a SqlService server."""
 
   __slots__ = (
@@ -1002,14 +1097,7 @@ class SqlService(_server_stub_base_class):
 
   @staticmethod
   def NewStub(rpc_stub_parameters, service_name=None, rpc_factory=None):
-    """Creates a new SqlService Stubby client stub.
-
-    Args:
-      rpc_stub_parameters: an RPC_StubParameters instance.
-      service_name: the service name used by the Stubby server.
-      rpc_factory: the rpc factory to use if no rpc argument is specified.
-    """
-
+    """USE NewRPC2Stub INSTEAD."""
     if _client_stub_base_class is object:
       raise RuntimeError('Add //net/rpc/python as a dependency to use Stubby')
     return _SqlService_ClientStub(
@@ -1021,15 +1109,18 @@ class SqlService(_server_stub_base_class):
     """Creates a new SqlService Stubby2 client stub.
 
     Args:
-      server: host:port or bns address.
+      server: host:port or bns address (favor passing a channel instead).
       channel: directly use a channel to create a stub. Will ignore server
           argument if this is specified.
       service_name: the service name used by the Stubby server.
       rpc_factory: the rpc factory to use if no rpc argument is specified.
+
+    Returns:
+     A SqlServiceStub to be used to invoke RPCs.
     """
 
     if _client_stub_base_class is object:
-      raise RuntimeError('Add //net/rpc/python as a dependency to use Stubby')
+      raise RuntimeError('Add //net/rpc/python:proto_python_api_2_stub (or maybe //net/rpc/python:proto_python_api_1_stub, but eww and b/67959631) as a dependency to create Stubby stubs')
     return _SqlService_RPC2ClientStub(
         server, channel, service_name, rpc_factory=rpc_factory)
 
@@ -1041,7 +1132,7 @@ class SqlService(_server_stub_base_class):
       request: a ExecRequest that contains the client request
       response: a ExecResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def ExecOp(self, rpc, request, response):
@@ -1052,7 +1143,7 @@ class SqlService(_server_stub_base_class):
       request: a ExecOpRequest that contains the client request
       response: a ExecOpResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def GetMetadata(self, rpc, request, response):
@@ -1063,7 +1154,7 @@ class SqlService(_server_stub_base_class):
       request: a MetadataRequest that contains the client request
       response: a MetadataResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def OpenConnection(self, rpc, request, response):
@@ -1074,7 +1165,7 @@ class SqlService(_server_stub_base_class):
       request: a OpenConnectionRequest that contains the client request
       response: a OpenConnectionResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def CloseConnection(self, rpc, request, response):
@@ -1085,7 +1176,7 @@ class SqlService(_server_stub_base_class):
       request: a CloseConnectionRequest that contains the client request
       response: a CloseConnectionResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def _AddMethodAttributes(self):
     """Sets attributes on Python RPC handlers.

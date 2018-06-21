@@ -108,7 +108,7 @@ func buildContext(goPath string) *build.Context {
 		GOROOT:      *goRoot,
 		GOPATH:      goPath,
 		Compiler:    "gc",
-		BuildTags:   []string{"appengine"},
+		BuildTags:   []string{"appengine", "purego"},
 		ReleaseTags: releaseTags(*apiVersion),
 	}
 	return ctxt

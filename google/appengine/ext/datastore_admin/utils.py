@@ -373,6 +373,11 @@ class MapreduceDoneHandler(webapp.RequestHandler):
     if 'Mapreduce-Id' in self.request.headers:
       mapreduce_id = self.request.headers['Mapreduce-Id']
       mapreduce_state = model.MapreduceState.get_by_job_id(mapreduce_id)
+      if not mapreduce_state:
+        logging.error('Done callback for no longer valid Mapreduce Id: %s',
+                      mapreduce_id)
+        return
+
       mapreduce_params = mapreduce_state.mapreduce_spec.params
 
       db_config = _CreateDatastoreConfig()
@@ -549,18 +554,8 @@ def StartMap(operation_key,
     operation.put(config=_CreateDatastoreConfig())
     return job_id
 
-
-
-
-
-
-  datastore_type = datastore_rpc._GetDatastoreType()
-
-  if datastore_type != datastore_rpc.BaseConnection.MASTER_SLAVE_DATASTORE:
-    return db.run_in_transaction_options(
-        db.create_transaction_options(xg=True), tx, True)
-  else:
-    return db.run_in_transaction(tx, False)
+  return db.run_in_transaction_options(
+      db.create_transaction_options(xg=True), tx, True)
 
 
 def RunMapForKinds(operation_key,

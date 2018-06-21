@@ -27,24 +27,34 @@ import sys
 import tempfile
 import unittest
 import urllib
+import urllib2
 import wsgiref.util
 
 import google
+import mock
 import mox
 
 from google.net.rpc.python.testing import rpc_test_harness
 
 from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
+from google.appengine.api import mail_stub
 from google.appengine.api import urlfetch_service_pb
 from google.appengine.api import user_service_pb
+from google.appengine.api.app_identity import app_identity_stub
+from google.appengine.api.capabilities import capability_stub
+from google.appengine.api.logservice import logservice_stub
+from google.appengine.api.memcache import memcache_stub
+from google.appengine.api.taskqueue import taskqueue_stub
 from google.appengine.datastore import datastore_pb
+from google.appengine.datastore import datastore_sqlite_stub
 from google.appengine.datastore import datastore_stub_util
 from google.appengine.datastore import datastore_v4_pb
 from google.appengine.ext.remote_api import remote_api_pb
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.tools.devappserver2 import api_server
 from google.appengine.tools.devappserver2 import datastore_grpc_stub
+from google.appengine.tools.devappserver2 import stub_util
 from google.appengine.tools.devappserver2 import wsgi_request_info
 from google.appengine.tools.devappserver2 import wsgi_test_utils
 
@@ -91,7 +101,7 @@ class FakeDatastoreV4ServiceStub(apiproxy_stub.APIProxyStub):
 
 def setup_stubs():
   """Setup the API stubs. This can only be done once."""
-  api_server.setup_test_stubs(
+  stub_util.setup_test_stubs(
       request_data,
       app_id=APP_ID,
       application_root=APPLICATION_ROOT,
@@ -128,7 +138,7 @@ class APIServerTestBase(wsgi_test_utils.WSGITestCase):
                                        APP_ID)
 
   def tearDown(self):
-    api_server.cleanup_stubs()
+    stub_util.cleanup_stubs()
 
   def _assert_remote_call(
       self, expected_remote_response, stub_request, service, method):
@@ -201,7 +211,7 @@ class TestAPIServer(APIServerTestBase):
     deprecated = ['Get', 'Write']
     methods = set([k for k in harness.__dict__.keys()
                    if k not in deprecated and not k.startswith('_')])
-    self.assertEqual(methods, set(api_server._DATASTORE_V4_METHODS.keys()))
+    self.assertEqual(methods, set(stub_util.DATASTORE_V4_METHODS.keys()))
 
   def test_GET(self):
     environ = {'REQUEST_METHOD': 'GET',
@@ -376,6 +386,105 @@ class GenerateStoragePathsTest(unittest.TestCase):
          os.path.join('/tmp', 'appengine.myapp.1'),
          os.path.join('/tmp', 'appengine.myapp.2')],
         list(itertools.islice(api_server._generate_storage_paths('myapp'), 3)))
+    self.mox.VerifyAll()
+
+
+class ClearApiServer(unittest.TestCase):
+  """Tests for api_server._handle_CLEAR."""
+
+  def setUp(self):
+    self.server = api_server.APIServer('localhost', 0, '')
+
+    self.app_identity_stub = mock.create_autospec(
+        app_identity_stub.AppIdentityServiceStub)
+    self.capability_stub = mock.create_autospec(
+        capability_stub.CapabilityServiceStub)
+    self.datastore_v3_stub = mock.create_autospec(
+        datastore_sqlite_stub.DatastoreSqliteStub)
+    self.logservice_stub = mock.create_autospec(logservice_stub.LogServiceStub)
+    self.mail_stub = mock.create_autospec(mail_stub.MailServiceStub)
+    self.memcache_stub = mock.create_autospec(memcache_stub.MemcacheServiceStub)
+    self.taskqueue_stub = mock.create_autospec(
+        taskqueue_stub.TaskQueueServiceStub)
+    self.clearable_stubs = set([
+        self.app_identity_stub, self.capability_stub, self.datastore_v3_stub,
+        self.logservice_stub, self.mail_stub, self.memcache_stub,
+        self.taskqueue_stub
+    ])
+
+    apiproxy_stub_map.apiproxy.ReplaceStub('app_identity_service',
+                                           self.app_identity_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub('capability_service',
+                                           self.capability_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub(
+        'datastore_v3', self.datastore_v3_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub('logservice', self.logservice_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub('mail', self.mail_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub('memcache', self.memcache_stub)
+    apiproxy_stub_map.apiproxy.ReplaceStub('taskqueue', self.taskqueue_stub)
+
+  def test_clear_all(self):
+    """Tests that all stubs are cleared."""
+    environ = {'QUERY_STRING': ''}
+    self.server._handle_CLEAR(environ, lambda *args: None)
+    for stub in self.clearable_stubs:
+      getattr(stub, 'Clear').assert_called_once()
+
+  def test_clear_datastore_only(self):
+    """Tests that only datastore stub is cleared."""
+    environ = {'QUERY_STRING': 'stub=datastore_v3'}
+    self.server._handle_CLEAR(environ, lambda *args: None)
+    self.datastore_v3_stub.Clear.assert_called_once()
+    for stub in self.clearable_stubs - set([self.datastore_v3_stub]):
+      getattr(stub, 'Clear').assert_not_called()
+
+  def test_clear_datastore_and_memcache(self):
+    """Tests that both datastore and memcache stubs are cleared."""
+    environ = {'QUERY_STRING': 'stub=datastore_v3&stub=memcache'}
+    self.server._handle_CLEAR(environ, lambda *args: None)
+    cleared_stubs = set([self.datastore_v3_stub, self.memcache_stub])
+    for stub in cleared_stubs:
+      getattr(stub, 'Clear').assert_called_once()
+    for stub in self.clearable_stubs - cleared_stubs:
+      getattr(stub, 'Clear').assert_not_called()
+
+
+class LocalJavaAppDispatcherTest(unittest.TestCase):
+  """Tests for request_info._LocalJavaAppDispatcher."""
+
+  def setUp(self):
+    self.mox = mox.Mox()
+
+  def tearDown(self):
+    self.mox.UnsetStubs()
+
+  def testAddRequest(self):
+    java_app_base_url = 'http://localhost:8080'
+    relative_url = '/_ah/queue'
+    body = 'body'
+    headers = [('X-Header', 'x-header-value')]
+
+    self.mox.StubOutWithMock(urllib2, 'urlopen')
+    self.mox.StubOutClassWithMocks(urllib2, 'Request')
+
+    urllib2_mock_request = urllib2.Request(
+        url=java_app_base_url + relative_url, data=body, headers=dict(headers))
+
+    urllib2_mock_response = self.mox.CreateMock(urllib2.addinfourl)
+    urllib2_mock_response.getcode().AndReturn(200)
+
+    urllib2.urlopen(urllib2_mock_request).AndReturn(urllib2_mock_response)
+
+    dispatcher = api_server._LocalJavaAppDispatcher(
+        java_app_base_url=java_app_base_url)
+
+    self.mox.ReplayAll()
+    dispatcher.add_request(
+        method='POST',
+        relative_url=relative_url,
+        headers=headers,
+        body=body,
+        source_ip='127.0.0.1')
     self.mox.VerifyAll()
 
 

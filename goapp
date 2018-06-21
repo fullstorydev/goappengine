@@ -37,7 +37,7 @@ FixGooglePath()
 
 # pylint: disable=g-import-not-at-top
 from google.appengine.api import appinfo_includes
-from google.appengine.tools import goroots
+from google.appengine.tools.devappserver2.go import goroots
 # pylint: enable=g-import-not-at-top
 
 

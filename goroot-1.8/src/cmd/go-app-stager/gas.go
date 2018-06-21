@@ -12,18 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Command appengine-go-staging stages an App Engine Standard Go app,
+// Command go-app-stager stages an App Engine Standard/Flexible Go app,
 // according to the staging protocol specified in the Google Cloud SDK, under
-// `command_lib/app/staging.py`.
+// `command_lib/app/staging.py`.  It will stage the app for a given Go version.
 //
-// Usage: go-app-stager SERVICE_YAML STAGED_DIR
-// Stdout: Path to staged SERVICE_YAML
-// Stderr: All debug and errors
+// For GAE Standard, the Go version can be specified in the app.yaml file's
+// api_version field with value in the form of `go1.x[RC]`.  If api_version
+// field has unpinned version value of `go1`, use the constant
+// stdDefaultMinorVersion defined below.  If api_version field is not set or not
+// a valid value, go-app-stager will error out.
 //
-// SERVICE_YAML is the path to the original `<service>.yaml` (commonly
-// `app.yaml`) from the unstaged app directory (and is left untouched).
+// For GAE Flex, gcloud will set GAE_RUNTIME_NAME environment variable to a
+// resolved runtime value based on runtimes.yaml file, i.e. if value is `go`,
+// gcloud should resolve it to a runtime value of `go1.x[RC]` format.  gcloud
+// may provide other runtime values, e.g. `custom`, in which case user should
+// use the flag -go-version to set the Go version to stage with, otherwise
+// go-app-stager will error out.
 //
-// STAGED_DIR should be an empty directory, and is populated by this command.
+// TODO: gcloud currently does not set GAE_RUNTIME_NAME yet, and hence
+// go-app-stager falls back to parsing app.yaml for runtime value on its own
+// for now and use the constant flexDefaultMinorVersion if value is `go`.  Once
+// gcloud sets GAE_RUNTIME_NAME environment variable, this fallback logic can
+// be removed.
+//
+// Current codebase assumes 1.x versions even though its interface allows for
+// versions beyond Go1.
 package main
 
 import (
@@ -35,21 +48,34 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"appengine_internal/gopkg.in/yaml.v2"
 )
 
-func usage() {
-	fmt.Fprint(os.Stderr, `Usage of go-app-stager:
-	go-app-stager SERVICE_YAML APP_DIR STAGED_DIR
+const (
+	stdDefaultMinorVersion  = 8
+	flexDefaultMinorVersion = 10
+)
 
-	Stage App Engine app in an empty directory.
-	SERVICE_YAML:	Path to original '<service>.yaml' file, (app.yaml)
-	APP_DIR:	Path to original app directory (usually contains SERVICE_YAML, but not a requirement)
-	STAGED_DIR:	Path to an empty directory where the app should be staged
+func init() {
+	flag.Usage = func() {
+		fmt.Fprint(os.Stderr, `Usage:
+  go-app-stager [-go-version=x.y] SERVICE_YAML APP_DIR STAGED_DIR
+
+  Stage App Engine app into STAGED_DIR.
+  SERVICE_YAML: Path to original '<service>.yaml' file, (app.yaml)
+  APP_DIR:      Path to original app directory (usually contains SERVICE_YAML, but not a requirement)
+  STAGED_DIR:   Path to an empty directory where the app should be staged
+
 `)
+		flag.PrintDefaults()
+	}
 }
+
+// Go version flag to use for finding dependencies. If set, it overrides all other options.
+var goVersion = flag.String("go-version", "", "target Go release version, e.g. 1.8")
 
 // Top-level standard library packages, used instead of depending on a Goroot.
 var skippedPackages = map[string]bool{
@@ -102,12 +128,18 @@ var skippedPackages = map[string]bool{
 
 // Subset of <service>.yaml (commonly app.yaml)
 type config struct {
-	VM  bool   `yaml:"vm"`
-	Env string `yaml:"env"`
+	Runtime    string `yaml:"runtime"`
+	VM         bool   `yaml:"vm"`
+	Env        string `yaml:"env"`
+	APIVersion string `yaml:"api_version"`
+}
+
+func (conf *config) isStandard() bool {
+	return conf.Runtime == "go" && conf.APIVersion != ""
 }
 
 func (conf *config) isFlex() bool {
-	return conf.VM || conf.Env == "flex" || conf.Env == "flexible" || conf.Env == "2"
+	return !conf.isStandard()
 }
 
 type importFrom struct {
@@ -122,14 +154,12 @@ var (
 		".hg":         true,
 		".travis.yml": true,
 	}
-	minorVersions = []int{6, 7, 8, 9} // go1.n, both flex and standard
 )
 
 func main() {
 	flag.Parse()
 	if narg := flag.NArg(); narg != 3 {
-		usage()
-		flag.PrintDefaults()
+		flag.Usage()
 		os.Exit(1)
 	}
 	// Path to the <service>.yaml file
@@ -138,19 +168,21 @@ func main() {
 	dst := flag.Arg(2)
 
 	// Read and parse app.yaml file
-	var c config
-	contents, err := ioutil.ReadFile(configPath)
+	c, err := readConfig(configPath)
 	if err != nil {
-		log.Printf("failed to read %s: %v", configPath, err)
-		os.Exit(1)
-	}
-	if err = yaml.Unmarshal(contents, &c); err != nil {
-		log.Printf("failed to unmarshal YAML config: %v", err)
+		log.Println(err)
 		os.Exit(1)
 	}
 
-	// Get deps for dir []string
-	tags := []string{"appengine"}
+	// Determine Go minor version to use.
+	minorVer, err := minorVersion(c, *goVersion)
+	if err != nil {
+		log.Print(err)
+		os.Exit(1)
+	}
+	log.Printf("staging for go1.%d", minorVer)
+
+	tags := []string{"appengine", "purego"}
 	enforceMain := false
 	dstDepsDir := ""
 	if c.isFlex() {
@@ -158,29 +190,44 @@ func main() {
 		enforceMain = true
 		dstDepsDir = filepath.Join("_gopath", "src")
 		skippedPackages["appengine"] = false // Doesn't exist for flex
+
+		// Write out _gopath/main-package-path if main package is under GOPATH.
 		mainPathFile := filepath.Join(dst, "_gopath", "main-package-path")
 		if err := writeMainPkgFile(mainPathFile, src); err != nil {
 			log.Printf("failed to write _gopath/main-package-path: %v", err)
 			os.Exit(1)
 		}
 	}
-	// Multipass analyzing in order to respect release tags,
-	for _, minorVersion := range minorVersions {
-		buildCtx := buildContext(tags, minorVersion)
-		deps, err := analyze(src, buildCtx, enforceMain)
-		if err != nil {
-			log.Printf("failed analyzing %s: %v\nGOPATH: %s\n", src, err, buildCtx.GOPATH)
-			os.Exit(1)
-		}
-		if err = bundle(dst, dstDepsDir, deps); err != nil {
-			log.Printf("failed to bundle to %s: %v", dst, err)
-			os.Exit(1)
-		}
+
+	// Find all dependencies for a build.Context for the release version and bundle their
+	// directories into the staged directory.
+	buildCtx := buildContext(tags, minorVer)
+	deps, err := analyze(src, buildCtx, enforceMain)
+	if err != nil {
+		log.Printf("failed analyzing %s: %v\nGOPATH: %s\n", src, err, buildCtx.GOPATH)
+		os.Exit(1)
+	}
+	if err = bundle(dst, dstDepsDir, deps); err != nil {
+		log.Printf("failed to bundle to %s: %v", dst, err)
+		os.Exit(1)
 	}
 	if err = copyTree(dst, ".", src, true); err != nil {
 		log.Printf("unable to copy root directory to /app: %v", err)
 		os.Exit(1)
 	}
+}
+
+// readConfig parses given app.yaml file path.
+func readConfig(path string) (*config, error) {
+	c := &config{}
+	contents, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read %s: %v", path, err)
+	}
+	if err = yaml.Unmarshal(contents, c); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal YAML config: %v", err)
+	}
+	return c, nil
 }
 
 // writeMainPkgFile writes out the main package path relative to GOPATH into given file.
@@ -237,6 +284,72 @@ func writeMainPkgFile(file string, appDir string) error {
 	}
 	fmt.Fprintf(os.Stderr, "main-package: %s\n", mainPath)
 	return nil
+}
+
+func minorVersion(cfg *config, fval string) (int, error) {
+	// Use flag value first if set.
+	if fval != "" {
+		if mv, ok := parseMinorVersion(fval, "1."); ok {
+			return mv, nil
+		}
+		return 0, fmt.Errorf("invalid -go-version flag value: %s", fval)
+	}
+	// Use either Flex or Standard specific logic at determining version.
+	if cfg.isFlex() {
+		return flexMinorVersion(cfg)
+	}
+	return stdMinorVersion(cfg)
+}
+
+// stdMinorVersion returns minor version for GAE Standard.
+func stdMinorVersion(cfg *config) (int, error) {
+	val := cfg.APIVersion
+	if val == "go1" {
+		return stdDefaultMinorVersion, nil
+	}
+	mv, ok := parseGo1MinorVersion(val)
+	if !ok {
+		// Invalid value.
+		return -1, fmt.Errorf("invalid api_version value %s", val)
+	}
+	return mv, nil
+}
+
+// flexMinorVersion returns minor version for GAE Flex.
+func flexMinorVersion(cfg *config) (int, error) {
+	// Check environment variable.
+	if ev := os.Getenv("GAE_RUNTIME_NAME"); ev != "" {
+		if mv, ok := parseGo1MinorVersion(ev); ok {
+			return mv, nil
+		}
+		return -1, fmt.Errorf("unable to stage for GAE_RUNTIME_NAME %q", ev)
+	}
+	// TODO: Remove logic below once gcloud sets GAE_RUNTIME_NAME.
+	// Check app.yaml.
+	val := cfg.Runtime
+	if strings.HasSuffix(val, "go") {
+		return flexDefaultMinorVersion, nil
+	}
+	mv, ok := parseGo1MinorVersion(val)
+	if !ok {
+		return -1, fmt.Errorf("unable to stage for runtime %q", cfg.Runtime)
+	}
+	return mv, nil
+}
+
+func parseGo1MinorVersion(val string) (int, bool) {
+	// For version value of `go1.xRC`, treat as `go1.x`.
+	val = strings.TrimSuffix(val, "RC")
+	return parseMinorVersion(val, "go1.")
+}
+
+func parseMinorVersion(val string, prefix string) (int, bool) {
+	if !strings.HasPrefix(val, prefix) {
+		return 0, false
+	}
+	s := strings.TrimPrefix(val, prefix)
+	mv, err := strconv.Atoi(s)
+	return mv, err == nil
 }
 
 // buildContext returns the context for building the source.

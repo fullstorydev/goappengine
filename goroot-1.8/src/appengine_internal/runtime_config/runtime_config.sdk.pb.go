@@ -264,6 +264,7 @@ type PhpConfig struct {
 	EnableDebugger      *bool  `protobuf:"varint,3,req,name=enable_debugger,json=enableDebugger" json:"enable_debugger,omitempty"`
 	GaeExtensionPath    []byte `protobuf:"bytes,4,opt,name=gae_extension_path,json=gaeExtensionPath" json:"gae_extension_path,omitempty"`
 	XdebugExtensionPath []byte `protobuf:"bytes,5,opt,name=xdebug_extension_path,json=xdebugExtensionPath" json:"xdebug_extension_path,omitempty"`
+	PhpVersion          []byte `protobuf:"bytes,6,opt,name=php_version,json=phpVersion" json:"php_version,omitempty"`
 	XXX_unrecognized    []byte `json:"-"`
 }
 
@@ -295,6 +296,13 @@ func (m *PhpConfig) GetGaeExtensionPath() []byte {
 func (m *PhpConfig) GetXdebugExtensionPath() []byte {
 	if m != nil {
 		return m.XdebugExtensionPath
+	}
+	return nil
+}
+
+func (m *PhpConfig) GetPhpVersion() []byte {
+	if m != nil {
+		return m.PhpVersion
 	}
 	return nil
 }
@@ -358,6 +366,7 @@ func (m *JavaConfig) GetJvmArgs() []string {
 type GoConfig struct {
 	WorkDir              *string `protobuf:"bytes,1,opt,name=work_dir,json=workDir" json:"work_dir,omitempty"`
 	EnableWatchingGoPath *bool   `protobuf:"varint,2,opt,name=enable_watching_go_path,json=enableWatchingGoPath" json:"enable_watching_go_path,omitempty"`
+	EnableDebugging      *bool   `protobuf:"varint,3,opt,name=enable_debugging,json=enableDebugging" json:"enable_debugging,omitempty"`
 	XXX_unrecognized     []byte  `json:"-"`
 }
 
@@ -375,6 +384,13 @@ func (m *GoConfig) GetWorkDir() string {
 func (m *GoConfig) GetEnableWatchingGoPath() bool {
 	if m != nil && m.EnableWatchingGoPath != nil {
 		return *m.EnableWatchingGoPath
+	}
+	return false
+}
+
+func (m *GoConfig) GetEnableDebugging() bool {
+	if m != nil && m.EnableDebugging != nil {
+		return *m.EnableDebugging
 	}
 	return false
 }

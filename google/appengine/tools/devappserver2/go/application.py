@@ -29,9 +29,9 @@ import sys
 import tempfile
 
 import google
-from google.appengine.tools import goroots
 from google.appengine.tools.devappserver2 import safe_subprocess
 from google.appengine.tools.devappserver2.go import errors as go_errors
+from google.appengine.tools.devappserver2.go import goroots
 
 # The location of devappserver2 changes infrequently enough we can be fairly
 # confident depending on the goroot and gopath being in the same place relative
@@ -97,13 +97,14 @@ def list_go_files(application_root, nobuild_files, skip_files):
 class GoApplication(object):
   """An abstraction around the source and executable for a Go application."""
 
-  def __init__(self, module_configuration, work_dir):
+  def __init__(self, module_configuration, work_dir, enable_debugging=False):
     """Initializer for Module.
 
     Args:
       module_configuration: An application_configuration.ModuleConfiguration
           instance storing the configuration data for a module.
       work_dir: Directory to store intermediate files.
+      enable_debugging: Enable build flags for debugging.
     """
     self._module_configuration = module_configuration
     self._go_file_to_mtime = {}
@@ -116,6 +117,7 @@ class GoApplication(object):
       # unpredictably.
       self._work_dir = os.path.join(
           work_dir, self._module_configuration.module_name)
+    self._enable_debugging = enable_debugging
     self._goroot = os.path.join(
         ROOT_PATH, goroots.GOROOTS[self._module_configuration.api_version])
     self._arch = self._get_architecture(self._goroot)
@@ -164,6 +166,7 @@ class GoApplication(object):
         '-unsafe',
     ]
     gab_args.extend(gab_extra_args)
+    logging.debug('Calling go-app-builder: env: %s, args: %s', env, gab_args)
     gab_process = safe_subprocess.start_process(gab_args,
                                                 stdout=subprocess.PIPE,
                                                 stderr=subprocess.PIPE,
@@ -275,11 +278,14 @@ class GoApplication(object):
     assert self._go_file_to_mtime, 'no .go files'
     logging.debug('Building Go application')
 
+    gcflags = ['-I', self._pkg_path]
+    if self._enable_debugging:
+      gcflags.extend(['-N', '-l'])
     gab_args = [
         '-binary_name', '_go_app',
         '-extra_imports', 'appengine_internal/init',
         '-work_dir', self._work_dir,
-        '-gcflags', _escape_tool_flags('-I', self._pkg_path),
+        '-gcflags', _escape_tool_flags(*gcflags),
         '-ldflags', _escape_tool_flags('-L', self._pkg_path),
     ]
     gab_args.extend(self._go_file_to_mtime)

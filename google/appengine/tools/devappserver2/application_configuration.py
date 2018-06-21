@@ -40,6 +40,8 @@ from google.appengine.tools import web_xml_parser
 from google.appengine.tools import yaml_translator
 from google.appengine.tools.devappserver2 import constants
 from google.appengine.tools.devappserver2 import errors
+from google.appengine.tools.devappserver2.java import java_dir
+
 
 # Constants passed to functions registered with
 # ModuleConfiguration.add_change_callback.
@@ -69,8 +71,7 @@ _HEALTH_CHECK_DEFAULTS = {
 
 def java_supported():
   """True if this SDK supports running Java apps in the dev appserver."""
-  java_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'java')
-  return os.path.isdir(java_dir)
+  return os.path.isdir(java_dir.get_java_dir())
 
 
 class ModuleConfiguration(object):
@@ -130,11 +131,6 @@ class ModuleConfiguration(object):
 
     self._app_info_external, files_to_check = self._parse_configuration(
         self._config_path)
-
-    # TODO: As in AppengineApiClient._CreateVersionResource,
-    # add deprecation warnings and remove this code
-    if self._app_info_external.service:
-      self._app_info_external.module = self._app_info_external.service
 
     # This if-statement is necessary because of following corner case
     # appinfo.EnvironmentVariables.Merge({}, None) returns None
@@ -400,11 +396,15 @@ class ModuleConfiguration(object):
   def health_check(self):
     return self._health_check
 
+  @property
+  def default_expiration(self):
+    return self._app_info_external.default_expiration
+
   def check_for_updates(self):
     """Return any configuration changes since the last check_for_updates call.
 
     Returns:
-      A set containing the changes that occured. See the *_CHANGED module
+      A set containing the changes that occurred. See the *_CHANGED module
       constants.
     """
     new_mtimes = self._get_mtimes(self._mtimes.keys())
@@ -414,7 +414,7 @@ class ModuleConfiguration(object):
     try:
       app_info_external, files_to_check = self._parse_configuration(
           self._config_path)
-    except Exception, e:
+    except Exception, e:  # pylint: disable=broad-except
       failure_message = str(e)
       if failure_message != self._last_failure_message:
         logging.error('Configuration is not valid: %s', failure_message)
@@ -637,7 +637,7 @@ class BackendsConfiguration(object):
           updates.
 
     Returns:
-      A set containing the changes that occured. See the *_CHANGED module
+      A set containing the changes that occurred. See the *_CHANGED module
       constants.
     """
     with self._update_lock:
@@ -819,11 +819,15 @@ class BackendConfiguration(object):
   def health_check(self):
     return self._module_configuration.health_check
 
+  @property
+  def default_expiration(self):
+    return self._module_configuration.default_expiration
+
   def check_for_updates(self):
     """Return any configuration changes since the last check_for_updates call.
 
     Returns:
-      A set containing the changes that occured. See the *_CHANGED module
+      A set containing the changes that occurred. See the *_CHANGED module
       constants.
     """
     changes = self._backends_configuration.check_for_updates(
@@ -855,13 +859,13 @@ class DispatchConfiguration(object):
       self._mtime = mtime
       try:
         dispatch_info_external = self._parse_configuration(self._config_path)
-      except Exception, e:
+      except Exception, e:  # pylint: disable=broad-except
         failure_message = str(e)
         logging.error('Configuration is not valid: %s', failure_message)
         return
       self._process_dispatch_entries(dispatch_info_external)
 
-  def _process_dispatch_entries(self, dispatch_info_external):
+  def _process_dispatch_entries(self, dispatch_info_external):  # pylint: disable=missing-docstring
     path_only_entries = []
     hostname_entries = []
     for entry in dispatch_info_external.dispatch:

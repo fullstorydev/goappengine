@@ -18,8 +18,6 @@
 
 
 
-
-
 """Stub version of the urlfetch API, based on httplib."""
 
 
@@ -105,7 +103,10 @@ _UNTRUSTED_REQUEST_HEADERS = frozenset([
   'x-forwarded-for',
 ])
 
-_MAX_URL_LENGTH = 2048
+
+
+
+_MAX_URL_LENGTH = 10240
 
 
 def _CanValidateCerts():
@@ -176,6 +177,10 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
     super(URLFetchServiceStub, self).__init__(service_name,
                                               max_request_size=MAX_REQUEST_SIZE)
     self._urlmatchers_to_fetch_functions = urlmatchers_to_fetch_functions or []
+    self.http_proxy = None
+
+  def _Dynamic_SetHttpProxy(self, request, response):
+    self.http_proxy = (request.http_proxy_host(), request.http_proxy_port())
 
   def _Dynamic_Fetch(self, request, response):
     """Trivial implementation of URLFetchService::Fetch().
@@ -184,9 +189,7 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
       request: the fetch to perform, a URLFetchRequest
       response: the fetch response, a URLFetchResponse
     """
-
-
-    if len(request.url()) >= _MAX_URL_LENGTH:
+    if len(request.url()) > _MAX_URL_LENGTH:
       logging.error('URL is too long: %s...' % request.url()[:50])
       raise apiproxy_errors.ApplicationError(
           urlfetch_service_pb.URLFetchServiceError.INVALID_URL)
@@ -237,31 +240,41 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
     if request.has_mustvalidateservercertificate():
       validate_certificate = request.mustvalidateservercertificate()
 
-    fetch_function = self._GetFetchFunction(request.url())
-    fetch_function(request.url(), payload, method,
-                   request.header_list(), request, response,
-                   follow_redirects=request.followredirects(),
-                   deadline=deadline,
-                   validate_certificate=validate_certificate)
+    custom_fetch_function = self._GetCustomFetchFunction(request.url())
+    if custom_fetch_function:
+      custom_fetch_function(request.url(), payload, method,
+                            request.header_list(), request, response,
+                            follow_redirects=request.followredirects(),
+                            deadline=deadline,
+                            validate_certificate=validate_certificate)
+    else:
+      self._RetrieveURL(request.url(), payload, method,
+                        request.header_list(), request, response,
+                        follow_redirects=request.followredirects(),
+                        deadline=deadline,
+                        validate_certificate=validate_certificate,
+                        http_proxy=self.http_proxy)
 
-  def _GetFetchFunction(self, url):
-    """Get the fetch function for a url.
+  def _GetCustomFetchFunction(self, url):
+    """Get the custom fetch function for a url.
 
     Args:
       url: A url to fetch from. str.
 
     Returns:
-      A fetch function for this url.
+      A custom fetch function for this url, or None if no matching custom
+      function is found.
     """
     for urlmatcher, fetch_function in self._urlmatchers_to_fetch_functions:
       if urlmatcher(url):
         return fetch_function
-    return self._RetrieveURL
+    return None
 
   @staticmethod
   def _RetrieveURL(url, payload, method, headers, request, response,
                    follow_redirects=True, deadline=_API_CALL_DEADLINE,
-                   validate_certificate=_API_CALL_VALIDATE_CERTIFICATE_DEFAULT):
+                   validate_certificate=_API_CALL_VALIDATE_CERTIFICATE_DEFAULT,
+                   http_proxy=None):
     """Retrieves a URL over network.
 
     Args:
@@ -280,6 +293,8 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
       validate_certificate: If true, do not send request to server unless the
         certificate is valid, signed by a trusted CA and the hostname matches
         the certificate.
+      http_proxy: Tuple of (hostname, port), where hostname is a string and port
+        is an int, to use as the http proxy.
 
     Raises:
       Raises an apiproxy_errors.ApplicationError exception with
@@ -387,7 +402,10 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
           connection_class = httplib.HTTPConnection
           default_port = 80
 
-          if os.environ.get('HTTP_PROXY') and not _IsLocalhost(host):
+          if http_proxy and not _IsLocalhost(host):
+            proxy_host = '%s:%d' % (http_proxy[0],
+                                    http_proxy[1])
+          elif os.environ.get('HTTP_PROXY') and not _IsLocalhost(host):
             _, proxy_host, _, _, _ = (
                 urlparse.urlsplit(os.environ.get('HTTP_PROXY')))
         elif protocol == 'https':

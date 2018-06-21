@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     20470     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "5ebefd62127b5ea5485382c6be8c64b1115c4979"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "69337516cf9c32c69aba04b701efcf2b948cade4"
 
 $$
 package sql
@@ -202,7 +202,7 @@ package sql
 
 $$
 _go_.o          0           0     0     644     510484    `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ld*database/sql/driver.aerrors.a

@@ -28,6 +28,7 @@ from google.appengine.tools.devappserver2 import api_server
 from google.appengine.tools.devappserver2 import application_configuration
 from google.appengine.tools.devappserver2 import cli_parser
 from google.appengine.tools.devappserver2 import constants
+from google.appengine.tools.devappserver2 import datastore_converter
 from google.appengine.tools.devappserver2 import dispatcher
 from google.appengine.tools.devappserver2 import metrics
 from google.appengine.tools.devappserver2 import runtime_config_pb2
@@ -47,6 +48,17 @@ logging.basicConfig(
 
 PARSER = cli_parser.create_command_line_parser(
     cli_parser.DEV_APPSERVER_CONFIGURATION)
+
+
+class PhpVersionError(Exception):
+  """Raised when multiple versions of php are in app yaml."""
+
+
+class PhpPathError(Exception):
+  """Raised when --php_executable_path is not specified for php72.
+
+  This flag is optional for php55.
+  """
 
 
 class DevelopmentServer(object):
@@ -80,6 +92,9 @@ class DevelopmentServer(object):
 
     Args:
       options: An argparse.Namespace containing the command line arguments.
+
+    Raises:
+      PhpPathError: php executable path is not specified for php72.
     """
     self._options = options
 
@@ -93,13 +108,20 @@ class DevelopmentServer(object):
         runtime=options.runtime,
         env_variables=parsed_env_variables)
 
+    storage_path = api_server.get_storage_path(
+        options.storage_path, configuration.app_id)
+    datastore_path = api_server.get_datastore_path(
+        storage_path, options.datastore_path)
+    datastore_data_type = (datastore_converter.get_stub_type(datastore_path)
+                           if os.path.isfile(datastore_path) else None)
     if options.google_analytics_client_id:
       metrics_logger = metrics.GetMetricsLogger()
       metrics_logger.Start(
           options.google_analytics_client_id,
           options.google_analytics_user_agent,
           {module.runtime for module in configuration.modules},
-          {module.env or 'standard' for module in configuration.modules})
+          {module.env or 'standard' for module in configuration.modules},
+          options.support_datastore_emulator, datastore_data_type)
 
     if options.skip_sdk_update_check:
       logging.info('Skipping SDK update check.')
@@ -123,6 +145,10 @@ class DevelopmentServer(object):
 
     util.setup_environ(configuration.app_id)
 
+    php_version = self._get_php_runtime(configuration)
+    if not options.php_executable_path and php_version == 'php72':
+      raise PhpPathError('For php72, --php_executable_path must be specified.')
+
     self._dispatcher = dispatcher.Dispatcher(
         configuration, options.host, options.port, options.auth_domain,
         constants.LOG_LEVEL_TO_RUNTIME_CONSTANT[options.log_level],
@@ -131,7 +157,7 @@ class DevelopmentServer(object):
 
 
 
-        self._create_php_config(options),
+        self._create_php_config(options, php_version),
         self._create_python_config(options),
         self._create_java_config(options),
         self._create_go_config(options),
@@ -147,11 +173,10 @@ class DevelopmentServer(object):
             configuration,
             '--threadsafe_override'),
         options.external_port,
-        options.specified_service_ports)
+        options.specified_service_ports,
+        options.enable_host_checking)
 
     wsgi_request_info_ = wsgi_request_info.WSGIRequestInfo(self._dispatcher)
-    storage_path = api_server.get_storage_path(
-        options.storage_path, configuration.app_id)
 
     apiserver = api_server.create_api_server(
         wsgi_request_info_, storage_path, options, configuration.app_id,
@@ -164,7 +189,9 @@ class DevelopmentServer(object):
 
     xsrf_path = os.path.join(storage_path, 'xsrf')
     admin = admin_server.AdminServer(options.admin_host, options.admin_port,
-                                     self._dispatcher, configuration, xsrf_path)
+                                     self._dispatcher, configuration, xsrf_path,
+                                     options.enable_host_checking,
+                                     options.enable_console)
     admin.start()
     self._running_modules.append(admin)
     try:
@@ -208,7 +235,44 @@ class DevelopmentServer(object):
       metrics.GetMetricsLogger().Stop(**kwargs)
 
   @staticmethod
-  def _create_php_config(options):
+  def _get_php_runtime(config):
+    """Get the php runtime specified in user application.
+
+    Currently we only allow one version of php although devappserver supports
+    running multiple services.
+
+    Args:
+      config: An instance of application_configuration.ApplicationConfiguration.
+
+    Returns:
+      A string representing name of the runtime.
+
+    Raises:
+      PhpVersionError: More than one version of php is found in app yaml.
+    """
+    runtime = None
+    for module_configuration in config.modules:
+      r = module_configuration.runtime
+      if r.startswith('php'):
+        if not runtime:
+          runtime = r
+        elif runtime != r:
+          raise PhpVersionError(
+              'Found both %s and %s in yaml files, you can run only choose one '
+              'version of php on dev_appserver.' % (runtime, r))
+    return runtime
+
+  @staticmethod
+  def _create_php_config(options, php_version=None):
+    """Create a runtime_config.PhpConfig based on flag and php_version.
+
+    Args:
+      options: An argparse.Namespace object.
+      php_version: A string representing php version.
+
+    Returns:
+      A runtime_config.PhpConfig object.
+    """
     php_config = runtime_config_pb2.PhpConfig()
     if options.php_executable_path:
       php_config.php_executable_path = os.path.abspath(
@@ -220,6 +284,8 @@ class DevelopmentServer(object):
     if options.php_xdebug_extension_path:
       php_config.xdebug_extension_path = os.path.abspath(
           options.php_xdebug_extension_path)
+    if php_version:
+      php_config.php_version = php_version
 
     return php_config
 
@@ -259,6 +325,8 @@ class DevelopmentServer(object):
       go_config.work_dir = options.go_work_dir
     if options.enable_watching_go_path:
       go_config.enable_watching_go_path = True
+    if options.go_debugging:
+      go_config.enable_debugging = options.go_debugging
     return go_config
 
   @staticmethod

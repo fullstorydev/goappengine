@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     9924      `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "d5040ba81c7adaa39daa370c13a60378c84738be"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "6d166b3638e82edcd95e7ee87b96c39d9377c167"
 
 $$
 package cloudsql
@@ -85,7 +85,7 @@ package cloudsql
 
 $$
 _go_.o          0           0     0     644     4076      `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ld

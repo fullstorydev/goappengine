@@ -18,6 +18,7 @@
 
 
 from google.net.proto import ProtocolBuffer
+import abc
 import array
 import base64
 import dummy_thread as thread
@@ -27,11 +28,11 @@ except ImportError:
   _net_proto___parse__python = None
 import sys
 try:
-  __import__('google.net.rpc.python.rpc_internals_lite')
+  __import__('google.net.rpc.python.proto_python_api_1_stub')
   __import__('google.net.rpc.python.pywraprpc_lite')
-  rpc_internals = sys.modules.get('google.net.rpc.python.rpc_internals_lite')
+  proto_python_api_1_stub = sys.modules.get('google.net.rpc.python.proto_python_api_1_stub')
   pywraprpc = sys.modules.get('google.net.rpc.python.pywraprpc_lite')
-  _client_stub_base_class = rpc_internals.StubbyRPCBaseStub
+  _client_stub_base_class = proto_python_api_1_stub.Stub
 except ImportError:
   _client_stub_base_class = object
 try:
@@ -187,7 +188,7 @@ class Error(ProtocolBuffer.ProtocolMessage):
   _STYLE_CONTENT_TYPE = """"""
   _PROTO_DESCRIPTOR_NAME = 'apphosting.datastore.v4.Error'
   _SERIALIZED_DESCRIPTOR = array.array('B')
-  _SERIALIZED_DESCRIPTOR.fromstring(base64.decodestring("WidhcHBob3N0aW5nL2RhdGFzdG9yZS9kYXRhc3RvcmVfdjQucHJvdG8KHWFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVycm9yc3oJRXJyb3JDb2RliwGSAQtCQURfUkVRVUVTVJgBAYwBiwGSARZDT05DVVJSRU5UX1RSQU5TQUNUSU9OmAECjAGLAZIBDklOVEVSTkFMX0VSUk9SmAEDjAGLAZIBCk5FRURfSU5ERViYAQSMAYsBkgEHVElNRU9VVJgBBYwBiwGSARFQRVJNSVNTSU9OX0RFTklFRJgBBowBiwGSAQ5CSUdUQUJMRV9FUlJPUpgBB4wBiwGSARxDT01NSVRURURfQlVUX1NUSUxMX0FQUExZSU5HmAEIjAGLAZIBE0NBUEFCSUxJVFlfRElTQUJMRUSYAQmMAYsBkgEVVFJZX0FMVEVSTkFURV9CQUNLRU5EmAEKjAGLAZIBEVNBRkVfVElNRV9UT09fT0xEmAELjAGLAZIBElJFU09VUkNFX0VYSEFVU1RFRJgBDIwBiwGSAQlOT1RfRk9VTkSYAQ2MAYsBkgEOQUxSRUFEWV9FWElTVFOYAQ6MAYsBkgETRkFJTEVEX1BSRUNPTkRJVElPTpgBD4wBiwGSAQ9VTkFVVEhFTlRJQ0FURUSYARCMAYsBkgEHQUJPUlRFRJgBEYwBdLoB9zEKJ2FwcGhvc3RpbmcvZGF0YXN0b3JlL2RhdGFzdG9yZV92NC5wcm90bxIXYXBwaG9zdGluZy5kYXRhc3RvcmUudjQaJGFwcGhvc3RpbmcvZGF0YXN0b3JlL2VudGl0eV92NC5wcm90byKBAwoFRXJyb3Ii9wIKCUVycm9yQ29kZRIPCgtCQURfUkVRVUVTVBABEhoKFkNPTkNVUlJFTlRfVFJBTlNBQ1RJT04QAhISCg5JTlRFUk5BTF9FUlJPUhADEg4KCk5FRURfSU5ERVgQBBILCgdUSU1FT1VUEAUSFQoRUEVSTUlTU0lPTl9ERU5JRUQQBhISCg5CSUdUQUJMRV9FUlJPUhAHEiAKHENPTU1JVFRFRF9CVVRfU1RJTExfQVBQTFlJTkcQCBIXChNDQVBBQklMSVRZX0RJU0FCTEVEEAkSGQoVVFJZX0FMVEVSTkFURV9CQUNLRU5EEAoSFQoRU0FGRV9USU1FX1RPT19PTEQQCxIWChJSRVNPVVJDRV9FWEhBVVNURUQQDBINCglOT1RfRk9VTkQQDRISCg5BTFJFQURZX0VYSVNUUxAOEhcKE0ZBSUxFRF9QUkVDT05ESVRJT04QDxITCg9VTkFVVEhFTlRJQ0FURUQQEBILCgdBQk9SVEVEEBEilgEKDEVudGl0eVJlc3VsdBIvCgZlbnRpdHkYASACKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkSDwoHdmVyc2lvbhgCIAEoAxIOCgZjdXJzb3IYAyABKAwiNAoKUmVzdWx0VHlwZRIICgRGVUxMEAESDgoKUFJPSkVDVElPThACEgwKCEtFWV9PTkxZEAMi8QIKBVF1ZXJ5Ej8KCnByb2plY3Rpb24YAiADKAsyKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eUV4cHJlc3Npb24SNQoEa2luZBgDIAMoCzInLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktpbmRFeHByZXNzaW9uEi8KBmZpbHRlchgEIAEoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkZpbHRlchI1CgVvcmRlchgFIAMoCzImLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5T3JkZXISPAoIZ3JvdXBfYnkYBiADKAsyKi5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eVJlZmVyZW5jZRIUCgxzdGFydF9jdXJzb3IYByABKAwSEgoKZW5kX2N1cnNvchgIIAEoDBIRCgZvZmZzZXQYCiABKAU6ATASDQoFbGltaXQYCyABKAUiHgoOS2luZEV4cHJlc3Npb24SDAoEbmFtZRgBIAIoCSIhChFQcm9wZXJ0eVJlZmVyZW5jZRIMCgRuYW1lGAIgAigJItMBChJQcm9wZXJ0eUV4cHJlc3Npb24SPAoIcHJvcGVydHkYASACKAsyKi5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eVJlZmVyZW5jZRJdChRhZ2dyZWdhdGlvbl9mdW5jdGlvbhgCIAEoDjI/LmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5RXhwcmVzc2lvbi5BZ2dyZWdhdGlvbkZ1bmN0aW9uIiAKE0FnZ3JlZ2F0aW9uRnVuY3Rpb24SCQoFRklSU1QQASLJAQoNUHJvcGVydHlPcmRlchI8Cghwcm9wZXJ0eRgBIAIoCzIqLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5UmVmZXJlbmNlEk4KCWRpcmVjdGlvbhgCIAEoDjIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5T3JkZXIuRGlyZWN0aW9uOglBU0NFTkRJTkciKgoJRGlyZWN0aW9uEg0KCUFTQ0VORElORxABEg4KCkRFU0NFTkRJTkcQAiKOAQoGRmlsdGVyEkIKEGNvbXBvc2l0ZV9maWx0ZXIYASABKAsyKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Db21wb3NpdGVGaWx0ZXISQAoPcHJvcGVydHlfZmlsdGVyGAIgASgLMicuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUHJvcGVydHlGaWx0ZXIinAEKD0NvbXBvc2l0ZUZpbHRlchJDCghvcGVyYXRvchgBIAIoDjIxLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbXBvc2l0ZUZpbHRlci5PcGVyYXRvchIvCgZmaWx0ZXIYAiADKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5GaWx0ZXIiEwoIT3BlcmF0b3ISBwoDQU5EEAEivgIKDlByb3BlcnR5RmlsdGVyEjwKCHByb3BlcnR5GAEgAigLMiouYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUHJvcGVydHlSZWZlcmVuY2USQgoIb3BlcmF0b3IYAiACKA4yMC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eUZpbHRlci5PcGVyYXRvchItCgV2YWx1ZRgDIAIoCzIeLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlZhbHVlInsKCE9wZXJhdG9yEg0KCUxFU1NfVEhBThABEhYKEkxFU1NfVEhBTl9PUl9FUVVBTBACEhAKDEdSRUFURVJfVEhBThADEhkKFUdSRUFURVJfVEhBTl9PUl9FUVVBTBAEEgkKBUVRVUFMEAUSEAoMSEFTX0FOQ0VTVE9SEAsisAEKCEdxbFF1ZXJ5EhQKDHF1ZXJ5X3N0cmluZxgBIAIoCRIcCg1hbGxvd19saXRlcmFsGAIgASgIOgVmYWxzZRI2CghuYW1lX2FyZxgDIAMoCzIkLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkdxbFF1ZXJ5QXJnEjgKCm51bWJlcl9hcmcYBCADKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5HcWxRdWVyeUFyZyJaCgtHcWxRdWVyeUFyZxIMCgRuYW1lGAEgASgJEi0KBXZhbHVlGAIgASgLMh4uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuVmFsdWUSDgoGY3Vyc29yGAMgASgMIqkDChBRdWVyeVJlc3VsdEJhdGNoEkwKEmVudGl0eV9yZXN1bHRfdHlwZRgBIAIoDjIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eVJlc3VsdC5SZXN1bHRUeXBlEjwKDWVudGl0eV9yZXN1bHQYAiADKAsyJS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHlSZXN1bHQSFgoOc2tpcHBlZF9jdXJzb3IYAyABKAwSEgoKZW5kX2N1cnNvchgEIAEoDBJPCgxtb3JlX3Jlc3VsdHMYBSACKA4yOS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5RdWVyeVJlc3VsdEJhdGNoLk1vcmVSZXN1bHRzVHlwZRIaCg9za2lwcGVkX3Jlc3VsdHMYBiABKAU6ATASGAoQc25hcHNob3RfdmVyc2lvbhgHIAEoAyJWCg9Nb3JlUmVzdWx0c1R5cGUSEAoMTk9UX0ZJTklTSEVEEAESHAoYTU9SRV9SRVNVTFRTX0FGVEVSX0xJTUlUEAISEwoPTk9fTU9SRV9SRVNVTFRTEAMi8gEKCE11dGF0aW9uEkAKAm9wGAEgASgOMisuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuTXV0YXRpb24uT3BlcmF0aW9uOgdVTktOT1dOEikKA2tleRgCIAEoCzIcLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktleRIvCgZlbnRpdHkYAyABKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkiSAoJT3BlcmF0aW9uEgsKB1VOS05PV04QABIKCgZJTlNFUlQQARIKCgZVUERBVEUQAhIKCgZVUFNFUlQQAxIKCgZERUxFVEUQBCJTCg5NdXRhdGlvblJlc3VsdBIpCgNrZXkYAyABKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFgoLbmV3X3ZlcnNpb24YBCABKAM6ATAipAIKEkRlcHJlY2F0ZWRNdXRhdGlvbhIvCgZ1cHNlcnQYASADKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkSLwoGdXBkYXRlGAIgAygLMh8uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuRW50aXR5Ei8KBmluc2VydBgDIAMoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eRI3Cg5pbnNlcnRfYXV0b19pZBgEIAMoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eRIsCgZkZWxldGUYBSADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFAoFZm9yY2UYBiABKAg6BWZhbHNlIusBChhEZXByZWNhdGVkTXV0YXRpb25SZXN1bHQSFQoNaW5kZXhfdXBkYXRlcxgBIAIoBRI4ChJpbnNlcnRfYXV0b19pZF9rZXkYAiADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFgoOdXBzZXJ0X3ZlcnNpb24YAyADKAMSFgoOdXBkYXRlX3ZlcnNpb24YBCADKAMSFgoOaW5zZXJ0X3ZlcnNpb24YBSADKAMSHgoWaW5zZXJ0X2F1dG9faWRfdmVyc2lvbhgGIAMoAxIWCg5kZWxldGVfdmVyc2lvbhgHIAMoAyK1AQoLUmVhZE9wdGlvbnMSVwoQcmVhZF9jb25zaXN0ZW5jeRgBIAEoDjI0LmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlJlYWRPcHRpb25zLlJlYWRDb25zaXN0ZW5jeToHREVGQVVMVBITCgt0cmFuc2FjdGlvbhgCIAEoDCI4Cg9SZWFkQ29uc2lzdGVuY3kSCwoHREVGQVVMVBAAEgoKBlNUUk9ORxABEgwKCEVWRU5UVUFMEAIidgoNTG9va3VwUmVxdWVzdBI6CgxyZWFkX29wdGlvbnMYASABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SZWFkT3B0aW9ucxIpCgNrZXkYAyADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkirgEKDkxvb2t1cFJlc3BvbnNlEjQKBWZvdW5kGAEgAygLMiUuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuRW50aXR5UmVzdWx0EjYKB21pc3NpbmcYAiADKAsyJS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHlSZXN1bHQSLgoIZGVmZXJyZWQYAyADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkiqwIKD1J1blF1ZXJ5UmVxdWVzdBI6CgxyZWFkX29wdGlvbnMYASABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SZWFkT3B0aW9ucxI6CgxwYXJ0aXRpb25faWQYAiABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5QYXJ0aXRpb25JZBItCgVxdWVyeRgDIAEoCzIeLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlF1ZXJ5EjQKCWdxbF9xdWVyeRgHIAEoCzIhLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkdxbFF1ZXJ5Eh0KFW1pbl9zYWZlX3RpbWVfc2Vjb25kcxgEIAEoAxIcChRzdWdnZXN0ZWRfYmF0Y2hfc2l6ZRgFIAEoBSJiChBSdW5RdWVyeVJlc3BvbnNlEjgKBWJhdGNoGAEgAigLMikuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUXVlcnlSZXN1bHRCYXRjaBIUCgxxdWVyeV9oYW5kbGUYAiABKAwiLAoUQ29udGludWVRdWVyeVJlcXVlc3QSFAoMcXVlcnlfaGFuZGxlGAEgAigMIlEKFUNvbnRpbnVlUXVlcnlSZXNwb25zZRI4CgViYXRjaBgBIAIoCzIpLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlF1ZXJ5UmVzdWx0QmF0Y2giUwoXQmVnaW5UcmFuc2FjdGlvblJlcXVlc3QSGgoLY3Jvc3NfZ3JvdXAYASABKAg6BWZhbHNlEhwKDWNyb3NzX3JlcXVlc3QYAiABKAg6BWZhbHNlIi8KGEJlZ2luVHJhbnNhY3Rpb25SZXNwb25zZRITCgt0cmFuc2FjdGlvbhgBIAIoDCImCg9Sb2xsYmFja1JlcXVlc3QSEwoLdHJhbnNhY3Rpb24YASACKAwiEgoQUm9sbGJhY2tSZXNwb25zZSLAAgoNQ29tbWl0UmVxdWVzdBITCgt0cmFuc2FjdGlvbhgBIAEoDBIzCghtdXRhdGlvbhgFIAMoCzIhLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0Lk11dGF0aW9uEkgKE2RlcHJlY2F0ZWRfbXV0YXRpb24YAiABKAsyKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5EZXByZWNhdGVkTXV0YXRpb24SSAoEbW9kZRgEIAEoDjIrLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbW1pdFJlcXVlc3QuTW9kZToNVFJBTlNBQ1RJT05BTBIfChBpZ25vcmVfcmVhZF9vbmx5GAYgASgIOgVmYWxzZSIwCgRNb2RlEhEKDVRSQU5TQUNUSU9OQUwQARIVChFOT05fVFJBTlNBQ1RJT05BTBACIsABCg5Db21taXRSZXNwb25zZRJACg9tdXRhdGlvbl9yZXN1bHQYAyADKAsyJy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5NdXRhdGlvblJlc3VsdBJVChpkZXByZWNhdGVkX211dGF0aW9uX3Jlc3VsdBgBIAEoCzIxLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkRlcHJlY2F0ZWRNdXRhdGlvblJlc3VsdBIVCg1pbmRleF91cGRhdGVzGAQgASgFInMKEkFsbG9jYXRlSWRzUmVxdWVzdBIuCghhbGxvY2F0ZRgBIAMoCzIcLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktleRItCgdyZXNlcnZlGAIgAygLMhwuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuS2V5IkYKE0FsbG9jYXRlSWRzUmVzcG9uc2USLwoJYWxsb2NhdGVkGAEgAygLMhwuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuS2V5Mu0FChJEYXRhc3RvcmVWNFNlcnZpY2USeQoQQmVnaW5UcmFuc2FjdGlvbhIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkJlZ2luVHJhbnNhY3Rpb25SZXF1ZXN0GjEuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQmVnaW5UcmFuc2FjdGlvblJlc3BvbnNlIgASYQoIUm9sbGJhY2sSKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Sb2xsYmFja1JlcXVlc3QaKS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Sb2xsYmFja1Jlc3BvbnNlIgASWwoGQ29tbWl0EiYuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQ29tbWl0UmVxdWVzdBonLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbW1pdFJlc3BvbnNlIgASYQoIUnVuUXVlcnkSKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SdW5RdWVyeVJlcXVlc3QaKS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SdW5RdWVyeVJlc3BvbnNlIgAScAoNQ29udGludWVRdWVyeRItLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbnRpbnVlUXVlcnlSZXF1ZXN0Gi4uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQ29udGludWVRdWVyeVJlc3BvbnNlIgASWwoGTG9va3VwEiYuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuTG9va3VwUmVxdWVzdBonLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0Lkxvb2t1cFJlc3BvbnNlIgASagoLQWxsb2NhdGVJZHMSKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5BbGxvY2F0ZUlkc1JlcXVlc3QaLC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5BbGxvY2F0ZUlkc1Jlc3BvbnNlIgBCIwofY29tLmdvb2dsZS5hcHBob3N0aW5nLmRhdGFzdG9yZSAB"))
+  _SERIALIZED_DESCRIPTOR.fromstring(base64.decodestring("WidhcHBob3N0aW5nL2RhdGFzdG9yZS9kYXRhc3RvcmVfdjQucHJvdG8KHWFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVycm9yc3oJRXJyb3JDb2RliwGSAQtCQURfUkVRVUVTVJgBAYwBiwGSARZDT05DVVJSRU5UX1RSQU5TQUNUSU9OmAECjAGLAZIBDklOVEVSTkFMX0VSUk9SmAEDjAGLAZIBCk5FRURfSU5ERViYAQSMAYsBkgEHVElNRU9VVJgBBYwBiwGSARFQRVJNSVNTSU9OX0RFTklFRJgBBowBiwGSAQ5CSUdUQUJMRV9FUlJPUpgBB4wBiwGSARxDT01NSVRURURfQlVUX1NUSUxMX0FQUExZSU5HmAEIjAGLAZIBE0NBUEFCSUxJVFlfRElTQUJMRUSYAQmMAYsBkgEVVFJZX0FMVEVSTkFURV9CQUNLRU5EmAEKjAGLAZIBEVNBRkVfVElNRV9UT09fT0xEmAELjAGLAZIBElJFU09VUkNFX0VYSEFVU1RFRJgBDIwBiwGSAQlOT1RfRk9VTkSYAQ2MAYsBkgEOQUxSRUFEWV9FWElTVFOYAQ6MAYsBkgETRkFJTEVEX1BSRUNPTkRJVElPTpgBD4wBiwGSAQ9VTkFVVEhFTlRJQ0FURUSYARCMAYsBkgEHQUJPUlRFRJgBEYwBdLoB9TEKJ2FwcGhvc3RpbmcvZGF0YXN0b3JlL2RhdGFzdG9yZV92NC5wcm90bxIXYXBwaG9zdGluZy5kYXRhc3RvcmUudjQaJGFwcGhvc3RpbmcvZGF0YXN0b3JlL2VudGl0eV92NC5wcm90byKBAwoFRXJyb3Ii9wIKCUVycm9yQ29kZRIPCgtCQURfUkVRVUVTVBABEhoKFkNPTkNVUlJFTlRfVFJBTlNBQ1RJT04QAhISCg5JTlRFUk5BTF9FUlJPUhADEg4KCk5FRURfSU5ERVgQBBILCgdUSU1FT1VUEAUSFQoRUEVSTUlTU0lPTl9ERU5JRUQQBhISCg5CSUdUQUJMRV9FUlJPUhAHEiAKHENPTU1JVFRFRF9CVVRfU1RJTExfQVBQTFlJTkcQCBIXChNDQVBBQklMSVRZX0RJU0FCTEVEEAkSGQoVVFJZX0FMVEVSTkFURV9CQUNLRU5EEAoSFQoRU0FGRV9USU1FX1RPT19PTEQQCxIWChJSRVNPVVJDRV9FWEhBVVNURUQQDBINCglOT1RfRk9VTkQQDRISCg5BTFJFQURZX0VYSVNUUxAOEhcKE0ZBSUxFRF9QUkVDT05ESVRJT04QDxITCg9VTkFVVEhFTlRJQ0FURUQQEBILCgdBQk9SVEVEEBEilgEKDEVudGl0eVJlc3VsdBIvCgZlbnRpdHkYASACKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkSDwoHdmVyc2lvbhgCIAEoAxIOCgZjdXJzb3IYAyABKAwiNAoKUmVzdWx0VHlwZRIICgRGVUxMEAESDgoKUFJPSkVDVElPThACEgwKCEtFWV9PTkxZEAMi8QIKBVF1ZXJ5Ej8KCnByb2plY3Rpb24YAiADKAsyKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eUV4cHJlc3Npb24SNQoEa2luZBgDIAMoCzInLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktpbmRFeHByZXNzaW9uEi8KBmZpbHRlchgEIAEoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkZpbHRlchI1CgVvcmRlchgFIAMoCzImLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5T3JkZXISPAoIZ3JvdXBfYnkYBiADKAsyKi5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eVJlZmVyZW5jZRIUCgxzdGFydF9jdXJzb3IYByABKAwSEgoKZW5kX2N1cnNvchgIIAEoDBIRCgZvZmZzZXQYCiABKAU6ATASDQoFbGltaXQYCyABKAUiHgoOS2luZEV4cHJlc3Npb24SDAoEbmFtZRgBIAIoCSIhChFQcm9wZXJ0eVJlZmVyZW5jZRIMCgRuYW1lGAIgAigJItMBChJQcm9wZXJ0eUV4cHJlc3Npb24SPAoIcHJvcGVydHkYASACKAsyKi5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eVJlZmVyZW5jZRJdChRhZ2dyZWdhdGlvbl9mdW5jdGlvbhgCIAEoDjI/LmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5RXhwcmVzc2lvbi5BZ2dyZWdhdGlvbkZ1bmN0aW9uIiAKE0FnZ3JlZ2F0aW9uRnVuY3Rpb24SCQoFRklSU1QQASLJAQoNUHJvcGVydHlPcmRlchI8Cghwcm9wZXJ0eRgBIAIoCzIqLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5UmVmZXJlbmNlEk4KCWRpcmVjdGlvbhgCIAEoDjIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlByb3BlcnR5T3JkZXIuRGlyZWN0aW9uOglBU0NFTkRJTkciKgoJRGlyZWN0aW9uEg0KCUFTQ0VORElORxABEg4KCkRFU0NFTkRJTkcQAiKOAQoGRmlsdGVyEkIKEGNvbXBvc2l0ZV9maWx0ZXIYASABKAsyKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Db21wb3NpdGVGaWx0ZXISQAoPcHJvcGVydHlfZmlsdGVyGAIgASgLMicuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUHJvcGVydHlGaWx0ZXIinAEKD0NvbXBvc2l0ZUZpbHRlchJDCghvcGVyYXRvchgBIAIoDjIxLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbXBvc2l0ZUZpbHRlci5PcGVyYXRvchIvCgZmaWx0ZXIYAiADKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5GaWx0ZXIiEwoIT3BlcmF0b3ISBwoDQU5EEAEivgIKDlByb3BlcnR5RmlsdGVyEjwKCHByb3BlcnR5GAEgAigLMiouYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUHJvcGVydHlSZWZlcmVuY2USQgoIb3BlcmF0b3IYAiACKA4yMC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Qcm9wZXJ0eUZpbHRlci5PcGVyYXRvchItCgV2YWx1ZRgDIAIoCzIeLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlZhbHVlInsKCE9wZXJhdG9yEg0KCUxFU1NfVEhBThABEhYKEkxFU1NfVEhBTl9PUl9FUVVBTBACEhAKDEdSRUFURVJfVEhBThADEhkKFUdSRUFURVJfVEhBTl9PUl9FUVVBTBAEEgkKBUVRVUFMEAUSEAoMSEFTX0FOQ0VTVE9SEAsisAEKCEdxbFF1ZXJ5EhQKDHF1ZXJ5X3N0cmluZxgBIAIoCRIcCg1hbGxvd19saXRlcmFsGAIgASgIOgVmYWxzZRI2CghuYW1lX2FyZxgDIAMoCzIkLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkdxbFF1ZXJ5QXJnEjgKCm51bWJlcl9hcmcYBCADKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5HcWxRdWVyeUFyZyJaCgtHcWxRdWVyeUFyZxIMCgRuYW1lGAEgASgJEi0KBXZhbHVlGAIgASgLMh4uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuVmFsdWUSDgoGY3Vyc29yGAMgASgMIqkDChBRdWVyeVJlc3VsdEJhdGNoEkwKEmVudGl0eV9yZXN1bHRfdHlwZRgBIAIoDjIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eVJlc3VsdC5SZXN1bHRUeXBlEjwKDWVudGl0eV9yZXN1bHQYAiADKAsyJS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHlSZXN1bHQSFgoOc2tpcHBlZF9jdXJzb3IYAyABKAwSEgoKZW5kX2N1cnNvchgEIAEoDBJPCgxtb3JlX3Jlc3VsdHMYBSACKA4yOS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5RdWVyeVJlc3VsdEJhdGNoLk1vcmVSZXN1bHRzVHlwZRIaCg9za2lwcGVkX3Jlc3VsdHMYBiABKAU6ATASGAoQc25hcHNob3RfdmVyc2lvbhgHIAEoAyJWCg9Nb3JlUmVzdWx0c1R5cGUSEAoMTk9UX0ZJTklTSEVEEAESHAoYTU9SRV9SRVNVTFRTX0FGVEVSX0xJTUlUEAISEwoPTk9fTU9SRV9SRVNVTFRTEAMi8gEKCE11dGF0aW9uEkAKAm9wGAEgASgOMisuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuTXV0YXRpb24uT3BlcmF0aW9uOgdVTktOT1dOEikKA2tleRgCIAEoCzIcLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktleRIvCgZlbnRpdHkYAyABKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkiSAoJT3BlcmF0aW9uEgsKB1VOS05PV04QABIKCgZJTlNFUlQQARIKCgZVUERBVEUQAhIKCgZVUFNFUlQQAxIKCgZERUxFVEUQBCJTCg5NdXRhdGlvblJlc3VsdBIpCgNrZXkYAyABKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFgoLbmV3X3ZlcnNpb24YBCABKAM6ATAipAIKEkRlcHJlY2F0ZWRNdXRhdGlvbhIvCgZ1cHNlcnQYASADKAsyHy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHkSLwoGdXBkYXRlGAIgAygLMh8uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuRW50aXR5Ei8KBmluc2VydBgDIAMoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eRI3Cg5pbnNlcnRfYXV0b19pZBgEIAMoCzIfLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkVudGl0eRIsCgZkZWxldGUYBSADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFAoFZm9yY2UYBiABKAg6BWZhbHNlIusBChhEZXByZWNhdGVkTXV0YXRpb25SZXN1bHQSFQoNaW5kZXhfdXBkYXRlcxgBIAIoBRI4ChJpbnNlcnRfYXV0b19pZF9rZXkYAiADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkSFgoOdXBzZXJ0X3ZlcnNpb24YAyADKAMSFgoOdXBkYXRlX3ZlcnNpb24YBCADKAMSFgoOaW5zZXJ0X3ZlcnNpb24YBSADKAMSHgoWaW5zZXJ0X2F1dG9faWRfdmVyc2lvbhgGIAMoAxIWCg5kZWxldGVfdmVyc2lvbhgHIAMoAyK1AQoLUmVhZE9wdGlvbnMSVwoQcmVhZF9jb25zaXN0ZW5jeRgBIAEoDjI0LmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlJlYWRPcHRpb25zLlJlYWRDb25zaXN0ZW5jeToHREVGQVVMVBITCgt0cmFuc2FjdGlvbhgCIAEoDCI4Cg9SZWFkQ29uc2lzdGVuY3kSCwoHREVGQVVMVBAAEgoKBlNUUk9ORxABEgwKCEVWRU5UVUFMEAIidgoNTG9va3VwUmVxdWVzdBI6CgxyZWFkX29wdGlvbnMYASABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SZWFkT3B0aW9ucxIpCgNrZXkYAyADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkirgEKDkxvb2t1cFJlc3BvbnNlEjQKBWZvdW5kGAEgAygLMiUuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuRW50aXR5UmVzdWx0EjYKB21pc3NpbmcYAiADKAsyJS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5FbnRpdHlSZXN1bHQSLgoIZGVmZXJyZWQYAyADKAsyHC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5LZXkiqwIKD1J1blF1ZXJ5UmVxdWVzdBI6CgxyZWFkX29wdGlvbnMYASABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SZWFkT3B0aW9ucxI6CgxwYXJ0aXRpb25faWQYAiABKAsyJC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5QYXJ0aXRpb25JZBItCgVxdWVyeRgDIAEoCzIeLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlF1ZXJ5EjQKCWdxbF9xdWVyeRgHIAEoCzIhLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkdxbFF1ZXJ5Eh0KFW1pbl9zYWZlX3RpbWVfc2Vjb25kcxgEIAEoAxIcChRzdWdnZXN0ZWRfYmF0Y2hfc2l6ZRgFIAEoBSJiChBSdW5RdWVyeVJlc3BvbnNlEjgKBWJhdGNoGAEgAigLMikuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuUXVlcnlSZXN1bHRCYXRjaBIUCgxxdWVyeV9oYW5kbGUYAiABKAwiLAoUQ29udGludWVRdWVyeVJlcXVlc3QSFAoMcXVlcnlfaGFuZGxlGAEgAigMIlEKFUNvbnRpbnVlUXVlcnlSZXNwb25zZRI4CgViYXRjaBgBIAIoCzIpLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LlF1ZXJ5UmVzdWx0QmF0Y2giUwoXQmVnaW5UcmFuc2FjdGlvblJlcXVlc3QSGgoLY3Jvc3NfZ3JvdXAYASABKAg6BWZhbHNlEhwKDWNyb3NzX3JlcXVlc3QYAiABKAg6BWZhbHNlIi8KGEJlZ2luVHJhbnNhY3Rpb25SZXNwb25zZRITCgt0cmFuc2FjdGlvbhgBIAIoDCImCg9Sb2xsYmFja1JlcXVlc3QSEwoLdHJhbnNhY3Rpb24YASACKAwiEgoQUm9sbGJhY2tSZXNwb25zZSLAAgoNQ29tbWl0UmVxdWVzdBITCgt0cmFuc2FjdGlvbhgBIAEoDBIzCghtdXRhdGlvbhgFIAMoCzIhLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0Lk11dGF0aW9uEkgKE2RlcHJlY2F0ZWRfbXV0YXRpb24YAiABKAsyKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5EZXByZWNhdGVkTXV0YXRpb24SSAoEbW9kZRgEIAEoDjIrLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbW1pdFJlcXVlc3QuTW9kZToNVFJBTlNBQ1RJT05BTBIfChBpZ25vcmVfcmVhZF9vbmx5GAYgASgIOgVmYWxzZSIwCgRNb2RlEhEKDVRSQU5TQUNUSU9OQUwQARIVChFOT05fVFJBTlNBQ1RJT05BTBACIsABCg5Db21taXRSZXNwb25zZRJACg9tdXRhdGlvbl9yZXN1bHQYAyADKAsyJy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5NdXRhdGlvblJlc3VsdBJVChpkZXByZWNhdGVkX211dGF0aW9uX3Jlc3VsdBgBIAEoCzIxLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkRlcHJlY2F0ZWRNdXRhdGlvblJlc3VsdBIVCg1pbmRleF91cGRhdGVzGAQgASgFInMKEkFsbG9jYXRlSWRzUmVxdWVzdBIuCghhbGxvY2F0ZRgBIAMoCzIcLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LktleRItCgdyZXNlcnZlGAIgAygLMhwuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuS2V5IkYKE0FsbG9jYXRlSWRzUmVzcG9uc2USLwoJYWxsb2NhdGVkGAEgAygLMhwuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuS2V5Mu0FChJEYXRhc3RvcmVWNFNlcnZpY2USeQoQQmVnaW5UcmFuc2FjdGlvbhIwLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkJlZ2luVHJhbnNhY3Rpb25SZXF1ZXN0GjEuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQmVnaW5UcmFuc2FjdGlvblJlc3BvbnNlIgASYQoIUm9sbGJhY2sSKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Sb2xsYmFja1JlcXVlc3QaKS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5Sb2xsYmFja1Jlc3BvbnNlIgASWwoGQ29tbWl0EiYuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQ29tbWl0UmVxdWVzdBonLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbW1pdFJlc3BvbnNlIgASYQoIUnVuUXVlcnkSKC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SdW5RdWVyeVJlcXVlc3QaKS5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5SdW5RdWVyeVJlc3BvbnNlIgAScAoNQ29udGludWVRdWVyeRItLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0LkNvbnRpbnVlUXVlcnlSZXF1ZXN0Gi4uYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuQ29udGludWVRdWVyeVJlc3BvbnNlIgASWwoGTG9va3VwEiYuYXBwaG9zdGluZy5kYXRhc3RvcmUudjQuTG9va3VwUmVxdWVzdBonLmFwcGhvc3RpbmcuZGF0YXN0b3JlLnY0Lkxvb2t1cFJlc3BvbnNlIgASagoLQWxsb2NhdGVJZHMSKy5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5BbGxvY2F0ZUlkc1JlcXVlc3QaLC5hcHBob3N0aW5nLmRhdGFzdG9yZS52NC5BbGxvY2F0ZUlkc1Jlc3BvbnNlIgBCIQofY29tLmdvb2dsZS5hcHBob3N0aW5nLmRhdGFzdG9yZQ=="))
   if _net_proto___parse__python is not None:
     _net_proto___parse__python.RegisterType(
         _SERIALIZED_DESCRIPTOR.tostring())
@@ -7090,7 +7091,135 @@ class AllocateIdsResponse(ProtocolBuffer.ProtocolMessage):
 
 
 
-class _DatastoreV4Service_ClientBaseStub(_client_stub_base_class):
+class DatastoreV4ServiceStub(object):
+  """Makes Stubby RPC calls to a DatastoreV4Service server."""
+
+  __metaclass__ = abc.ABCMeta
+
+  __slots__ = ()
+
+  @abc.abstractmethod
+  def BeginTransaction(self, request, rpc=None, callback=None, response=None):
+    """Make a BeginTransaction RPC call.
+
+    Args:
+      request: a BeginTransactionRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The BeginTransactionResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def Rollback(self, request, rpc=None, callback=None, response=None):
+    """Make a Rollback RPC call.
+
+    Args:
+      request: a RollbackRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The RollbackResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def Commit(self, request, rpc=None, callback=None, response=None):
+    """Make a Commit RPC call.
+
+    Args:
+      request: a CommitRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The CommitResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def RunQuery(self, request, rpc=None, callback=None, response=None):
+    """Make a RunQuery RPC call.
+
+    Args:
+      request: a RunQueryRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The RunQueryResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def ContinueQuery(self, request, rpc=None, callback=None, response=None):
+    """Make a ContinueQuery RPC call.
+
+    Args:
+      request: a ContinueQueryRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The ContinueQueryResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def Lookup(self, request, rpc=None, callback=None, response=None):
+    """Make a Lookup RPC call.
+
+    Args:
+      request: a LookupRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The LookupResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def AllocateIds(self, request, rpc=None, callback=None, response=None):
+    """Make a AllocateIds RPC call.
+
+    Args:
+      request: a AllocateIdsRequest instance.
+      rpc: Optional RPC instance to use for the call.
+      callback: Optional final callback. Will be called as
+          callback(rpc, result) when the rpc completes. If None, the
+          call is synchronous.
+      response: Optional ProtocolMessage to be filled in with response.
+
+    Returns:
+      The AllocateIdsResponse if callback is None. Otherwise, returns None.
+    """
+    raise NotImplementedError()
+
+
+class _DatastoreV4Service_ClientBaseStub(
+    DatastoreV4ServiceStub, _client_stub_base_class):
   """Makes Stubby RPC calls to a DatastoreV4Service server."""
 
   __slots__ = (
@@ -7382,14 +7511,7 @@ class DatastoreV4Service(_server_stub_base_class):
 
   @staticmethod
   def NewStub(rpc_stub_parameters, service_name=None, rpc_factory=None):
-    """Creates a new DatastoreV4Service Stubby client stub.
-
-    Args:
-      rpc_stub_parameters: an RPC_StubParameters instance.
-      service_name: the service name used by the Stubby server.
-      rpc_factory: the rpc factory to use if no rpc argument is specified.
-    """
-
+    """USE NewRPC2Stub INSTEAD."""
     if _client_stub_base_class is object:
       raise RuntimeError('Add //net/rpc/python as a dependency to use Stubby')
     return _DatastoreV4Service_ClientStub(
@@ -7401,15 +7523,18 @@ class DatastoreV4Service(_server_stub_base_class):
     """Creates a new DatastoreV4Service Stubby2 client stub.
 
     Args:
-      server: host:port or bns address.
+      server: host:port or bns address (favor passing a channel instead).
       channel: directly use a channel to create a stub. Will ignore server
           argument if this is specified.
       service_name: the service name used by the Stubby server.
       rpc_factory: the rpc factory to use if no rpc argument is specified.
+
+    Returns:
+     A DatastoreV4ServiceStub to be used to invoke RPCs.
     """
 
     if _client_stub_base_class is object:
-      raise RuntimeError('Add //net/rpc/python as a dependency to use Stubby')
+      raise RuntimeError('Add //net/rpc/python:proto_python_api_2_stub (or maybe //net/rpc/python:proto_python_api_1_stub, but eww and b/67959631) as a dependency to create Stubby stubs')
     return _DatastoreV4Service_RPC2ClientStub(
         server, channel, service_name, rpc_factory=rpc_factory)
 
@@ -7421,7 +7546,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a BeginTransactionRequest that contains the client request
       response: a BeginTransactionResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def Rollback(self, rpc, request, response):
@@ -7432,7 +7557,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a RollbackRequest that contains the client request
       response: a RollbackResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def Commit(self, rpc, request, response):
@@ -7443,7 +7568,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a CommitRequest that contains the client request
       response: a CommitResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def RunQuery(self, rpc, request, response):
@@ -7454,7 +7579,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a RunQueryRequest that contains the client request
       response: a RunQueryResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def ContinueQuery(self, rpc, request, response):
@@ -7465,7 +7590,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a ContinueQueryRequest that contains the client request
       response: a ContinueQueryResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def Lookup(self, rpc, request, response):
@@ -7476,7 +7601,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a LookupRequest that contains the client request
       response: a LookupResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
 
   def AllocateIds(self, rpc, request, response):
@@ -7487,7 +7612,7 @@ class DatastoreV4Service(_server_stub_base_class):
       request: a AllocateIdsRequest that contains the client request
       response: a AllocateIdsResponse that should be modified to send the response
     """
-    raise NotImplementedError
+    raise NotImplementedError()
 
   def _AddMethodAttributes(self):
     """Sets attributes on Python RPC handlers.

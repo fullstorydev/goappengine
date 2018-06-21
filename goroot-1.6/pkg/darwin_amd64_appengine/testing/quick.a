@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     19053     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "46c4579b375de9278b7423d632b79e184a4b2a4b"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "702977d9abc1580e5d6bbb1500dbe3098058d62f"
 
 $$
 package quick
@@ -175,7 +175,7 @@ package quick
 
 $$
  _go_.o          0           0     0     644     72485     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ldflag.a

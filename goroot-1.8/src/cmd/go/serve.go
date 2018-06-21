@@ -1,5 +1,6 @@
-// To be placed in the output Go repo at cmd/go.
+// +build !go1.9
 
+// Package main implements the `goapp deploy` and `goapp serve` commands.
 package main
 
 import (
@@ -41,6 +42,9 @@ The -admin_port flag controls the port to which the admin server should bind
 
 The -clear_datastore flag clears the local datastore on startup.
 
+The -debug flag builds the binary with debug information so that gdb or delve
+can be used (default false).
+
 This command wraps the dev_appserver.py command provided as part of the
 App Engine SDK. For help using that command directly, run:
   ./dev_appserver.py --help
@@ -53,6 +57,7 @@ var (
 	serveUseModTime bool   // serve -use_mtime_file_watcher flag
 	serveAdminPort  int    // serve -admin_port flag
 	clearDatastore  bool   // serve -clear_datastore flag
+	debug           bool   // serve -debug flag
 )
 
 func init() {
@@ -64,6 +69,7 @@ func init() {
 	cmdServe.Flag.BoolVar(&serveUseModTime, "use_mtime_file_watcher", false, "")
 	cmdServe.Flag.IntVar(&serveAdminPort, "admin_port", 8000, "")
 	cmdServe.Flag.BoolVar(&clearDatastore, "clear_datastore", false, "")
+	cmdServe.Flag.BoolVar(&debug, "debug", false, "")
 }
 
 func runServe(cmd *Command, args []string) {
@@ -84,6 +90,9 @@ func runServe(cmd *Command, args []string) {
 	}
 	if clearDatastore {
 		toolArgs = append(toolArgs, "--clear_datastore", "yes")
+	}
+	if debug {
+		toolArgs = append(toolArgs, "--go_debugging", "yes")
 	}
 	files, err := resolveAppFiles(args)
 	if err != nil {

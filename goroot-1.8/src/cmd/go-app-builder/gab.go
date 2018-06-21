@@ -211,6 +211,37 @@ func plural(n int, suffix string) string {
 	return suffix
 }
 
+// Get the extra flags to pass to the linker
+func appendLinkerExtraArgs(args []string) []string {
+	// If -N or -l were included in gcFlags the user is asking for debugging
+	// information, so only disable dwarf generation and strip the binary if
+	// they are not present.
+	debug := false
+	for _, f := range parseToolFlags(*gcFlags) {
+		if f == "-N" || f == "-l" {
+			debug = true
+			break
+		}
+	}
+	if !debug {
+		// Strip the DWARf symbol table and debug information
+		args = append(args, "-w", "-s")
+	}
+	if !*dynamic {
+		// Force the binary to be statically linked
+		args = append(args, "-d")
+	}
+
+	if !*unsafe {
+		// reject unsafe code
+		args = append(args, "-u")
+	}
+	if *ldFlags != "" {
+		args = append(args, parseToolFlags(*ldFlags)...)
+	}
+	return args
+}
+
 func buildApp(app *App) error {
 	if !app.HasMain {
 		newPackages, newRootPackages, err := constructRootPackageTree(app.RootPackages, maxRootPackageTreeImportsPerFile)
@@ -331,7 +362,6 @@ func buildApp(app *App) error {
 	}
 
 	// Link phase.
-	archiveFile := filepath.Join(*workDir, app.Packages[len(app.Packages)-1].ImportPath) + ".a"
 	binaryFile := filepath.Join(*workDir, *binaryName)
 	args := []string{
 		toolPath("link"),
@@ -339,17 +369,8 @@ func buildApp(app *App) error {
 		"-L", *workDir,
 		"-o", binaryFile,
 	}
-	if !*dynamic {
-		// force the binary to be statically linked, disable dwarf generation, and strip binary
-		args = append(args, "-d", "-w", "-s")
-	}
-	if !*unsafe {
-		// reject unsafe code
-		args = append(args, "-u")
-	}
-	if *ldFlags != "" {
-		args = append(args, parseToolFlags(*ldFlags)...)
-	}
+	args = appendLinkerExtraArgs(args)
+	archiveFile := filepath.Join(*workDir, app.Packages[len(app.Packages)-1].ImportPath) + ".a"
 	args = append(args, archiveFile)
 	if err := lTimer.run(args, env); err != nil {
 		return err

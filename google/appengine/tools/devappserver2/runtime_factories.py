@@ -45,6 +45,7 @@ FACTORIES = {
 
 
     'php55': php_factory.PHPRuntimeInstanceFactory,
+    'php72': php_factory.PHPRuntimeInstanceFactory,
     'python': python_factory.PythonRuntimeInstanceFactory,
     'python27': python_factory.PythonRuntimeInstanceFactory,
     'python-compat': python_factory.PythonRuntimeInstanceFactory,

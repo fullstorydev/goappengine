@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     47298     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "ca567655c749d8d2bf464e1906130e00238d6cb9"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "8b3784b1c1fd77fda73cb347f127b3b7643ade5b"
 
 $$
 package amd64
@@ -353,7 +353,7 @@ package amd64
 
 $$
 _go_.o          0           0     0     644     102162    `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ld$cmd/internal/obj.a,cmd/link/internal/ld.adebug/elf.a

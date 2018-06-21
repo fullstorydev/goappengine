@@ -353,6 +353,43 @@ class LogServiceStub(apiproxy_stub.APIProxyStub):
     """
     self._insert_app_logs(request.request_id(), [request.log_line()])
 
+  @apiproxy_stub.Synchronized
+  def _Dynamic_StartRequestLog(
+      self, request, unused_response, unused_request_id):
+    """Starts logging for a request.
+
+    Each StartRequestLog call must be followed by a corresponding EndRequestLog
+    call to cleanup resources allocated in StartRequestLog.
+
+    Args:
+      request: An instance of log_stub_service_pb.StartRequestLogRequest.
+    """
+    self.start_request(
+        request_id=request.request_id(),
+        user_request_id=request.user_request_id(),
+        ip=request.ip(),
+        app_id=request.app_id(),
+        version_id=request.version_id(),
+        nickname=request.nickname(),
+        user_agent=request.user_agent(),
+        host=request.host(),
+        method=request.method(),
+        resource=request.resource(),
+        http_version=request.http_version(),
+        start_time=request.start_time() if request.start_time() else None,
+        module=request.module() if request.module() else None)
+
+  @apiproxy_stub.Synchronized
+  def _Dynamic_EndRequestLog(
+      self, request, unused_response, unused_request_id):
+    """Ends logging for a request.
+
+    Args:
+      request: An instance of log_stub_service_pb.EndRequestLogRequest.
+    """
+    self.end_request(
+        request.request_id(), request.status(), request.response_size())
+
   def _debug_query(self, filter_string, values, result_count):
     for l in self._conn.execute('SELECT * FROM RequestLogs'):
       logging.debug('%r %r %d %d %s', l['module'], l['version_id'],

@@ -16,6 +16,8 @@
 #
 """Performs translation of queue.xml to queue.yaml."""
 
+import sys
+
 from xml.etree import ElementTree
 
 from google.appengine.tools import xml_parser_utils
@@ -84,7 +86,7 @@ class QueueXmlParser(object):
 
       return self.queue_xml
 
-    except ElementTree.ParseError as e:
+    except ElementTree.ParseError, e:
       raise AppEngineConfigException('Bad input -- not valid XML: %s' % e)
 
   def ProcessQueueNode(self, node):
@@ -261,3 +263,11 @@ class RetryParameters(object):
       if field_value:
         statements.append('    %s: %s' % (field, field_value))
     return statements
+
+
+def main():
+  xml = sys.stdin.read()
+  print GetQueueYaml(None, xml)
+
+if __name__ == '__main__':
+  sys.exit(main())
