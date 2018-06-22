@@ -31,7 +31,6 @@ import logging
 import time
 
 from google.appengine.api import apiproxy_stub
-from google.appengine.api import memcache
 from google.appengine.api.memcache import memcache_service_pb
 from google.appengine.runtime import apiproxy_errors
 
@@ -42,13 +41,29 @@ MemcacheIncrementRequest = memcache_service_pb.MemcacheIncrementRequest
 MemcacheIncrementResponse = memcache_service_pb.MemcacheIncrementResponse
 MemcacheDeleteResponse = memcache_service_pb.MemcacheDeleteResponse
 
+
+
+
+
+
+
+
+
+
+_MEMCACHE_OVERHEAD = 73
+
+
+_ONE_MEGABYTE = 1024 * 1024
+_MAX_ITEM_TOTAL_SIZE = _ONE_MEGABYTE
+_MAX_KEY_SIZE = 250
+_MAX_VALUE_SIZE = _MAX_ITEM_TOTAL_SIZE - _MAX_KEY_SIZE - _MEMCACHE_OVERHEAD
 MAX_REQUEST_SIZE = 32 << 20
 
 
 
 
 
-DEFAULT_MAX_SIZE = 1e15
+DEFAULT_MAX_SIZE_BYTES = 1e15
 
 
 class _LRUChainableElement(object):
@@ -84,13 +99,15 @@ class CacheEntry(_LRUChainableElement):
     """
     super(CacheEntry, self).__init__(key, value)
     assert isinstance(value, basestring)
-    assert len(value) <= memcache.MAX_VALUE_SIZE
+    assert len(value) <= _MAX_VALUE_SIZE
     assert isinstance(expiration, (int, long))
 
-    self._gettime = gettime
+
+
+    self.gettime = gettime
     self.flags = flags
     self.cas_id = cas_id
-    self.created_time = self._gettime()
+    self.created_time = self.gettime()
     self.will_expire = expiration != 0
     self.locked = False
     self.namespace = namespace
@@ -107,11 +124,11 @@ class CacheEntry(_LRUChainableElement):
     if expiration > (86400 * 30):
       self.expiration_time = expiration
     else:
-      self.expiration_time = self._gettime() + expiration
+      self.expiration_time = self.gettime() + expiration
 
   def CheckExpired(self):
     """Returns True if this entry has expired; False otherwise."""
-    return self.will_expire and self._gettime() >= self.expiration_time
+    return self.will_expire and self.gettime() >= self.expiration_time
 
   def ExpireAndLock(self, timeout):
     """Marks this entry as deleted and locks it for the expiration time.
@@ -143,21 +160,22 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
   def __init__(self,
                gettime=time.time,
                service_name='memcache',
-               max_size=DEFAULT_MAX_SIZE):
+               max_size_bytes=DEFAULT_MAX_SIZE_BYTES):
     """Initializer.
 
     Args:
       gettime: time.time()-like function used for testing.
       service_name: Service name expected for all calls.
-      max_size: The maximum total cache size, used for LRU evictions.
+      max_size_bytes: The maximum total cache size in bytes, used for LRU
+        evictions.
     """
     super(MemcacheServiceStub, self).__init__(
         service_name, max_request_size=MAX_REQUEST_SIZE)
     self._lru = LRU()
     self._next_cas_id = 1
-    self._gettime = lambda: int(gettime())
+    self._gettime = gettime
     self._ResetStats()
-    self._max_size = max_size
+    self._max_size_bytes = max_size_bytes
 
 
     self._the_cache = {}
@@ -165,14 +183,10 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
 
 
 
-
+    self._static_clock_time = None
 
   def _ResetStats(self):
-    """Resets statistics information.
-
-    Must be called while the current thread holds self._mutex (with an exception
-    for __init__).
-    """
+    """Resets statistics information."""
 
     self._hits = 0
     self._misses = 0
@@ -279,7 +293,7 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
             namespace=namespace,
             key=key)
         self._lru.Update(self._the_cache[namespace][key])
-        while self._lru.total_byte_size > self._max_size:
+        while self._lru.total_byte_size > self._max_size_bytes:
           oldest = self._lru.oldest
           self._lru.Remove(oldest)
           del self._the_cache[oldest.namespace][oldest.key]
@@ -314,13 +328,15 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
       response.add_delete_status(delete_status)
 
   @apiproxy_stub.Synchronized
-  def _internal_increment(self, namespace, request):
+  def _internal_increment(self, namespace, request, is_batch_increment=False):
     """Internal function for incrementing from a MemcacheIncrementRequest.
 
     Args:
       namespace: A string containing the namespace for the request, if any.
         Pass an empty string if there is no namespace.
       request: A MemcacheIncrementRequest instance.
+      is_batch_increment: True if this is part of a batch increment request.
+        InvalidValue errors are not raised during batch increments.
 
     Returns:
       An integer or long if the offset was successful, None on error.
@@ -349,16 +365,25 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
 
     try:
       old_value = long(entry.value)
-      if old_value < 0:
-
-
-
-
-        raise ValueError
     except ValueError:
+
       logging.error('Increment/decrement failed: Could not interpret '
                     'value for key = "%s" as an unsigned integer.', key)
-      return None
+      return self._RaiseInvalidValueError(is_batch_increment)
+
+    if old_value < 0:
+
+
+
+
+      logging.error('Increment/decrement failed: Could not interpret '
+                    'value for key = "%s" as an unsigned integer.', key)
+      return self._RaiseInvalidValueError(is_batch_increment)
+
+    if old_value >= 2**64:
+      logging.error('Increment value for key = "%s" will be higher than the '
+                    'max value for a 64-bit integer.', key)
+      return self._RaiseInvalidValueError(is_batch_increment)
 
     delta = request.delta()
     if request.direction() == MemcacheIncrementRequest.DECREMENT:
@@ -369,6 +394,12 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
 
     entry.value = str(new_value)
     return new_value
+
+  def _RaiseInvalidValueError(self, is_batch_increment):
+    """Raise an InvalidValue error unless using a batch increment."""
+    if not is_batch_increment:
+      raise apiproxy_errors.ApplicationError(
+          memcache_service_pb.MemcacheServiceError.INVALID_VALUE)
 
   def _Dynamic_Increment(self, request, response):
     """Implementation of MemcacheService::Increment().
@@ -394,7 +425,8 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
     """
     namespace = request.name_space()
     for request_item in request.item_list():
-      new_value = self._internal_increment(namespace, request_item)
+      new_value = self._internal_increment(
+          namespace, request_item, is_batch_increment=True)
       item = response.add_item()
       if new_value is None:
         item.set_increment_status(MemcacheIncrementResponse.NOT_CHANGED)
@@ -427,14 +459,62 @@ class MemcacheServiceStub(apiproxy_stub.APIProxyStub):
     stats.set_items(len(self._lru))
     stats.set_bytes(self._lru.total_byte_size)
     if self._lru.oldest:
-      stats.set_oldest_item_age(self._gettime() - self._lru.oldest.created_time)
+      stats.set_oldest_item_age(
+          int(self._gettime() - self._lru.oldest.created_time))
     else:
       stats.set_oldest_item_age(0)
+
+  @apiproxy_stub.Synchronized
+  def _Dynamic_SetMaxSize(self, request, response):
+    """Implementation of MemcacheStubService::SetMaxSize().
+
+    Args:
+      request: A SetMaxSizeRequest.
+      response: A base_pb.VoidProto.
+    """
+    self._max_size_bytes = request.max_size_bytes()
+
+  @apiproxy_stub.Synchronized
+  def _Dynamic_GetLruChainLength(self, request, response):
+    """Implementation of MemcacheStubService::GetLruChainLength().
+
+    Args:
+      request: A base_pb.VoidProto.
+      response: A GetLruChainLengthResponse.
+    """
+    response.set_chain_length(len(self._lru))
+
+  @apiproxy_stub.Synchronized
+  def _Dynamic_SetClock(self, request, response):
+    """Implementation of MemcacheStubService::SetClock().
+
+    Args:
+      request: A SetClockRequest.
+      response: A base_pb.VoidProto.
+    """
+    self._static_clock_time = request.clock_time_milliseconds() / 1000.0
+    self._gettime = lambda: self._static_clock_time
+    for namespace in self._the_cache.itervalues():
+      for item in namespace.itervalues():
+        item.gettime = lambda: self._static_clock_time
+
+  @apiproxy_stub.Synchronized
+  def _Dynamic_AdvanceClock(self, request, response):
+    """Implementation of MemcacheStubService::AdvanceClock().
+
+    Args:
+      request: An AdvanceClockRequest.
+      response: An AdvanceClockResponse.
+    """
+    self._static_clock_time += request.milliseconds() / 1000.0
+    response.set_clock_time_milliseconds(self._static_clock_time * 1000)
 
   @apiproxy_stub.Synchronized
   def Clear(self):
     """Clears the memcache stub and resets stats."""
     self._the_cache.clear()
+    self._max_size_bytes = DEFAULT_MAX_SIZE_BYTES
+    self._gettime = time.time
     self._ResetStats()
     self._lru.Clear()
 

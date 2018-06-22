@@ -32,6 +32,7 @@ from google.appengine.tools.devappserver2 import http_runtime
 from google.appengine.tools.devappserver2 import instance
 from google.appengine.tools.devappserver2 import util
 from google.appengine.tools.devappserver2.java import application
+from google.appengine.tools.devappserver2.java import java_dir
 
 # TODO: figure out what's needed to react to file changes
 
@@ -73,11 +74,6 @@ class JavaRuntimeInstanceFactory(instance.InstanceFactory):
     self._java_command = self._make_java_command()
 
   def _make_java_command(self):
-    # We should be in
-    # .../google/appengine/tools/devappserver2/java/instance_factory.py
-    # and we want to find .../google/appengine/tools and thence
-    # .../google/appengine/tools/java/lib
-
     java_home = os.environ.get('JAVA_HOME')
 
     if java_home and os.path.exists(java_home):
@@ -85,14 +81,9 @@ class JavaRuntimeInstanceFactory(instance.InstanceFactory):
     else:
       java_bin = 'java'
 
-    java_dir = os.environ.get('APP_ENGINE_JAVA_PATH', None)
-    tools_dir = os.path.abspath(_up_n_dirs(__file__, 3))
-
-    if not java_dir or not os.path.exists(java_dir):
-      java_dir = os.path.join(tools_dir, 'java')
-
-    java_lib_dir = os.path.join(java_dir, 'lib')
+    java_lib_dir = os.path.join(java_dir.get_java_dir(), 'lib')
     assert os.path.isdir(java_lib_dir), java_lib_dir
+
     class_path = os.path.join(java_lib_dir, 'appengine-tools-api.jar')
     assert os.path.isfile(class_path), class_path
 
@@ -119,7 +110,7 @@ class JavaRuntimeInstanceFactory(instance.InstanceFactory):
       args = [
           java_bin,
           '-cp', class_path,
-          '-Dappengine.sdk.root=' + java_dir,
+          '-Dappengine.sdk.root=' + java_dir.get_java_dir(),
           '-Dappengine.runtime=' + self._module_configuration.runtime,
       ]
       if self._module_configuration.runtime.startswith('java8'):
@@ -149,7 +140,7 @@ class JavaRuntimeInstanceFactory(instance.InstanceFactory):
     """Called when the configuration of the module has changed.
 
     Args:
-      config_changes: A set containing the changes that occured. See the
+      config_changes: A set containing the changes that occurred. See the
           *_CHANGED constants in the application_configuration module.
     """
     # TODO: implement
@@ -203,10 +194,3 @@ class JavaRuntimeInstanceFactory(instance.InstanceFactory):
                              self.max_concurrent_requests,
                              self.max_background_threads,
                              expect_ready_request)
-
-
-def _up_n_dirs(path, n):
-  """Return: the path that's up n dirs from the given path."""
-  for _ in range(n):
-    path = os.path.dirname(path)
-  return path

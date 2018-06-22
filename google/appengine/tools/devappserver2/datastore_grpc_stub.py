@@ -17,6 +17,7 @@
 """Provides utility functions to create grpc stub and make grpc call."""
 
 import httplib
+import threading
 import urllib2
 from google.appengine.api import apiproxy_stub
 from google.appengine.ext.remote_api import remote_api_pb
@@ -28,13 +29,19 @@ try:
 
 
 
-  from grpc.beta import implementations
+  import google
+  import grpc
   from google.appengine.tools.devappserver2 import grpc_service_pb2
 except ImportError:
-  implementations = None
+  grpc = None
   grpc_service_pb2 = None
 
+
+# The timeout in seconds for gRPC calls.
 _TIMEOUT = remote_api_stub.TIMEOUT_SECONDS
+
+# The maximum message size for gRPC calls.
+_MAX_MESSAGE_LENGTH_BYTES = 1024 * 1024 * 32  # 32MB.
 
 
 class DatastoreGrpcStub(apiproxy_stub.APIProxyStub):
@@ -61,30 +68,41 @@ class DatastoreGrpcStub(apiproxy_stub.APIProxyStub):
       A CallHandler stub.
 
     Raises:
-      RuntimeError: If grpc.beta.implementations or grpc_service_pb2 has not
-        been imported.
+      RuntimeError: If grpc or grpc_service_pb2 has not been imported.
     """
     super(DatastoreGrpcStub, self).__init__('datastore_v3')
     self.grpc_apiserver_host = self._StripPrefix(grpc_apiserver_host)
 
-    if not implementations:
+    if not grpc:
       raise RuntimeError('The DatastoreGrpcStub requires a local gRPC '
                          'installation, which is not found.')
     if not grpc_service_pb2:
       raise RuntimeError('The DatastoreGrpcStub requires a local gRPC service '
                          'definition, which is not found.')
-    # See http://www.grpc.io/grpc/python/_modules/grpc/beta/implementations.html
-    # insecure_channel() requires explicitly two parameters (host, port) here
-    # our host already contain port number, so the second parameter is None.
-    channel = implementations.insecure_channel(self.grpc_apiserver_host, None)
-    self._call_handler_stub = grpc_service_pb2.beta_create_CallHandler_stub(
-        channel)
+    self._call_handler_stub_creation_lock = threading.Lock()
+    self._call_handler_stub = None
     self._txn_add_task_callback_hostport = self._StripPrefix(
         txn_add_task_callback_hostport)
 
-  @property
-  def call_handler_stub(self):
-    return self._call_handler_stub
+  def get_or_set_call_handler_stub(self):
+    """Get call_handler_stub or instantiate if it has not been created.
+
+    We lazy connect to datastore emulator so that launching api_server does not
+    depend on launching datastore emulator.
+
+    Returns:
+      A CallHandler stub instance.
+    """
+    with self._call_handler_stub_creation_lock:
+      if not self._call_handler_stub:
+        channel = grpc.insecure_channel(
+            self.grpc_apiserver_host,
+            options=[
+                ('grpc.max_receive_message_length', _MAX_MESSAGE_LENGTH_BYTES),
+                ('grpc.max_send_message_length', _MAX_MESSAGE_LENGTH_BYTES),
+                ('grpc.max_message_length', _MAX_MESSAGE_LENGTH_BYTES)])
+        self._call_handler_stub = grpc_service_pb2.CallHandlerStub(channel)
+      return self._call_handler_stub
 
   def Clear(self):
     # api_server.py has _handle_CLEAR() method which requires this interface for
@@ -141,7 +159,8 @@ class DatastoreGrpcStub(apiproxy_stub.APIProxyStub):
     if request_id:
       request_pb.request_id = request.request_id()
 
-    response_pb = self._call_handler_stub.HandleCall(request_pb, _TIMEOUT)
+    response_pb = self.get_or_set_call_handler_stub().HandleCall(
+        request_pb, _TIMEOUT)
 
     if response_pb.HasField('application_error'):
       app_err = response_pb.application_error
@@ -167,7 +186,8 @@ class DatastoreGrpcStub(apiproxy_stub.APIProxyStub):
     if request.has_request_id():
       request_pb.request_id = request.request_id()
 
-    response_pb = self._call_handler_stub.HandleCall(request_pb, _TIMEOUT)
+    response_pb = self.get_or_set_call_handler_stub().HandleCall(
+        request_pb, _TIMEOUT)
 
     # Translate grpc_service_pb2.Response back to remote_api_pb.Response
     response = remote_api_pb.Response()

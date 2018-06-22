@@ -97,6 +97,8 @@ GOOGLE_ANALYTICS_DIMENSIONS = {
     'IsDevShell': 'cd7',
     'Platform': 'cd8',
     'Is64Bits': 'cd9',
+    'SupportDatastoreEmulator': 'cd10',
+    'DatastoreDataType': 'cd11',
 }
 
 # Devappserver Google Analytics Custom Metrics.
@@ -125,11 +127,14 @@ class _MetricsLogger(object):
     self._is_dev_shell = constants.DEVSHELL_ENV in os.environ
     self._is_64_bits = sys.maxsize > 2**32
     self._platform = platform.platform()
+    self._support_datastore_emulator = None
+    self._datastore_data_type = None
 
     # Stores events for batch logging once Stop has been called.
     self._log_once_on_stop_events = {}
 
-  def Start(self, client_id, user_agent=None, runtimes=None, environment=None):
+  def Start(self, client_id, user_agent=None, runtimes=None, environment=None,
+            support_datastore_emulator=None, datastore_data_type=None):
     """Starts a Google Analytics session for the current client.
 
     Args:
@@ -137,12 +142,18 @@ class _MetricsLogger(object):
       user_agent: A string user agent to send with each log.
       runtimes: A set of strings containing the runtimes used.
       environment: A set of strings containing the environments used.
+      support_datastore_emulator: A boolean indicating whether dev_appserver
+        supports Cloud Datastore emulator.
+      datastore_data_type: A string representing the type of data for local
+        datastore file.
     """
     self._client_id = client_id
     self._user_agent = user_agent
     self._runtimes = ','.join(sorted(list(runtimes))) if runtimes else None
     self._environment = ','.join(
         sorted(list(environment))) if environment else None
+    self._support_datastore_emulator = support_datastore_emulator
+    self._datastore_data_type = datastore_data_type
     self.Log(DEVAPPSERVER_CATEGORY, START_ACTION)
     self._start_time = Now()
 
@@ -264,6 +275,10 @@ class _MetricsLogger(object):
         GOOGLE_ANALYTICS_DIMENSIONS['IsDevShell']: self._is_dev_shell,
         GOOGLE_ANALYTICS_DIMENSIONS['Platform']: self._platform,
         GOOGLE_ANALYTICS_DIMENSIONS['Is64Bits']: self._is_64_bits,
+        GOOGLE_ANALYTICS_DIMENSIONS[
+            'SupportDatastoreEmulator']: self._support_datastore_emulator,
+        GOOGLE_ANALYTICS_DIMENSIONS[
+            'DatastoreDataType']: self._datastore_data_type,
         # Required event data
         'ec': category,
         'ea': action

@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     21637     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "87aedbd4a793e7043178ab9735868b730b8a7d4c"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "6d00152b6361f1f31cbe2fd610e1f767b6b3af27"
 
 $$
 package pe
@@ -152,7 +152,7 @@ package pe
 
 $$
  _go_.o          0           0     0     644     124644    `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13lddebug/dwarf.a"encoding/binary.aerrors.a

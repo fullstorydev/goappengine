@@ -48,6 +48,11 @@ type Message struct {
 	Body     string
 	HTMLBody string
 
+	// This is optional. If presented, consider as an AMP Email.
+	// The plain text or HTML field may become fallback content
+	// depending on the email client.
+	AMPHTMLBody string
+
 	Attachments []Attachment
 
 	// Extra mail headers.
@@ -90,6 +95,9 @@ func send(c appengine.Context, method string, msg *Message) error {
 	}
 	if msg.HTMLBody != "" {
 		req.HtmlBody = &msg.HTMLBody
+	}
+	if msg.AMPHTMLBody != "" {
+		req.AmpHtmlBody = &msg.AMPHTMLBody
 	}
 	if len(msg.Attachments) > 0 {
 		req.Attachment = make([]*pb.MailAttachment, len(msg.Attachments))

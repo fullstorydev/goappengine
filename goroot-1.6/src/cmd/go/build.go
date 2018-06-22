@@ -332,12 +332,12 @@ var pkgsFilter = func(pkgs []*Package) []*Package { return pkgs }
 
 func buildModeInit() {
 
-		if buildContext.InstallSuffix != "" {
-			buildContext.InstallSuffix += "_"
-		}
-		buildContext.InstallSuffix += "appengine"
-		buildContext.BuildTags = append(buildContext.BuildTags, "appengine")
-		_, gccgo := buildToolchain.(gccgoToolchain)
+			if buildContext.InstallSuffix != "" {
+				buildContext.InstallSuffix += "_"
+			}
+			buildContext.InstallSuffix += "appengine"
+			buildContext.BuildTags = append(buildContext.BuildTags, "appengine")
+			_, gccgo := buildToolchain.(gccgoToolchain)
 	var codegenArg string
 	platform := goos + "/" + goarch
 	switch buildBuildmode {

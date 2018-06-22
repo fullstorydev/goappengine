@@ -41,12 +41,24 @@ class JavaApplication(object):
 
   def get_environment(self):
     """Return the environment that should be used to run the Java executable."""
+
+    # Allow the SDK root to be overwritten if we need to use a Java sdk in a
+    # different directory
+    sdkroot = os.getenv('SDKROOT', _SDKROOT)
+
     environ = {'APPLICATION_ID': self._module_configuration.application,
+               'GAE_SERVICE': 'default',
                'GAE_ENV': 'localdev',
                'GAE_RUNTIME': self._module_configuration.runtime,
                'PWD': self._module_configuration.application_root,
-               'SDKROOT': _SDKROOT,
+               'SDKROOT': sdkroot,
                'TZ': 'UTC'}
+
+    if self._module_configuration.application:
+      environ['GAE_APPLICATION'] = self._module_configuration.application
+    if self._module_configuration.major_version:
+      environ['GAE_VERSION'] = self._module_configuration.major_version
+
     # Most of the env variables are needed for a JVM on Windows.
     for var in ('PATH', 'SYSTEMROOT', 'USER', 'TMP', 'TEMP'):
       if var in os.environ:

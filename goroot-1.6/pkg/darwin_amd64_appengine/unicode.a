@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     9823      `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "9af4a35ec60438e0d453d2dd79b3fc76487fec77"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "2325f3152acdbb0450832f4911544d069bf089d3"
 
 $$
 package unicode
@@ -271,7 +271,7 @@ package unicode
 
 $$
  _go_.o          0           0     0     644     305615    `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ld þ"".IsDigit  À  ÀeH‹%    H;avJHƒì‹D$ =ÿ   ƒø0|ƒø9žD$(HƒÄÃÆD$( ëôH‹    H‰$‰D$è    ¶\$ˆ\$(HƒÄÃè    ë 

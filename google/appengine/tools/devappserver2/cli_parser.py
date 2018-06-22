@@ -445,6 +445,35 @@ def create_command_line_parser(configuration=None):
                             const=True,
                             default=False,
                             help=argparse.SUPPRESS)
+  enable_host_checking_help = ('determines whether to enforce HTTP Host '
+                               'checking for application modules, API server, '
+                               'and admin server. host checking protects '
+                               'against DNS rebinding attacks, so only disable '
+                               'after understanding the security implications.')
+
+
+
+
+
+  common_group.add_argument('--enable_host_checking',
+                            action=boolean_action.BooleanAction,
+                            const=True,
+                            default=True,
+                            help=enable_host_checking_help)
+  common_group.add_argument('--enable_console',
+                            action=boolean_action.BooleanAction,
+                            const=True,
+                            default=False,
+                            help='Enable interactive console in admin view.')
+  common_group.add_argument(
+      '--java_app_base_url',
+      default=None,
+      restrict_configuration=[API_SERVER_CONFIGURATION],
+      help='Base URL of the java app in the form '
+      'http://host[:port], e.g. http://localhost:8080. '
+      'Should only be used to specify the url of a java '
+      'app running with the classic Java SDK tooling, '
+      'and not Java apps running on devappserver2.')
 
   # PHP
   php_group = parser.add_argument_group('PHP')
@@ -536,6 +565,13 @@ def create_command_line_parser(configuration=None):
       help='Enable watching $GOPATH for go app dependency changes. If file '
       'watcher complains about too many files to watch, you can set it to '
       'False.')
+  go_group.add_argument(
+      '--go_debugging',
+      restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=False,
+      help='Enable debugging. Connect to the running app with delve.')
 
   # Custom
   custom_group = parser.add_argument_group('Custom VM Runtime')
@@ -641,6 +677,31 @@ def create_command_line_parser(configuration=None):
       'release. Please do not rely on sequential IDs in your '
       'tests.')
 
+
+
+
+  datastore_group.add_argument(
+      '--support_datastore_emulator',
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=False,
+      help=argparse.SUPPRESS)
+  # Port number on which dev_appserver should launch Cloud Datastore emulator.
+  datastore_group.add_argument(
+      '--gcd_emulator_port', type=PortParser(), default=0,
+      help=argparse.SUPPRESS)
+  # The path to an executable shell script that invokes Cloud Datastore
+  # emulator.
+  datastore_group.add_argument(
+      '--gcd_emulator_cmd', type=parse_path, default=None,
+      help=argparse.SUPPRESS)
+  datastore_group.add_argument(
+      '--gcd_emulator_is_test_mode',
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=False,
+      help=argparse.SUPPRESS)
+
   # Logs
   logs_group = parser.add_argument_group('Logs API')
   logs_group.add_argument(
@@ -731,22 +792,12 @@ def create_command_line_parser(configuration=None):
   # host name to which the server for API calls should bind.
   misc_group.add_argument(
       '--api_host', default=default_server_host,
-      help=argparse.SUPPRESS)
+      help='host name to which the api server should bind.')
   misc_group.add_argument(
       '--api_port', type=PortParser(), default=0,
       help='port to which the server for API calls should bind')
   misc_group.add_argument(
       '--api_server_supports_grpc',
-      action=boolean_action.BooleanAction,
-      const=True,
-      default=False,
-      help=argparse.SUPPRESS)
-
-
-
-
-  misc_group.add_argument(
-      '--support_datastore_emulator',
       action=boolean_action.BooleanAction,
       const=True,
       default=False,

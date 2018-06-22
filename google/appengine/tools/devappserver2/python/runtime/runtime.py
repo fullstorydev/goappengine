@@ -30,6 +30,7 @@ from google.appengine.ext.remote_api import remote_api_stub
 from google.appengine.tools.devappserver2 import request_rewriter
 from google.appengine.tools.devappserver2 import runtime_config_pb2
 from google.appengine.tools.devappserver2 import wsgi_server
+from google.appengine.tools.devappserver2.python import runtime
 from google.appengine.tools.devappserver2.python.runtime import sandbox
 
 _STARTUP_FAILURE_TEMPLATE = """
@@ -178,6 +179,12 @@ def main():
         ('localhost', port),
         request_rewriter.runtime_rewriter_middleware(
             request_handler.RequestHandler(config)))
+  # Delete devappserver2.python.runtime and devappserver2.python.runtime.sandbox
+  # from sys.modules so that future attempts to import
+  # devappserver2.python.runtime.sandbox from user code goes through and gets
+  # blocked by the sandbox's sys.meta_path import hooks.
+  del sys.modules[sandbox.__name__]
+  del sys.modules[runtime.__name__]
   server.start()
   try:
     while True:

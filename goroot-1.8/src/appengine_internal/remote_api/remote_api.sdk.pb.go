@@ -100,6 +100,7 @@ type Request struct {
 	Method           *string `protobuf:"bytes,3,req,name=method" json:"method,omitempty"`
 	Request          []byte  `protobuf:"bytes,4,req,name=request" json:"request,omitempty"`
 	RequestId        *string `protobuf:"bytes,5,opt,name=request_id,json=requestId" json:"request_id,omitempty"`
+	TraceContext     []byte  `protobuf:"bytes,6,opt,name=trace_context,json=traceContext" json:"trace_context,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -133,6 +134,13 @@ func (m *Request) GetRequestId() string {
 		return *m.RequestId
 	}
 	return ""
+}
+
+func (m *Request) GetTraceContext() []byte {
+	if m != nil {
+		return m.TraceContext
+	}
+	return nil
 }
 
 type ApplicationError struct {

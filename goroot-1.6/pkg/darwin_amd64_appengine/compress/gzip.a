@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     20380     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "67fb5164017314fe32c5fff6d7dff31671748ba7"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "4c8702925b9d3c8f26362b6e72c4ead1ca326f12"
 
 $$
 package gzip
@@ -157,7 +157,7 @@ package gzip
 
 $$
 _go_.o          0           0     0     644     84545     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ldbufio.a compress/flate.aerrors.ahash.ahash/crc32.aio.atime.a

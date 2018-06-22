@@ -975,6 +975,7 @@ class TestBackendConfiguration(unittest.TestCase):
         handlers=handlers,
         inbound_services=['warmup'],
         env_variables=env_variables,
+        default_expiration='4d 3h',
         )
     backend_entry = backendinfo.BackendEntry(
         name='static',

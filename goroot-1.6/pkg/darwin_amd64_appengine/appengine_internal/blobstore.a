@@ -1,7 +1,7 @@
 !<arch>
 __.PKGDEF       0           0     0     644     11078     `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
-build id "2303824b333d2fd06f0f61a485889cb30e987b53"
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
+build id "d507d3eab56eec5078341944fe2187ee89a3c9fb"
 
 $$
 package appengine
@@ -95,7 +95,7 @@ package appengine
 
 $$
 _go_.o          0           0     0     644     184948    `
-go object darwin amd64 1.6.4 (appengine-1.9.62) X:none
+go object darwin amd64 1.6.4 (appengine-1.9.68) X:none
 
 !
   go13ldjappengine_internal/github.com/golang/protobuf/proto.a

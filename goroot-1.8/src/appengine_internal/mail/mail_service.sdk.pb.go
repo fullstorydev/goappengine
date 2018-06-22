@@ -158,6 +158,7 @@ type MailMessage struct {
 	Subject          *string           `protobuf:"bytes,6,req,name=Subject" json:"Subject,omitempty"`
 	TextBody         *string           `protobuf:"bytes,7,opt,name=TextBody" json:"TextBody,omitempty"`
 	HtmlBody         *string           `protobuf:"bytes,8,opt,name=HtmlBody" json:"HtmlBody,omitempty"`
+	AmpHtmlBody      *string           `protobuf:"bytes,11,opt,name=AmpHtmlBody" json:"AmpHtmlBody,omitempty"`
 	Attachment       []*MailAttachment `protobuf:"bytes,9,rep,name=Attachment" json:"Attachment,omitempty"`
 	Header           []*MailHeader     `protobuf:"bytes,10,rep,name=Header" json:"Header,omitempty"`
 	XXX_unrecognized []byte            `json:"-"`
@@ -219,6 +220,13 @@ func (m *MailMessage) GetTextBody() string {
 func (m *MailMessage) GetHtmlBody() string {
 	if m != nil && m.HtmlBody != nil {
 		return *m.HtmlBody
+	}
+	return ""
+}
+
+func (m *MailMessage) GetAmpHtmlBody() string {
+	if m != nil && m.AmpHtmlBody != nil {
+		return *m.AmpHtmlBody
 	}
 	return ""
 }

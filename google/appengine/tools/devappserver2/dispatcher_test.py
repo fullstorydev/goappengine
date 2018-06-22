@@ -27,10 +27,10 @@ import mox
 from google.appengine.api import appinfo
 from google.appengine.api import dispatchinfo
 from google.appengine.api import request_info
-from google.appengine.tools.devappserver2 import api_server
 from google.appengine.tools.devappserver2 import dispatcher
 from google.appengine.tools.devappserver2 import module
 from google.appengine.tools.devappserver2 import scheduled_executor
+from google.appengine.tools.devappserver2 import stub_util
 
 # This file uses pep8 naming.
 # pylint: disable=invalid-name
@@ -232,7 +232,7 @@ class DispatcherTest(unittest.TestCase):
 
   def setUp(self):
     self.mox = mox.Mox()
-    api_server.setup_test_stubs()
+    stub_util.setup_test_stubs()
     self.dispatch_config = DispatchConfigurationStub()
     app_config = ApplicationConfigurationStub(MODULE_CONFIGURATIONS)
     self.dispatcher = _make_dispatcher(app_config)

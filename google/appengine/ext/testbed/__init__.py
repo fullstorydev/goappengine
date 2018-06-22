@@ -31,12 +31,12 @@ Example::
 
     import unittest
 
-    from google.appengine.ext import db
+    from google.appengine.ext import ndb
     from google.appengine.ext import testbed
 
 
-    class TestModel(db.Model):
-      number = db.IntegerProperty(default=42)
+    class TestModel(ndb.Model):
+      number = ndb.IntegerProperty(default=42)
 
 
     class MyTestCase(unittest.TestCase):
@@ -106,8 +106,17 @@ you can change those values with `self.setup_env()`.
 
 
 import os
-import unittest
+import threading
 
+
+
+
+
+
+
+
+
+from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
 from google.appengine.api import datastore_file_stub
 try:
@@ -152,16 +161,17 @@ from google.appengine.datastore import datastore_stub_util
 from google.appengine.datastore import datastore_v4_stub
 from google.appengine.ext.cloudstorage import common as gcs_common
 from google.appengine.ext.cloudstorage import stub_dispatcher as gcs_dispatcher
+try:
+
+
+  from google.appengine.ext.remote_api import remote_api_stub
+except ImportError:
+  pass
 
 
 
 
 
-
-
-USE_DATASTORE_EMULATOR = False
-if USE_DATASTORE_EMULATOR:
-  import testserver_util
 
 DEFAULT_ENVIRONMENT = {
     'APPENGINE_RUNTIME': 'python27',
@@ -236,7 +246,7 @@ AUTO_ID_POLICY_SCATTERED = datastore_stub_util.SCATTERED
 
 def urlfetch_to_gcs_stub(url, payload, method, headers, request, response,
                          follow_redirects=False, deadline=None,
-                         validate_certificate=None):
+                         validate_certificate=None, http_proxy=None):
 
   """Forwards Google Cloud Storage `urlfetch` requests to gcs_dispatcher."""
   headers_map = dict(
@@ -274,6 +284,56 @@ class NotActivatedError(Error):
 
 class StubNotSupportedError(Error):
   """Raised if an unsupported service stub is accessed."""
+
+
+class EmulatorSupportChecker(object):
+  """A static class. Checks whether datastore emulator is supported."""
+
+  _check_lock = threading.Lock()
+  _use_datastore_emulator = None
+  _api_port = None
+
+  @classmethod
+  def get_api_port(cls):
+    """Returns the integer port number that api_server listens on."""
+    return cls._api_port
+
+  @classmethod
+  def get_emulator_port(cls):
+    """Returns the integer port number that datastore emulator listens on."""
+    return cls._emulator_port
+
+  @classmethod
+  def check(cls):
+    """Checks whether cloud datastore should be used.
+
+    In a unittest test process, the first call to this method sets the value of
+    _use_datastore_emulator and _api_port. Subsequent calls to this method can
+    read _use_datastore_emulator.
+
+    Returns:
+      A boolean that indicates whether cloud datastore should be used.
+    """
+
+    cls._check_lock.acquire()
+    if cls._use_datastore_emulator is None:
+      if os.environ.get('APPENGINE_TESTBED_USES_DATASTORE_EMULATOR'):
+
+        cls._use_datastore_emulator = True
+        cls._api_port = int(os.environ['API_SERVER_PORT'])
+        cls._emulator_port = int(os.environ['DATASTORE_EMULATOR_PORT'])
+
+
+
+
+
+
+
+
+      else:
+        cls._use_datastore_emulator = False
+    cls._check_lock.release()
+    return cls._use_datastore_emulator
 
 
 
@@ -317,6 +377,19 @@ class Testbed(object):
     self._test_stub_map._APIProxyStubMap__stub_map = dict(internal_map)
     apiproxy_stub_map.apiproxy = self._test_stub_map
     self._activated = True
+
+    self._use_datastore_emulator = EmulatorSupportChecker.check()
+    if self._use_datastore_emulator:
+      self.api_port = EmulatorSupportChecker.get_api_port()
+      self.rpc_server = remote_api_stub.ConfigureRemoteApi(
+          os.environ['APPLICATION_ID'],
+          '/',
+          lambda: ('', ''),
+          'localhost:%d' % self.api_port,
+          services=[],
+          apiproxy=self._test_stub_map,
+          use_remote_datastore=False)
+      self._emulator_port = EmulatorSupportChecker.get_emulator_port()
 
   def deactivate(self):
     """Deactivates the testbed.
@@ -530,7 +603,7 @@ class Testbed(object):
     Raises:
       StubNotSupportedError: If datastore_sqlite_stub is None.
     """
-    if USE_DATASTORE_EMULATOR:
+    if self._use_datastore_emulator:
 
 
 
@@ -538,15 +611,23 @@ class Testbed(object):
 
       self._disable_stub(DATASTORE_SERVICE_NAME)
 
-      testserver_util.TESTSERVER_UTIL.reset_emulator()
-      testserver_util.remote_api_stub.ConfigureRemoteApi(
-          os.environ['APPLICATION_ID'],
-          '/',
-          lambda: ('', ''),
-          'localhost:%d' % testserver_util.TESTSERVER_UTIL.api_port,
-          services=[DATASTORE_SERVICE_NAME],
-          apiproxy=self._test_stub_map,
-          use_remote_datastore=False)
+      delegate_stub = (
+          remote_api_stub.DatastoreStubTestbedDelegate(
+              self.rpc_server, '/', stub_kw_args.get(
+                  'max_request_size', apiproxy_stub.MAX_REQUEST_SIZE),
+              emulator_port=self._emulator_port))
+      delegate_stub.Clear()
+      self._test_stub_map.RegisterStub(
+          DATASTORE_SERVICE_NAME, delegate_stub)
+      consistency_policy = stub_kw_args.get(
+          'consistency_policy',
+          datastore_stub_util.PseudoRandomHRConsistencyPolicy(probability=1.0))
+      datastore_stub_util.UpdateEmulatorConfig(
+          self._emulator_port, auto_id_policy, consistency_policy)
+      if isinstance(consistency_policy,
+                    datastore_stub_util.PseudoRandomHRConsistencyPolicy):
+        consistency_policy.is_using_cloud_datastore_emulator = True
+        consistency_policy.emulator_port = self._emulator_port
 
 
       self._enabled_stubs[DATASTORE_SERVICE_NAME] = None
@@ -682,6 +763,15 @@ class Testbed(object):
           real service should be disabled.
       **stub_kw_args: Keyword arguments passed on to the service stub.
     """
+    if self._use_datastore_emulator:
+      self._disable_stub(TASKQUEUE_SERVICE_NAME)
+      delegate_stub = (
+          remote_api_stub.TaskqueueStubTestbedDelegate(self.rpc_server, '/'))
+      delegate_stub.SetUpStub(**stub_kw_args)
+      self._test_stub_map.RegisterStub(
+          TASKQUEUE_SERVICE_NAME, delegate_stub)
+      self._enabled_stubs[TASKQUEUE_SERVICE_NAME] = None
+      return
     if not enable:
       self._disable_stub(TASKQUEUE_SERVICE_NAME)
       return

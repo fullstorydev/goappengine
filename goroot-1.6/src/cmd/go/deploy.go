@@ -1,5 +1,6 @@
-// To be placed in the output Go repo at cmd/go.
+// +build !go1.9
 
+// Package main implements the `goapp deploy` and `goapp serve` commands.
 package main
 
 import (

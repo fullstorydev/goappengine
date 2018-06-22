@@ -22,6 +22,7 @@ It has these top-level messages:
 	User
 	EntityProto
 	EntityMetadata
+	EntitySummary
 	CompositeProperty
 	Index
 	CompositeIndex
@@ -280,15 +281,18 @@ type Index_Property_Mode int32
 const (
 	Index_Property_MODE_UNSPECIFIED Index_Property_Mode = 0
 	Index_Property_GEOSPATIAL       Index_Property_Mode = 3
+	Index_Property_ARRAY_CONTAINS   Index_Property_Mode = 4
 )
 
 var Index_Property_Mode_name = map[int32]string{
 	0: "MODE_UNSPECIFIED",
 	3: "GEOSPATIAL",
+	4: "ARRAY_CONTAINS",
 }
 var Index_Property_Mode_value = map[string]int32{
 	"MODE_UNSPECIFIED": 0,
 	"GEOSPATIAL":       3,
+	"ARRAY_CONTAINS":   4,
 }
 
 func (x Index_Property_Mode) Enum() *Index_Property_Mode {
@@ -1400,6 +1404,54 @@ func (m *EntityMetadata) GetCreatedVersion() int64 {
 func (m *EntityMetadata) GetUpdatedVersion() int64 {
 	if m != nil && m.UpdatedVersion != nil {
 		return *m.UpdatedVersion
+	}
+	return 0
+}
+
+type EntitySummary struct {
+	LargeRawProperty []*EntitySummary_PropertySummary `protobuf:"bytes,1,rep,name=large_raw_property,json=largeRawProperty" json:"large_raw_property,omitempty"`
+	XXX_unrecognized []byte                           `json:"-"`
+}
+
+func (m *EntitySummary) Reset()         { *m = EntitySummary{} }
+func (m *EntitySummary) String() string { return proto.CompactTextString(m) }
+func (*EntitySummary) ProtoMessage()    {}
+
+func (m *EntitySummary) GetLargeRawProperty() []*EntitySummary_PropertySummary {
+	if m != nil {
+		return m.LargeRawProperty
+	}
+	return nil
+}
+
+type EntitySummary_PropertySummary struct {
+	Name                 *string `protobuf:"bytes,1,req,name=name" json:"name,omitempty"`
+	PropertyTypeForStats *string `protobuf:"bytes,2,opt,name=property_type_for_stats,json=propertyTypeForStats" json:"property_type_for_stats,omitempty"`
+	SizeBytes            *int32  `protobuf:"varint,3,opt,name=size_bytes,json=sizeBytes" json:"size_bytes,omitempty"`
+	XXX_unrecognized     []byte  `json:"-"`
+}
+
+func (m *EntitySummary_PropertySummary) Reset()         { *m = EntitySummary_PropertySummary{} }
+func (m *EntitySummary_PropertySummary) String() string { return proto.CompactTextString(m) }
+func (*EntitySummary_PropertySummary) ProtoMessage()    {}
+
+func (m *EntitySummary_PropertySummary) GetName() string {
+	if m != nil && m.Name != nil {
+		return *m.Name
+	}
+	return ""
+}
+
+func (m *EntitySummary_PropertySummary) GetPropertyTypeForStats() string {
+	if m != nil && m.PropertyTypeForStats != nil {
+		return *m.PropertyTypeForStats
+	}
+	return ""
+}
+
+func (m *EntitySummary_PropertySummary) GetSizeBytes() int32 {
+	if m != nil && m.SizeBytes != nil {
+		return *m.SizeBytes
 	}
 	return 0
 }
@@ -3494,6 +3546,8 @@ func init() {
 	proto.RegisterType((*User)(nil), "datastore.User")
 	proto.RegisterType((*EntityProto)(nil), "datastore.EntityProto")
 	proto.RegisterType((*EntityMetadata)(nil), "datastore.EntityMetadata")
+	proto.RegisterType((*EntitySummary)(nil), "datastore.EntitySummary")
+	proto.RegisterType((*EntitySummary_PropertySummary)(nil), "datastore.EntitySummary.PropertySummary")
 	proto.RegisterType((*CompositeProperty)(nil), "datastore.CompositeProperty")
 	proto.RegisterType((*Index)(nil), "datastore.Index")
 	proto.RegisterType((*Index_Property)(nil), "datastore.Index.Property")
