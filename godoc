@@ -25,7 +25,7 @@ def FixGooglePath():
   # pylint: enable=g-import-not-at-top
   sys.path = wrapper_util.Paths(SDK_BASE).v1_extra_paths + sys.path
   if 'google' in sys.modules:
-    google_path = os.path.join(os.path.dirname(__file__), 'google')
+    google_path = os.path.join(SDK_BASE, 'google')
     google_module = sys.modules['google']
     google_module.__path__.append(google_path)
     if not hasattr(google_module, '__file__') or not google_module.__file__:
