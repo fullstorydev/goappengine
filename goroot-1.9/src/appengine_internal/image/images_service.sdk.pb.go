@@ -280,27 +280,27 @@ func (m *ImagesServiceTransform) String() string { return proto.CompactTextStrin
 func (*ImagesServiceTransform) ProtoMessage()    {}
 
 type Transform struct {
-	Width            *int32   `protobuf:"varint,1,opt,name=width" json:"width,omitempty"`
-	WidthSet         *bool    `protobuf:"varint,101,opt,name=width_set,json=widthSet" json:"width_set,omitempty"`
-	Height           *int32   `protobuf:"varint,2,opt,name=height" json:"height,omitempty"`
-	HeightSet        *bool    `protobuf:"varint,102,opt,name=height_set,json=heightSet" json:"height_set,omitempty"`
-	CropToFit        *bool    `protobuf:"varint,11,opt,name=crop_to_fit,json=cropToFit" json:"crop_to_fit,omitempty"`
-	CropOffsetX      *float32 `protobuf:"fixed32,12,opt,name=crop_offset_x,json=cropOffsetX,def=0.5" json:"crop_offset_x,omitempty"`
-	CropOffsetXSet   *bool    `protobuf:"varint,112,opt,name=crop_offset_x_set,json=cropOffsetXSet" json:"crop_offset_x_set,omitempty"`
-	CropOffsetY      *float32 `protobuf:"fixed32,13,opt,name=crop_offset_y,json=cropOffsetY,def=0.5" json:"crop_offset_y,omitempty"`
-	CropOffsetYSet   *bool    `protobuf:"varint,113,opt,name=crop_offset_y_set,json=cropOffsetYSet" json:"crop_offset_y_set,omitempty"`
-	Rotate           *int32   `protobuf:"varint,3,opt,name=rotate" json:"rotate,omitempty"`
-	HorizontalFlip   *bool    `protobuf:"varint,4,opt,name=horizontal_flip,json=horizontalFlip" json:"horizontal_flip,omitempty"`
-	VerticalFlip     *bool    `protobuf:"varint,5,opt,name=vertical_flip,json=verticalFlip" json:"vertical_flip,omitempty"`
-	CropLeftX        *float32 `protobuf:"fixed32,6,opt,name=crop_left_x,json=cropLeftX" json:"crop_left_x,omitempty"`
-	CropTopY         *float32 `protobuf:"fixed32,7,opt,name=crop_top_y,json=cropTopY" json:"crop_top_y,omitempty"`
-	CropRightX       *float32 `protobuf:"fixed32,8,opt,name=crop_right_x,json=cropRightX,def=1" json:"crop_right_x,omitempty"`
-	CropRightXSet    *bool    `protobuf:"varint,108,opt,name=crop_right_x_set,json=cropRightXSet" json:"crop_right_x_set,omitempty"`
-	CropBottomY      *float32 `protobuf:"fixed32,9,opt,name=crop_bottom_y,json=cropBottomY,def=1" json:"crop_bottom_y,omitempty"`
-	CropBottomYSet   *bool    `protobuf:"varint,109,opt,name=crop_bottom_y_set,json=cropBottomYSet" json:"crop_bottom_y_set,omitempty"`
-	Autolevels       *bool    `protobuf:"varint,10,opt,name=autolevels" json:"autolevels,omitempty"`
-	AllowStretch     *bool    `protobuf:"varint,14,opt,name=allow_stretch,json=allowStretch" json:"allow_stretch,omitempty"`
-	XXX_unrecognized []byte   `json:"-"`
+	Width                    *int32   `protobuf:"varint,1,opt,name=width" json:"width,omitempty"`
+	Height                   *int32   `protobuf:"varint,2,opt,name=height" json:"height,omitempty"`
+	CropToFit                *bool    `protobuf:"varint,11,opt,name=crop_to_fit,json=cropToFit" json:"crop_to_fit,omitempty"`
+	CropOffsetX              *float32 `protobuf:"fixed32,12,opt,name=crop_offset_x,json=cropOffsetX,def=0.5" json:"crop_offset_x,omitempty"`
+	CropOffsetY              *float32 `protobuf:"fixed32,13,opt,name=crop_offset_y,json=cropOffsetY,def=0.5" json:"crop_offset_y,omitempty"`
+	Rotate                   *int32   `protobuf:"varint,3,opt,name=rotate" json:"rotate,omitempty"`
+	HorizontalFlip           *bool    `protobuf:"varint,4,opt,name=horizontal_flip,json=horizontalFlip" json:"horizontal_flip,omitempty"`
+	VerticalFlip             *bool    `protobuf:"varint,5,opt,name=vertical_flip,json=verticalFlip" json:"vertical_flip,omitempty"`
+	CropLeftX                *float32 `protobuf:"fixed32,6,opt,name=crop_left_x,json=cropLeftX" json:"crop_left_x,omitempty"`
+	CropTopY                 *float32 `protobuf:"fixed32,7,opt,name=crop_top_y,json=cropTopY" json:"crop_top_y,omitempty"`
+	CropRightX               *float32 `protobuf:"fixed32,8,opt,name=crop_right_x,json=cropRightX,def=1" json:"crop_right_x,omitempty"`
+	CropBottomY              *float32 `protobuf:"fixed32,9,opt,name=crop_bottom_y,json=cropBottomY,def=1" json:"crop_bottom_y,omitempty"`
+	Autolevels               *bool    `protobuf:"varint,10,opt,name=autolevels" json:"autolevels,omitempty"`
+	AllowStretch             *bool    `protobuf:"varint,14,opt,name=allow_stretch,json=allowStretch" json:"allow_stretch,omitempty"`
+	DeprecatedWidthSet       *bool    `protobuf:"varint,101,opt,name=deprecated_width_set,json=deprecatedWidthSet" json:"deprecated_width_set,omitempty"`
+	DeprecatedHeightSet      *bool    `protobuf:"varint,102,opt,name=deprecated_height_set,json=deprecatedHeightSet" json:"deprecated_height_set,omitempty"`
+	DeprecatedCropOffsetXSet *bool    `protobuf:"varint,112,opt,name=deprecated_crop_offset_x_set,json=deprecatedCropOffsetXSet" json:"deprecated_crop_offset_x_set,omitempty"`
+	DeprecatedCropOffsetYSet *bool    `protobuf:"varint,113,opt,name=deprecated_crop_offset_y_set,json=deprecatedCropOffsetYSet" json:"deprecated_crop_offset_y_set,omitempty"`
+	DeprecatedCropRightXSet  *bool    `protobuf:"varint,108,opt,name=deprecated_crop_right_x_set,json=deprecatedCropRightXSet" json:"deprecated_crop_right_x_set,omitempty"`
+	DeprecatedCropBottomYSet *bool    `protobuf:"varint,109,opt,name=deprecated_crop_bottom_y_set,json=deprecatedCropBottomYSet" json:"deprecated_crop_bottom_y_set,omitempty"`
+	XXX_unrecognized         []byte   `json:"-"`
 }
 
 func (m *Transform) Reset()         { *m = Transform{} }
@@ -319,25 +319,11 @@ func (m *Transform) GetWidth() int32 {
 	return 0
 }
 
-func (m *Transform) GetWidthSet() bool {
-	if m != nil && m.WidthSet != nil {
-		return *m.WidthSet
-	}
-	return false
-}
-
 func (m *Transform) GetHeight() int32 {
 	if m != nil && m.Height != nil {
 		return *m.Height
 	}
 	return 0
-}
-
-func (m *Transform) GetHeightSet() bool {
-	if m != nil && m.HeightSet != nil {
-		return *m.HeightSet
-	}
-	return false
 }
 
 func (m *Transform) GetCropToFit() bool {
@@ -354,25 +340,11 @@ func (m *Transform) GetCropOffsetX() float32 {
 	return Default_Transform_CropOffsetX
 }
 
-func (m *Transform) GetCropOffsetXSet() bool {
-	if m != nil && m.CropOffsetXSet != nil {
-		return *m.CropOffsetXSet
-	}
-	return false
-}
-
 func (m *Transform) GetCropOffsetY() float32 {
 	if m != nil && m.CropOffsetY != nil {
 		return *m.CropOffsetY
 	}
 	return Default_Transform_CropOffsetY
-}
-
-func (m *Transform) GetCropOffsetYSet() bool {
-	if m != nil && m.CropOffsetYSet != nil {
-		return *m.CropOffsetYSet
-	}
-	return false
 }
 
 func (m *Transform) GetRotate() int32 {
@@ -417,25 +389,11 @@ func (m *Transform) GetCropRightX() float32 {
 	return Default_Transform_CropRightX
 }
 
-func (m *Transform) GetCropRightXSet() bool {
-	if m != nil && m.CropRightXSet != nil {
-		return *m.CropRightXSet
-	}
-	return false
-}
-
 func (m *Transform) GetCropBottomY() float32 {
 	if m != nil && m.CropBottomY != nil {
 		return *m.CropBottomY
 	}
 	return Default_Transform_CropBottomY
-}
-
-func (m *Transform) GetCropBottomYSet() bool {
-	if m != nil && m.CropBottomYSet != nil {
-		return *m.CropBottomYSet
-	}
-	return false
 }
 
 func (m *Transform) GetAutolevels() bool {
@@ -452,13 +410,55 @@ func (m *Transform) GetAllowStretch() bool {
 	return false
 }
 
+func (m *Transform) GetDeprecatedWidthSet() bool {
+	if m != nil && m.DeprecatedWidthSet != nil {
+		return *m.DeprecatedWidthSet
+	}
+	return false
+}
+
+func (m *Transform) GetDeprecatedHeightSet() bool {
+	if m != nil && m.DeprecatedHeightSet != nil {
+		return *m.DeprecatedHeightSet
+	}
+	return false
+}
+
+func (m *Transform) GetDeprecatedCropOffsetXSet() bool {
+	if m != nil && m.DeprecatedCropOffsetXSet != nil {
+		return *m.DeprecatedCropOffsetXSet
+	}
+	return false
+}
+
+func (m *Transform) GetDeprecatedCropOffsetYSet() bool {
+	if m != nil && m.DeprecatedCropOffsetYSet != nil {
+		return *m.DeprecatedCropOffsetYSet
+	}
+	return false
+}
+
+func (m *Transform) GetDeprecatedCropRightXSet() bool {
+	if m != nil && m.DeprecatedCropRightXSet != nil {
+		return *m.DeprecatedCropRightXSet
+	}
+	return false
+}
+
+func (m *Transform) GetDeprecatedCropBottomYSet() bool {
+	if m != nil && m.DeprecatedCropBottomYSet != nil {
+		return *m.DeprecatedCropBottomYSet
+	}
+	return false
+}
+
 type ImageData struct {
-	Content          []byte  `protobuf:"bytes,1,req,name=content" json:"content,omitempty"`
-	BlobKey          *string `protobuf:"bytes,2,opt,name=blob_key,json=blobKey" json:"blob_key,omitempty"`
-	BlobKeySet       *bool   `protobuf:"varint,102,opt,name=blob_key_set,json=blobKeySet" json:"blob_key_set,omitempty"`
-	Width            *int32  `protobuf:"varint,3,opt,name=width" json:"width,omitempty"`
-	Height           *int32  `protobuf:"varint,4,opt,name=height" json:"height,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	Content              []byte  `protobuf:"bytes,1,req,name=content" json:"content,omitempty"`
+	BlobKey              *string `protobuf:"bytes,2,opt,name=blob_key,json=blobKey" json:"blob_key,omitempty"`
+	Width                *int32  `protobuf:"varint,3,opt,name=width" json:"width,omitempty"`
+	Height               *int32  `protobuf:"varint,4,opt,name=height" json:"height,omitempty"`
+	DeprecatedBlobKeySet *bool   `protobuf:"varint,102,opt,name=deprecated_blob_key_set,json=deprecatedBlobKeySet" json:"deprecated_blob_key_set,omitempty"`
+	XXX_unrecognized     []byte  `json:"-"`
 }
 
 func (m *ImageData) Reset()         { *m = ImageData{} }
@@ -479,13 +479,6 @@ func (m *ImageData) GetBlobKey() string {
 	return ""
 }
 
-func (m *ImageData) GetBlobKeySet() bool {
-	if m != nil && m.BlobKeySet != nil {
-		return *m.BlobKeySet
-	}
-	return false
-}
-
 func (m *ImageData) GetWidth() int32 {
 	if m != nil && m.Width != nil {
 		return *m.Width
@@ -500,13 +493,20 @@ func (m *ImageData) GetHeight() int32 {
 	return 0
 }
 
+func (m *ImageData) GetDeprecatedBlobKeySet() bool {
+	if m != nil && m.DeprecatedBlobKeySet != nil {
+		return *m.DeprecatedBlobKeySet
+	}
+	return false
+}
+
 type InputSettings struct {
-	CorrectExifOrientation        *InputSettings_ORIENTATION_CORRECTION_TYPE `protobuf:"varint,1,opt,name=correct_exif_orientation,json=correctExifOrientation,enum=appengine.InputSettings_ORIENTATION_CORRECTION_TYPE" json:"correct_exif_orientation,omitempty"`
-	CorrectExifOrientationSet     *bool                                      `protobuf:"varint,101,opt,name=correct_exif_orientation_set,json=correctExifOrientationSet" json:"correct_exif_orientation_set,omitempty"`
-	ParseMetadata                 *bool                                      `protobuf:"varint,2,opt,name=parse_metadata,json=parseMetadata" json:"parse_metadata,omitempty"`
-	TransparentSubstitutionRgb    *int32                                     `protobuf:"varint,3,opt,name=transparent_substitution_rgb,json=transparentSubstitutionRgb" json:"transparent_substitution_rgb,omitempty"`
-	TransparentSubstitutionRgbSet *bool                                      `protobuf:"varint,103,opt,name=transparent_substitution_rgb_set,json=transparentSubstitutionRgbSet" json:"transparent_substitution_rgb_set,omitempty"`
-	XXX_unrecognized              []byte                                     `json:"-"`
+	CorrectExifOrientation                  *InputSettings_ORIENTATION_CORRECTION_TYPE `protobuf:"varint,1,opt,name=correct_exif_orientation,json=correctExifOrientation,enum=appengine.InputSettings_ORIENTATION_CORRECTION_TYPE" json:"correct_exif_orientation,omitempty"`
+	ParseMetadata                           *bool                                      `protobuf:"varint,2,opt,name=parse_metadata,json=parseMetadata" json:"parse_metadata,omitempty"`
+	TransparentSubstitutionRgb              *int32                                     `protobuf:"varint,3,opt,name=transparent_substitution_rgb,json=transparentSubstitutionRgb" json:"transparent_substitution_rgb,omitempty"`
+	DeprecatedCorrectExifOrientationSet     *bool                                      `protobuf:"varint,101,opt,name=deprecated_correct_exif_orientation_set,json=deprecatedCorrectExifOrientationSet" json:"deprecated_correct_exif_orientation_set,omitempty"`
+	DeprecatedTransparentSubstitutionRgbSet *bool                                      `protobuf:"varint,103,opt,name=deprecated_transparent_substitution_rgb_set,json=deprecatedTransparentSubstitutionRgbSet" json:"deprecated_transparent_substitution_rgb_set,omitempty"`
+	XXX_unrecognized                        []byte                                     `json:"-"`
 }
 
 func (m *InputSettings) Reset()         { *m = InputSettings{} }
@@ -518,13 +518,6 @@ func (m *InputSettings) GetCorrectExifOrientation() InputSettings_ORIENTATION_CO
 		return *m.CorrectExifOrientation
 	}
 	return InputSettings_UNCHANGED_ORIENTATION
-}
-
-func (m *InputSettings) GetCorrectExifOrientationSet() bool {
-	if m != nil && m.CorrectExifOrientationSet != nil {
-		return *m.CorrectExifOrientationSet
-	}
-	return false
 }
 
 func (m *InputSettings) GetParseMetadata() bool {
@@ -541,9 +534,16 @@ func (m *InputSettings) GetTransparentSubstitutionRgb() int32 {
 	return 0
 }
 
-func (m *InputSettings) GetTransparentSubstitutionRgbSet() bool {
-	if m != nil && m.TransparentSubstitutionRgbSet != nil {
-		return *m.TransparentSubstitutionRgbSet
+func (m *InputSettings) GetDeprecatedCorrectExifOrientationSet() bool {
+	if m != nil && m.DeprecatedCorrectExifOrientationSet != nil {
+		return *m.DeprecatedCorrectExifOrientationSet
+	}
+	return false
+}
+
+func (m *InputSettings) GetDeprecatedTransparentSubstitutionRgbSet() bool {
+	if m != nil && m.DeprecatedTransparentSubstitutionRgbSet != nil {
+		return *m.DeprecatedTransparentSubstitutionRgbSet
 	}
 	return false
 }
@@ -685,12 +685,12 @@ func (m *CompositeImageOptions) GetAnchor() CompositeImageOptions_ANCHOR {
 }
 
 type ImagesCanvas struct {
-	Width            *int32          `protobuf:"varint,1,req,name=width" json:"width,omitempty"`
-	Height           *int32          `protobuf:"varint,2,req,name=height" json:"height,omitempty"`
-	Output           *OutputSettings `protobuf:"bytes,3,req,name=output" json:"output,omitempty"`
-	Color            *int32          `protobuf:"varint,4,opt,name=color,def=-1" json:"color,omitempty"`
-	ColorSet         *bool           `protobuf:"varint,104,opt,name=color_set,json=colorSet" json:"color_set,omitempty"`
-	XXX_unrecognized []byte          `json:"-"`
+	Width              *int32          `protobuf:"varint,1,req,name=width" json:"width,omitempty"`
+	Height             *int32          `protobuf:"varint,2,req,name=height" json:"height,omitempty"`
+	Output             *OutputSettings `protobuf:"bytes,3,req,name=output" json:"output,omitempty"`
+	Color              *int32          `protobuf:"varint,4,opt,name=color,def=-1" json:"color,omitempty"`
+	DeprecatedColorSet *bool           `protobuf:"varint,104,opt,name=deprecated_color_set,json=deprecatedColorSet" json:"deprecated_color_set,omitempty"`
+	XXX_unrecognized   []byte          `json:"-"`
 }
 
 func (m *ImagesCanvas) Reset()         { *m = ImagesCanvas{} }
@@ -727,9 +727,9 @@ func (m *ImagesCanvas) GetColor() int32 {
 	return Default_ImagesCanvas_Color
 }
 
-func (m *ImagesCanvas) GetColorSet() bool {
-	if m != nil && m.ColorSet != nil {
-		return *m.ColorSet
+func (m *ImagesCanvas) GetDeprecatedColorSet() bool {
+	if m != nil && m.DeprecatedColorSet != nil {
+		return *m.DeprecatedColorSet
 	}
 	return false
 }

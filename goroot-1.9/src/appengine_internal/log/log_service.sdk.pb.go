@@ -164,9 +164,9 @@ func (m *SetStatusRequest) GetStatus() string {
 }
 
 type LogOffset struct {
-	RequestId        []byte `protobuf:"bytes,1,opt,name=request_id,json=requestId" json:"request_id,omitempty"`
-	RequestIdSet     *bool  `protobuf:"varint,101,opt,name=request_id_set,json=requestIdSet" json:"request_id_set,omitempty"`
-	XXX_unrecognized []byte `json:"-"`
+	RequestId              []byte `protobuf:"bytes,1,opt,name=request_id,json=requestId" json:"request_id,omitempty"`
+	DeprecatedRequestIdSet *bool  `protobuf:"varint,101,opt,name=deprecated_request_id_set,json=deprecatedRequestIdSet" json:"deprecated_request_id_set,omitempty"`
+	XXX_unrecognized       []byte `json:"-"`
 }
 
 func (m *LogOffset) Reset()         { *m = LogOffset{} }
@@ -180,9 +180,9 @@ func (m *LogOffset) GetRequestId() []byte {
 	return nil
 }
 
-func (m *LogOffset) GetRequestIdSet() bool {
-	if m != nil && m.RequestIdSet != nil {
-		return *m.RequestIdSet
+func (m *LogOffset) GetDeprecatedRequestIdSet() bool {
+	if m != nil && m.DeprecatedRequestIdSet != nil {
+		return *m.DeprecatedRequestIdSet
 	}
 	return false
 }
@@ -544,11 +544,11 @@ func (m *RequestLog) GetServerName() []byte {
 }
 
 type LogModuleVersion struct {
-	ModuleId         *string `protobuf:"bytes,1,opt,name=module_id,json=moduleId,def=default" json:"module_id,omitempty"`
-	ModuleIdSet      *bool   `protobuf:"varint,101,opt,name=module_id_set,json=moduleIdSet" json:"module_id_set,omitempty"`
-	VersionId        *string `protobuf:"bytes,2,opt,name=version_id,json=versionId" json:"version_id,omitempty"`
-	VersionIdSet     *bool   `protobuf:"varint,102,opt,name=version_id_set,json=versionIdSet" json:"version_id_set,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	ModuleId               *string `protobuf:"bytes,1,opt,name=module_id,json=moduleId,def=default" json:"module_id,omitempty"`
+	VersionId              *string `protobuf:"bytes,2,opt,name=version_id,json=versionId" json:"version_id,omitempty"`
+	DeprecatedModuleIdSet  *bool   `protobuf:"varint,101,opt,name=deprecated_module_id_set,json=deprecatedModuleIdSet" json:"deprecated_module_id_set,omitempty"`
+	DeprecatedVersionIdSet *bool   `protobuf:"varint,102,opt,name=deprecated_version_id_set,json=deprecatedVersionIdSet" json:"deprecated_version_id_set,omitempty"`
+	XXX_unrecognized       []byte  `json:"-"`
 }
 
 func (m *LogModuleVersion) Reset()         { *m = LogModuleVersion{} }
@@ -564,13 +564,6 @@ func (m *LogModuleVersion) GetModuleId() string {
 	return Default_LogModuleVersion_ModuleId
 }
 
-func (m *LogModuleVersion) GetModuleIdSet() bool {
-	if m != nil && m.ModuleIdSet != nil {
-		return *m.ModuleIdSet
-	}
-	return false
-}
-
 func (m *LogModuleVersion) GetVersionId() string {
 	if m != nil && m.VersionId != nil {
 		return *m.VersionId
@@ -578,43 +571,50 @@ func (m *LogModuleVersion) GetVersionId() string {
 	return ""
 }
 
-func (m *LogModuleVersion) GetVersionIdSet() bool {
-	if m != nil && m.VersionIdSet != nil {
-		return *m.VersionIdSet
+func (m *LogModuleVersion) GetDeprecatedModuleIdSet() bool {
+	if m != nil && m.DeprecatedModuleIdSet != nil {
+		return *m.DeprecatedModuleIdSet
+	}
+	return false
+}
+
+func (m *LogModuleVersion) GetDeprecatedVersionIdSet() bool {
+	if m != nil && m.DeprecatedVersionIdSet != nil {
+		return *m.DeprecatedVersionIdSet
 	}
 	return false
 }
 
 type LogReadRequest struct {
-	AppId                *string             `protobuf:"bytes,1,req,name=app_id,json=appId" json:"app_id,omitempty"`
-	VersionId            []string            `protobuf:"bytes,2,rep,name=version_id,json=versionId" json:"version_id,omitempty"`
-	ModuleVersion        []*LogModuleVersion `protobuf:"bytes,19,rep,name=module_version,json=moduleVersion" json:"module_version,omitempty"`
-	StartTime            *int64              `protobuf:"varint,3,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
-	StartTimeSet         *bool               `protobuf:"varint,103,opt,name=start_time_set,json=startTimeSet" json:"start_time_set,omitempty"`
-	EndTime              *int64              `protobuf:"varint,4,opt,name=end_time,json=endTime" json:"end_time,omitempty"`
-	EndTimeSet           *bool               `protobuf:"varint,104,opt,name=end_time_set,json=endTimeSet" json:"end_time_set,omitempty"`
-	Offset               *LogOffset          `protobuf:"bytes,5,opt,name=offset" json:"offset,omitempty"`
-	RequestId            [][]byte            `protobuf:"bytes,6,rep,name=request_id,json=requestId" json:"request_id,omitempty"`
-	MinimumLogLevel      *int32              `protobuf:"varint,7,opt,name=minimum_log_level,json=minimumLogLevel" json:"minimum_log_level,omitempty"`
-	MinimumLogLevelSet   *bool               `protobuf:"varint,107,opt,name=minimum_log_level_set,json=minimumLogLevelSet" json:"minimum_log_level_set,omitempty"`
-	IncludeIncomplete    *bool               `protobuf:"varint,8,opt,name=include_incomplete,json=includeIncomplete" json:"include_incomplete,omitempty"`
-	Count                *int64              `protobuf:"varint,9,opt,name=count" json:"count,omitempty"`
-	CountSet             *bool               `protobuf:"varint,109,opt,name=count_set,json=countSet" json:"count_set,omitempty"`
-	CombinedLogRegex     *string             `protobuf:"bytes,14,opt,name=combined_log_regex,json=combinedLogRegex" json:"combined_log_regex,omitempty"`
-	CombinedLogRegexSet  *bool               `protobuf:"varint,114,opt,name=combined_log_regex_set,json=combinedLogRegexSet" json:"combined_log_regex_set,omitempty"`
-	HostRegex            *string             `protobuf:"bytes,15,opt,name=host_regex,json=hostRegex" json:"host_regex,omitempty"`
-	HostRegexSet         *bool               `protobuf:"varint,115,opt,name=host_regex_set,json=hostRegexSet" json:"host_regex_set,omitempty"`
-	ReplicaIndex         *int32              `protobuf:"varint,16,opt,name=replica_index,json=replicaIndex" json:"replica_index,omitempty"`
-	ReplicaIndexSet      *bool               `protobuf:"varint,116,opt,name=replica_index_set,json=replicaIndexSet" json:"replica_index_set,omitempty"`
-	IncludeAppLogs       *bool               `protobuf:"varint,10,opt,name=include_app_logs,json=includeAppLogs" json:"include_app_logs,omitempty"`
-	AppLogsPerRequest    *int32              `protobuf:"varint,17,opt,name=app_logs_per_request,json=appLogsPerRequest" json:"app_logs_per_request,omitempty"`
-	AppLogsPerRequestSet *bool               `protobuf:"varint,117,opt,name=app_logs_per_request_set,json=appLogsPerRequestSet" json:"app_logs_per_request_set,omitempty"`
-	IncludeHost          *bool               `protobuf:"varint,11,opt,name=include_host,json=includeHost" json:"include_host,omitempty"`
-	IncludeAll           *bool               `protobuf:"varint,12,opt,name=include_all,json=includeAll" json:"include_all,omitempty"`
-	CacheIterator        *bool               `protobuf:"varint,13,opt,name=cache_iterator,json=cacheIterator" json:"cache_iterator,omitempty"`
-	NumShards            *int32              `protobuf:"varint,18,opt,name=num_shards,json=numShards" json:"num_shards,omitempty"`
-	NumShardsSet         *bool               `protobuf:"varint,118,opt,name=num_shards_set,json=numShardsSet" json:"num_shards_set,omitempty"`
-	XXX_unrecognized     []byte              `json:"-"`
+	AppId                          *string             `protobuf:"bytes,1,req,name=app_id,json=appId" json:"app_id,omitempty"`
+	VersionId                      []string            `protobuf:"bytes,2,rep,name=version_id,json=versionId" json:"version_id,omitempty"`
+	ModuleVersion                  []*LogModuleVersion `protobuf:"bytes,19,rep,name=module_version,json=moduleVersion" json:"module_version,omitempty"`
+	StartTime                      *int64              `protobuf:"varint,3,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
+	EndTime                        *int64              `protobuf:"varint,4,opt,name=end_time,json=endTime" json:"end_time,omitempty"`
+	Offset                         *LogOffset          `protobuf:"bytes,5,opt,name=offset" json:"offset,omitempty"`
+	RequestId                      [][]byte            `protobuf:"bytes,6,rep,name=request_id,json=requestId" json:"request_id,omitempty"`
+	MinimumLogLevel                *int32              `protobuf:"varint,7,opt,name=minimum_log_level,json=minimumLogLevel" json:"minimum_log_level,omitempty"`
+	IncludeIncomplete              *bool               `protobuf:"varint,8,opt,name=include_incomplete,json=includeIncomplete" json:"include_incomplete,omitempty"`
+	Count                          *int64              `protobuf:"varint,9,opt,name=count" json:"count,omitempty"`
+	CombinedLogRegex               *string             `protobuf:"bytes,14,opt,name=combined_log_regex,json=combinedLogRegex" json:"combined_log_regex,omitempty"`
+	HostRegex                      *string             `protobuf:"bytes,15,opt,name=host_regex,json=hostRegex" json:"host_regex,omitempty"`
+	ReplicaIndex                   *int32              `protobuf:"varint,16,opt,name=replica_index,json=replicaIndex" json:"replica_index,omitempty"`
+	IncludeAppLogs                 *bool               `protobuf:"varint,10,opt,name=include_app_logs,json=includeAppLogs" json:"include_app_logs,omitempty"`
+	AppLogsPerRequest              *int32              `protobuf:"varint,17,opt,name=app_logs_per_request,json=appLogsPerRequest" json:"app_logs_per_request,omitempty"`
+	IncludeHost                    *bool               `protobuf:"varint,11,opt,name=include_host,json=includeHost" json:"include_host,omitempty"`
+	IncludeAll                     *bool               `protobuf:"varint,12,opt,name=include_all,json=includeAll" json:"include_all,omitempty"`
+	CacheIterator                  *bool               `protobuf:"varint,13,opt,name=cache_iterator,json=cacheIterator" json:"cache_iterator,omitempty"`
+	NumShards                      *int32              `protobuf:"varint,18,opt,name=num_shards,json=numShards" json:"num_shards,omitempty"`
+	DeprecatedStartTimeSet         *bool               `protobuf:"varint,103,opt,name=deprecated_start_time_set,json=deprecatedStartTimeSet" json:"deprecated_start_time_set,omitempty"`
+	DeprecatedEndTimeSet           *bool               `protobuf:"varint,104,opt,name=deprecated_end_time_set,json=deprecatedEndTimeSet" json:"deprecated_end_time_set,omitempty"`
+	DeprecatedMinimumLogLevelSet   *bool               `protobuf:"varint,107,opt,name=deprecated_minimum_log_level_set,json=deprecatedMinimumLogLevelSet" json:"deprecated_minimum_log_level_set,omitempty"`
+	DeprecatedCountSet             *bool               `protobuf:"varint,109,opt,name=deprecated_count_set,json=deprecatedCountSet" json:"deprecated_count_set,omitempty"`
+	DeprecatedCombinedLogRegexSet  *bool               `protobuf:"varint,114,opt,name=deprecated_combined_log_regex_set,json=deprecatedCombinedLogRegexSet" json:"deprecated_combined_log_regex_set,omitempty"`
+	DeprecatedHostRegexSet         *bool               `protobuf:"varint,115,opt,name=deprecated_host_regex_set,json=deprecatedHostRegexSet" json:"deprecated_host_regex_set,omitempty"`
+	DeprecatedReplicaIndexSet      *bool               `protobuf:"varint,116,opt,name=deprecated_replica_index_set,json=deprecatedReplicaIndexSet" json:"deprecated_replica_index_set,omitempty"`
+	DeprecatedAppLogsPerRequestSet *bool               `protobuf:"varint,117,opt,name=deprecated_app_logs_per_request_set,json=deprecatedAppLogsPerRequestSet" json:"deprecated_app_logs_per_request_set,omitempty"`
+	DeprecatedNumShardsSet         *bool               `protobuf:"varint,118,opt,name=deprecated_num_shards_set,json=deprecatedNumShardsSet" json:"deprecated_num_shards_set,omitempty"`
+	XXX_unrecognized               []byte              `json:"-"`
 }
 
 func (m *LogReadRequest) Reset()         { *m = LogReadRequest{} }
@@ -649,25 +649,11 @@ func (m *LogReadRequest) GetStartTime() int64 {
 	return 0
 }
 
-func (m *LogReadRequest) GetStartTimeSet() bool {
-	if m != nil && m.StartTimeSet != nil {
-		return *m.StartTimeSet
-	}
-	return false
-}
-
 func (m *LogReadRequest) GetEndTime() int64 {
 	if m != nil && m.EndTime != nil {
 		return *m.EndTime
 	}
 	return 0
-}
-
-func (m *LogReadRequest) GetEndTimeSet() bool {
-	if m != nil && m.EndTimeSet != nil {
-		return *m.EndTimeSet
-	}
-	return false
 }
 
 func (m *LogReadRequest) GetOffset() *LogOffset {
@@ -691,13 +677,6 @@ func (m *LogReadRequest) GetMinimumLogLevel() int32 {
 	return 0
 }
 
-func (m *LogReadRequest) GetMinimumLogLevelSet() bool {
-	if m != nil && m.MinimumLogLevelSet != nil {
-		return *m.MinimumLogLevelSet
-	}
-	return false
-}
-
 func (m *LogReadRequest) GetIncludeIncomplete() bool {
 	if m != nil && m.IncludeIncomplete != nil {
 		return *m.IncludeIncomplete
@@ -712,25 +691,11 @@ func (m *LogReadRequest) GetCount() int64 {
 	return 0
 }
 
-func (m *LogReadRequest) GetCountSet() bool {
-	if m != nil && m.CountSet != nil {
-		return *m.CountSet
-	}
-	return false
-}
-
 func (m *LogReadRequest) GetCombinedLogRegex() string {
 	if m != nil && m.CombinedLogRegex != nil {
 		return *m.CombinedLogRegex
 	}
 	return ""
-}
-
-func (m *LogReadRequest) GetCombinedLogRegexSet() bool {
-	if m != nil && m.CombinedLogRegexSet != nil {
-		return *m.CombinedLogRegexSet
-	}
-	return false
 }
 
 func (m *LogReadRequest) GetHostRegex() string {
@@ -740,25 +705,11 @@ func (m *LogReadRequest) GetHostRegex() string {
 	return ""
 }
 
-func (m *LogReadRequest) GetHostRegexSet() bool {
-	if m != nil && m.HostRegexSet != nil {
-		return *m.HostRegexSet
-	}
-	return false
-}
-
 func (m *LogReadRequest) GetReplicaIndex() int32 {
 	if m != nil && m.ReplicaIndex != nil {
 		return *m.ReplicaIndex
 	}
 	return 0
-}
-
-func (m *LogReadRequest) GetReplicaIndexSet() bool {
-	if m != nil && m.ReplicaIndexSet != nil {
-		return *m.ReplicaIndexSet
-	}
-	return false
 }
 
 func (m *LogReadRequest) GetIncludeAppLogs() bool {
@@ -773,13 +724,6 @@ func (m *LogReadRequest) GetAppLogsPerRequest() int32 {
 		return *m.AppLogsPerRequest
 	}
 	return 0
-}
-
-func (m *LogReadRequest) GetAppLogsPerRequestSet() bool {
-	if m != nil && m.AppLogsPerRequestSet != nil {
-		return *m.AppLogsPerRequestSet
-	}
-	return false
 }
 
 func (m *LogReadRequest) GetIncludeHost() bool {
@@ -810,9 +754,65 @@ func (m *LogReadRequest) GetNumShards() int32 {
 	return 0
 }
 
-func (m *LogReadRequest) GetNumShardsSet() bool {
-	if m != nil && m.NumShardsSet != nil {
-		return *m.NumShardsSet
+func (m *LogReadRequest) GetDeprecatedStartTimeSet() bool {
+	if m != nil && m.DeprecatedStartTimeSet != nil {
+		return *m.DeprecatedStartTimeSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedEndTimeSet() bool {
+	if m != nil && m.DeprecatedEndTimeSet != nil {
+		return *m.DeprecatedEndTimeSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedMinimumLogLevelSet() bool {
+	if m != nil && m.DeprecatedMinimumLogLevelSet != nil {
+		return *m.DeprecatedMinimumLogLevelSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedCountSet() bool {
+	if m != nil && m.DeprecatedCountSet != nil {
+		return *m.DeprecatedCountSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedCombinedLogRegexSet() bool {
+	if m != nil && m.DeprecatedCombinedLogRegexSet != nil {
+		return *m.DeprecatedCombinedLogRegexSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedHostRegexSet() bool {
+	if m != nil && m.DeprecatedHostRegexSet != nil {
+		return *m.DeprecatedHostRegexSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedReplicaIndexSet() bool {
+	if m != nil && m.DeprecatedReplicaIndexSet != nil {
+		return *m.DeprecatedReplicaIndexSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedAppLogsPerRequestSet() bool {
+	if m != nil && m.DeprecatedAppLogsPerRequestSet != nil {
+		return *m.DeprecatedAppLogsPerRequestSet
+	}
+	return false
+}
+
+func (m *LogReadRequest) GetDeprecatedNumShardsSet() bool {
+	if m != nil && m.DeprecatedNumShardsSet != nil {
+		return *m.DeprecatedNumShardsSet
 	}
 	return false
 }
@@ -906,17 +906,17 @@ func (m *LogUsageRecord) GetRecords() int32 {
 }
 
 type LogUsageRequest struct {
-	AppId              *string  `protobuf:"bytes,1,req,name=app_id,json=appId" json:"app_id,omitempty"`
-	VersionId          []string `protobuf:"bytes,2,rep,name=version_id,json=versionId" json:"version_id,omitempty"`
-	StartTime          *int32   `protobuf:"varint,3,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
-	EndTime            *int32   `protobuf:"varint,4,opt,name=end_time,json=endTime" json:"end_time,omitempty"`
-	ResolutionHours    *uint32  `protobuf:"varint,5,opt,name=resolution_hours,json=resolutionHours,def=1" json:"resolution_hours,omitempty"`
-	ResolutionHoursSet *bool    `protobuf:"varint,105,opt,name=resolution_hours_set,json=resolutionHoursSet" json:"resolution_hours_set,omitempty"`
-	CombineVersions    *bool    `protobuf:"varint,6,opt,name=combine_versions,json=combineVersions" json:"combine_versions,omitempty"`
-	UsageVersion       *int32   `protobuf:"varint,7,opt,name=usage_version,json=usageVersion" json:"usage_version,omitempty"`
-	UsageVersionSet    *bool    `protobuf:"varint,107,opt,name=usage_version_set,json=usageVersionSet" json:"usage_version_set,omitempty"`
-	VersionsOnly       *bool    `protobuf:"varint,8,opt,name=versions_only,json=versionsOnly" json:"versions_only,omitempty"`
-	XXX_unrecognized   []byte   `json:"-"`
+	AppId                        *string  `protobuf:"bytes,1,req,name=app_id,json=appId" json:"app_id,omitempty"`
+	VersionId                    []string `protobuf:"bytes,2,rep,name=version_id,json=versionId" json:"version_id,omitempty"`
+	StartTime                    *int32   `protobuf:"varint,3,opt,name=start_time,json=startTime" json:"start_time,omitempty"`
+	EndTime                      *int32   `protobuf:"varint,4,opt,name=end_time,json=endTime" json:"end_time,omitempty"`
+	ResolutionHours              *uint32  `protobuf:"varint,5,opt,name=resolution_hours,json=resolutionHours,def=1" json:"resolution_hours,omitempty"`
+	CombineVersions              *bool    `protobuf:"varint,6,opt,name=combine_versions,json=combineVersions" json:"combine_versions,omitempty"`
+	UsageVersion                 *int32   `protobuf:"varint,7,opt,name=usage_version,json=usageVersion" json:"usage_version,omitempty"`
+	VersionsOnly                 *bool    `protobuf:"varint,8,opt,name=versions_only,json=versionsOnly" json:"versions_only,omitempty"`
+	DeprecatedResolutionHoursSet *bool    `protobuf:"varint,105,opt,name=deprecated_resolution_hours_set,json=deprecatedResolutionHoursSet" json:"deprecated_resolution_hours_set,omitempty"`
+	DeprecatedUsageVersionSet    *bool    `protobuf:"varint,107,opt,name=deprecated_usage_version_set,json=deprecatedUsageVersionSet" json:"deprecated_usage_version_set,omitempty"`
+	XXX_unrecognized             []byte   `json:"-"`
 }
 
 func (m *LogUsageRequest) Reset()         { *m = LogUsageRequest{} }
@@ -960,13 +960,6 @@ func (m *LogUsageRequest) GetResolutionHours() uint32 {
 	return Default_LogUsageRequest_ResolutionHours
 }
 
-func (m *LogUsageRequest) GetResolutionHoursSet() bool {
-	if m != nil && m.ResolutionHoursSet != nil {
-		return *m.ResolutionHoursSet
-	}
-	return false
-}
-
 func (m *LogUsageRequest) GetCombineVersions() bool {
 	if m != nil && m.CombineVersions != nil {
 		return *m.CombineVersions
@@ -981,16 +974,23 @@ func (m *LogUsageRequest) GetUsageVersion() int32 {
 	return 0
 }
 
-func (m *LogUsageRequest) GetUsageVersionSet() bool {
-	if m != nil && m.UsageVersionSet != nil {
-		return *m.UsageVersionSet
+func (m *LogUsageRequest) GetVersionsOnly() bool {
+	if m != nil && m.VersionsOnly != nil {
+		return *m.VersionsOnly
 	}
 	return false
 }
 
-func (m *LogUsageRequest) GetVersionsOnly() bool {
-	if m != nil && m.VersionsOnly != nil {
-		return *m.VersionsOnly
+func (m *LogUsageRequest) GetDeprecatedResolutionHoursSet() bool {
+	if m != nil && m.DeprecatedResolutionHoursSet != nil {
+		return *m.DeprecatedResolutionHoursSet
+	}
+	return false
+}
+
+func (m *LogUsageRequest) GetDeprecatedUsageVersionSet() bool {
+	if m != nil && m.DeprecatedUsageVersionSet != nil {
+		return *m.DeprecatedUsageVersionSet
 	}
 	return false
 }

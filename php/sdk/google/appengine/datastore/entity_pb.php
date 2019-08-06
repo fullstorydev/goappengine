@@ -3157,6 +3157,7 @@ namespace storage_onestore_v3\Index {
     const VERSION_UNSPECIFIED = 0;
     const V1 = 1;
     const V2 = 2;
+    const V3 = 3;
   }
 }
 namespace storage_onestore_v3\Index\Property {
@@ -3170,6 +3171,7 @@ namespace storage_onestore_v3\Index\Property {
   class Mode {
     const MODE_UNSPECIFIED = 0;
     const GEOSPATIAL = 3;
+    const ARRAY_CONTAINS = 4;
   }
 }
 namespace storage_onestore_v3\Index {

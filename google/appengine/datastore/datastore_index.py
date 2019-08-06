@@ -57,8 +57,10 @@ indexes:
 
 
 
+from __future__ import absolute_import
+
 import google
-import yaml
+from google.appengine._internal.ruamel import yaml
 
 import copy
 import itertools
@@ -71,6 +73,7 @@ from google.appengine.api import validation
 from google.appengine.api import yaml_errors
 from google.appengine.api import yaml_object
 from google.appengine.datastore import datastore_pb
+
 
 
 
@@ -111,7 +114,7 @@ class Property(validation.Validated):
     super(Property, self).CheckInitialized()
 
 
-def _PropertyPresenter(dumper, prop):
+def PropertyPresenter(dumper, prop):
   """A PyYaml presenter for Property.
 
   It differs from the default by not outputting 'mode: null' and direction when
@@ -136,8 +139,6 @@ def _PropertyPresenter(dumper, prop):
     del prop_copy.direction
 
   return dumper.represent_object(prop_copy)
-
-yaml.add_representer(Property, _PropertyPresenter)
 
 
 class Index(validation.Validated):
@@ -187,6 +188,10 @@ class IndexDefinitions(validation.Validated):
       appinfo.APPLICATION: validation.Optional(appinfo.APPLICATION_RE_STRING),
       'indexes': validation.Optional(validation.Repeated(Index)),
   }
+
+
+index_yaml = yaml.YAML(typ='unsafe')
+index_yaml.representer.add_representer(Property, PropertyPresenter)
 
 
 def ParseIndexDefinitions(document, open_fn=None):
@@ -809,8 +814,7 @@ def _MatchPostfix(postfix_props, index_props):
       index_group = list(index_group_iter)
       if len(index_group) != len(property_group):
         return None
-      for candidate, spec in itertools.izip(index_group,
-                                            reversed(property_group)):
+      for candidate, spec in zip(index_group, reversed(property_group)):
         if not candidate.Satisfies(spec):
           return None
   remaining = list(index_props_rev)
@@ -901,7 +905,7 @@ def MinimalCompositeIndexForQuery(query, index_defs):
   minimal_props, minimal_ancestor = remaining
   minimal_cost = calc_cost(minimal_props, minimal_ancestor)
   for index_postfix, (props_remaining, ancestor_remaining) in (
-      remaining_dict.iteritems()):
+      remaining_dict.items()):
     cost = calc_cost(props_remaining, ancestor_remaining)
     if cost < minimal_cost:
       minimal_cost = cost

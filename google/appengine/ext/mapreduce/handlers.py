@@ -46,10 +46,13 @@ import time
 import traceback
 import simplejson
 
+from google.appengine.datastore import entity_pb
 from google.appengine.ext import ndb
 
 from google.appengine import runtime
+from google.appengine.api import datastore
 from google.appengine.api import datastore_errors
+from google.appengine.api import datastore_types
 from google.appengine.api import logservice
 from google.appengine.api import modules
 from google.appengine.api import taskqueue
@@ -126,6 +129,39 @@ def _run_task_hook(hooks, method, task, queue_name, transactional=False):
 
     return True
   return False
+
+
+def _calculate_last_work_item(data):
+  """Calculates the last work item processed.
+
+  Args:
+    data: a single data item being processed.
+  Returns:
+    A stringified version of the data item.
+  """
+
+  try:
+    if isinstance(data, db.Model):
+      data = data.key()
+    elif isinstance(data, ndb.Model):
+      data = data.key
+    elif isinstance(data, datastore.Entity):
+      data = data.key()
+    elif isinstance(data, entity_pb.EntityProto):
+      data = datastore_types.Key._FromPb(data.key())
+    elif isinstance(data, entity_pb.Reference):
+      data = datastore_types.Key._FromPb(data)
+    elif isinstance(data, datastore.Key):
+
+      pass
+    else:
+
+      return repr(data)[:100]
+    return repr(data)
+  except (ValueError, UnicodeDecodeError):
+
+
+    return str(data)[:100]
 
 
 class MapperWorkerCallbackHandler(base_handler.HugeTaskHandler):
@@ -601,12 +637,7 @@ class MapperWorkerCallbackHandler(base_handler.HugeTaskHandler):
 
 
 
-      if isinstance(entity, db.Model):
-        shard_state.last_work_item = repr(entity.key())
-      elif isinstance(entity, ndb.Model):
-        shard_state.last_work_item = repr(entity.key)
-      else:
-        shard_state.last_work_item = repr(entity)[:100]
+      shard_state.last_work_item = _calculate_last_work_item(entity)
 
       processing_limit -= 1
 
@@ -767,7 +798,7 @@ class MapperWorkerCallbackHandler(base_handler.HugeTaskHandler):
                                 "default")
     config = util.create_datastore_write_config(spec)
 
-    @db.transactional(retries=5)
+    @db.transactional(retries=5, xg=True)
     def _tx():
       """The Transaction helper."""
       fresh_shard_state = model.ShardState.get_by_shard_id(tstate.shard_id)
@@ -1076,33 +1107,6 @@ class MapperWorkerCallbackHandler(base_handler.HugeTaskHandler):
     return slice_processing_limit
 
 
-
-  @classmethod
-  def _schedule_slice(cls,
-                      shard_state,
-                      tstate,
-                      queue_name=None,
-                      eta=None,
-                      countdown=None):
-    """Schedule slice scanning by adding it to the task queue.
-
-    Args:
-      shard_state: An instance of ShardState.
-      tstate: An instance of TransientShardState.
-      queue_name: Optional queue to run on; uses the current queue of
-        execution or the default queue if unspecified.
-      eta: Absolute time when the MR should execute. May not be specified
-        if 'countdown' is also supplied. This may be timezone-aware or
-        timezone-naive.
-      countdown: Time in seconds into the future that this MR should execute.
-        Defaults to zero.
-    """
-    queue_name = queue_name or os.environ.get("HTTP_X_APPENGINE_QUEUENAME",
-                                              "default")
-    task = cls._state_to_task(tstate, shard_state, eta, countdown)
-    cls._add_task(task, tstate.mapreduce_spec, queue_name)
-
-
 class ControllerCallbackHandler(base_handler.HugeTaskHandler):
   """Supervises mapreduce execution.
 
@@ -1138,15 +1142,20 @@ class ControllerCallbackHandler(base_handler.HugeTaskHandler):
     state.result_status = model.MapreduceState.RESULT_FAILED
     config = util.create_datastore_write_config(state.mapreduce_spec)
     puts = []
+    future = None
     for ss in model.ShardState.find_all_by_mapreduce_state(state):
       if ss.active:
         ss.set_for_failure()
         puts.append(ss)
 
         if len(puts) > model.ShardState._MAX_STATES_IN_MEMORY:
-          db.put(puts, config=config)
+          if future is not None:
+            future.get_result()
+          future = db.put_async(puts, config=config)
           puts = []
     db.put(puts, config=config)
+    if future is not None:
+      future.get_result()
 
 
     self._finalize_job(state.mapreduce_spec, state)

@@ -53,6 +53,13 @@ ENV_VARIABLES_CHANGED = 5
 ERROR_HANDLERS_CHANGED = 6
 NOBUILD_FILES_CHANGED = 7
 
+# entrypoint changes are needed for modern runtimes(at least Python3).
+# For Python3, adding/removing entrypoint can trigger re-creation of the local
+# virtualenv.
+ENTRYPOINT_ADDED = 8
+ENTRYPOINT_CHANGED = 9  # changes from a non-empty value to non-empty value
+ENTRYPOINT_REMOVED = 10
+
 
 
 
@@ -304,6 +311,10 @@ class ModuleConfiguration(object):
     return self._app_info_external.env
 
   @property
+  def entrypoint(self):
+    return self._app_info_external.entrypoint
+
+  @property
   def runtime(self):
     return self._runtime
 
@@ -460,6 +471,15 @@ class ModuleConfiguration(object):
       changes.add(ENV_VARIABLES_CHANGED)
     if app_info_external.error_handlers != self.error_handlers:
       changes.add(ERROR_HANDLERS_CHANGED)
+
+    # identify what kind of change happened to entrypoint
+    if app_info_external.entrypoint != self.entrypoint:
+      if app_info_external.entrypoint and self.entrypoint:
+        changes.add(ENTRYPOINT_CHANGED)
+      elif app_info_external.entrypoint:
+        changes.add(ENTRYPOINT_ADDED)
+      else:
+        changes.add(ENTRYPOINT_REMOVED)
 
     self._app_info_external = app_info_external
     if changes:
@@ -690,6 +710,10 @@ class BackendConfiguration(object):
   @property
   def application(self):
     return self._module_configuration.application
+
+  @property
+  def entrypoint(self):
+    return self._module_configuration.entrypoint
 
   @property
   def partition(self):

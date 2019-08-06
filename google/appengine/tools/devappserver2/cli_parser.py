@@ -72,7 +72,7 @@ class ServicePortParser(PortParser):
     res = {}
     for service_port_str in value.split(','):
       service_port = service_port_str.split(':')
-      if len(service_port) is not 2:
+      if len(service_port) != 2:
         raise argparse.ArgumentTypeError(
             ' %s is not in the format of service-name:port,service-name:port'
             % value)
@@ -474,6 +474,16 @@ def create_command_line_parser(configuration=None):
       'Should only be used to specify the url of a java '
       'app running with the classic Java SDK tooling, '
       'and not Java apps running on devappserver2.')
+  common_group.add_argument(
+      '--ssl_certificate_path',
+      default=None,
+      help='Path to SSL certificate. Must also provide '
+      '--ssl_certificate_key_path if using this option.')
+  common_group.add_argument(
+      '--ssl_certificate_key_path',
+      default=None,
+      help='Path to corresponding SSL private key. Must also provide '
+      '--ssl_certificate_path if using this option.')
 
   # PHP
   php_group = parser.add_argument_group('PHP')
@@ -495,17 +505,6 @@ def create_command_line_parser(configuration=None):
                          type=parse_path,
                          restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
                          help='path to the xdebug extension')
-
-
-
-
-
-
-
-
-
-
-
 
   # App Identity
   appidentity_group = parser.add_argument_group('Application Identity')
@@ -684,19 +683,29 @@ def create_command_line_parser(configuration=None):
       '--support_datastore_emulator',
       action=boolean_action.BooleanAction,
       const=True,
-      default=False,
-      help=argparse.SUPPRESS)
+      default=None,
+      help='Support datastore local emulation with Cloud Datastore emulator.')
   # Port number on which dev_appserver should launch Cloud Datastore emulator.
   datastore_group.add_argument(
-      '--gcd_emulator_port', type=PortParser(), default=0,
-      help=argparse.SUPPRESS)
+      '--running_datastore_emulator_host', default=None,
+      help='Overrides the environment variable DATASTORE_EMULATOR_HOST, which'
+      ' means the hostname:port of a running Cloud Datastore emulator that'
+      ' dev_appserver can connect to.')
+  # Port number on which dev_appserver should launch Cloud Datastore emulator.
+  datastore_group.add_argument(
+      '--datastore_emulator_port', type=PortParser(), default=0,
+      help='The port number that dev_appserver should launch Cloud Datastore '
+      'emulator on.')
   # The path to an executable shell script that invokes Cloud Datastore
   # emulator.
   datastore_group.add_argument(
-      '--gcd_emulator_cmd', type=parse_path, default=None,
-      help=argparse.SUPPRESS)
+      '--datastore_emulator_cmd', type=parse_path,
+      default=None,
+      help='The path to a script that invokes cloud datastore emulator. If '
+      'left empty, dev_appserver will try to find datastore emulator in the '
+      'Google Cloud SDK.')
   datastore_group.add_argument(
-      '--gcd_emulator_is_test_mode',
+      '--datastore_emulator_is_test_mode',
       action=boolean_action.BooleanAction,
       const=True,
       default=False,
@@ -839,18 +848,22 @@ def create_command_line_parser(configuration=None):
       'in the format of key=value, and you can define multiple envrionment '
       'variables. For example: --env_var KEY_1=val1 --env_var KEY_2=val2. '
       'You can also define environment variables in app.yaml.')
+  misc_group.add_argument(
+      '--check_java_for_cloud_datastore_emulator',
+      action=boolean_action.BooleanAction,
+      const=True,
+      default=True,
+      help=argparse.SUPPRESS)
   # The client id used for Google Analytics usage reporting. If this is set,
   # usage metrics will be sent to Google Analytics. This should only be set by
   # the Cloud SDK dev_appserver.py wrapper.
   misc_group.add_argument(
       '--google_analytics_client_id', default=None,
-      restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
       help=argparse.SUPPRESS)
   # The user agent to use for Google Analytics usage reporting. This should only
   # be set by the Cloud SDK dev_appserver.py wrapper.
   misc_group.add_argument(
       '--google_analytics_user_agent', default=None,
-      restrict_configuration=[DEV_APPSERVER_CONFIGURATION],
       help=argparse.SUPPRESS)
 
   return parser

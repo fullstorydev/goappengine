@@ -202,6 +202,7 @@ THIRD_PARTY_C_MODULES = _ThirdPartyCModules([
     _ThirdPartyCModule('numpy', r'numpy(\..*)?$'),
     _ThirdPartyCModule('ujson', r'ujson(\..*)?$'),
     _ThirdPartyCModule('grpcio', r'grpc(\..*)?$', import_name='grpc'),
+    _ThirdPartyCModule('protobuf', r'google.protobuf(\..*)?$'),
     _ThirdPartyCModule(
         'PIL', r'(PIL(\..*)?|_imaging|_imagingft|_imagingmath)$'),
     _ThirdPartyCModule('pytz', r'pytz(\..*)?$'),

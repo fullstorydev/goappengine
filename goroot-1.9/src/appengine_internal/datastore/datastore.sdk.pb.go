@@ -210,17 +210,20 @@ const (
 	Index_VERSION_UNSPECIFIED Index_Version = 0
 	Index_V1                  Index_Version = 1
 	Index_V2                  Index_Version = 2
+	Index_V3                  Index_Version = 3
 )
 
 var Index_Version_name = map[int32]string{
 	0: "VERSION_UNSPECIFIED",
 	1: "V1",
 	2: "V2",
+	3: "V3",
 }
 var Index_Version_value = map[string]int32{
 	"VERSION_UNSPECIFIED": 0,
-	"V1": 1,
-	"V2": 2,
+	"V1":                  1,
+	"V2":                  2,
+	"V3":                  3,
 }
 
 func (x Index_Version) Enum() *Index_Version {

@@ -35,8 +35,7 @@ and load from configuration files.
 
 
 
-
-
+from __future__ import absolute_import
 import logging
 import os
 import re
@@ -59,6 +58,8 @@ else:
 
 from google.appengine.api import appinfo_errors
 from google.appengine.api import backendinfo
+from google.appengine._internal import six_subset
+
 
 
 
@@ -165,6 +166,7 @@ _PENDING_LATENCY_REGEX = r'^(\d+((\.\d{1,3})?s|ms)|automatic)$'
 _IDLE_TIMEOUT_REGEX = r'^[\d]+(s|m)$'
 
 GCE_RESOURCE_NAME_REGEX = r'^[a-z]([a-z\d-]{0,61}[a-z\d])?$'
+VPC_ACCESS_CONNECTOR_NAME_REGEX = r'^[a-z\d-]+(/[a-z\d-]+)*$'
 
 ALTERNATE_HOSTNAME_SEPARATOR = '-dot-'
 
@@ -253,6 +255,7 @@ RESOURCES = 'resources'
 LIVENESS_CHECK = 'liveness_check'
 READINESS_CHECK = 'readiness_check'
 NETWORK = 'network'
+VPC_ACCESS_CONNECTOR = 'vpc_access_connector'
 VERSION = 'version'
 MAJOR_VERSION = 'major_version'
 MINOR_VERSION = 'minor_version'
@@ -299,7 +302,6 @@ MAXIMUM_PENDING_LATENCY = 'max_pending_latency'
 MINIMUM_IDLE_INSTANCES = 'min_idle_instances'
 MAXIMUM_IDLE_INSTANCES = 'max_idle_instances'
 MAXIMUM_CONCURRENT_REQUEST = 'max_concurrent_requests'
-
 
 
 
@@ -352,6 +354,7 @@ CONFIG_ID = 'config_id'
 ROLLOUT_STRATEGY = 'rollout_strategy'
 ROLLOUT_STRATEGY_FIXED = 'fixed'
 ROLLOUT_STRATEGY_MANAGED = 'managed'
+TRACE_SAMPLING = 'trace_sampling'
 
 
 ERROR_CODE = 'error_code'
@@ -403,6 +406,9 @@ STANDARD_MIN_INSTANCES = 'min_instances'
 STANDARD_MAX_INSTANCES = 'max_instances'
 STANDARD_TARGET_CPU_UTILIZATION = 'target_cpu_utilization'
 STANDARD_TARGET_THROUGHPUT_UTILIZATION = 'target_throughput_utilization'
+
+
+VPC_ACCESS_CONNECTOR_NAME = 'name'
 
 
 class _VersionedLibrary(object):
@@ -499,6 +505,8 @@ _SUPPORTED_LIBRARIES = [
         'A full-featured web application framework for Python.',
         ['1.2', '1.3', '1.4', '1.5', '1.9', '1.11'],
         latest_version='1.4',
+        deprecated_versions=['1.2', '1.3', '1.5', '1.9'],
+
         ),
     _VersionedLibrary(
         'enum',
@@ -558,7 +566,7 @@ _SUPPORTED_LIBRARIES = [
         'A Pythonic binding for the C libraries libxml2 and libxslt.',
         ['2.3', '2.3.5', '3.7.3'],
         latest_version='3.7.3',
-        experimental_versions=['2.3.5'],
+        deprecated_versions=['2.3', '2.3.5'],
         ),
     _VersionedLibrary(
         'markupsafe',
@@ -580,7 +588,7 @@ _SUPPORTED_LIBRARIES = [
         'A Python DB API v2.0 compatible interface to MySQL.',
         ['1.2.4b4', '1.2.4', '1.2.5'],
         latest_version='1.2.5',
-        experimental_versions=['1.2.4b4', '1.2.4', '1.2.5']
+        deprecated_versions=['1.2.4b4', '1.2.4'],
         ),
     _VersionedLibrary(
         'numpy',
@@ -610,9 +618,9 @@ _SUPPORTED_LIBRARIES = [
         'https://pypi.python.org/pypi/pytz?',
         'A library for cross-platform timezone calculations',
         ['2016.4', '2017.2', '2017.3'],
-        latest_version='2017.2',
-        default_version='2017.2',
-        hidden_versions=['2017.3'],
+        latest_version='2017.3',
+        default_version='2017.3',
+        deprecated_versions=['2016.4', '2017.2'],
         ),
     _VersionedLibrary(
         'crcmod',
@@ -643,6 +651,8 @@ _SUPPORTED_LIBRARIES = [
         'A library of cryptogoogle.appengine._internal.graphy functions such as random number generation.',
         ['2.3', '2.6', '2.6.1'],
         latest_version='2.6',
+        deprecated_versions=['2.3'],
+
         ),
     _VersionedLibrary(
         'setuptools',
@@ -650,6 +660,7 @@ _SUPPORTED_LIBRARIES = [
         'A library that provides package and module discovery capabilities.',
         ['0.6c11', '36.6.0'],
         latest_version='36.6.0',
+        deprecated_versions=['0.6c11'],
         ),
     _VersionedLibrary(
         'six',
@@ -679,8 +690,9 @@ _SUPPORTED_LIBRARIES = [
         'A lightweight Python web framework.',
         ['2.3', '2.5.1', '2.5.2'],
         latest_version='2.5.2',
+
         default_version='2.3',
-        deprecated_versions=['2.3']
+        deprecated_versions=['2.5.1']
         ),
     _VersionedLibrary(
         'webob',
@@ -688,6 +700,7 @@ _SUPPORTED_LIBRARIES = [
         'A library that provides wrappers around the WSGI request environment.',
         ['1.1.1', '1.2.3'],
         latest_version='1.2.3',
+
         default_version='1.1.1',
         ),
     _VersionedLibrary(
@@ -784,9 +797,9 @@ _MAX_URL_LENGTH = 2047
 
 _MAX_HEADER_SIZE_FOR_EXEMPTED_HEADERS = 10240
 
-_CANNED_RUNTIMES = ('contrib-dart', 'dart', 'go', 'php', 'php55', 'php7',
+_CANNED_RUNTIMES = ('contrib-dart', 'dart', 'go', 'php', 'php55', 'php72',
                     'python', 'python27', 'python-compat', 'java', 'java7',
-                    'vm', 'custom', 'nodejs', 'ruby')
+                    'java8', 'vm', 'custom', 'nodejs', 'ruby')
 _all_runtimes = _CANNED_RUNTIMES
 
 
@@ -799,6 +812,32 @@ def GetAllRuntimes():
     Tuple of strings.
   """
   return _all_runtimes
+
+
+def EnsureAsciiBytes(s, err):
+  """Ensure s contains only ASCII-safe characters; return it as bytes-type.
+
+  Arguments:
+    s: the string or bytes to check
+    err: the error to raise if not good.
+  Raises:
+    err if it's not ASCII-safe.
+  Returns:
+    s as a byte string
+  """
+  try:
+    return s.encode('ascii')
+  except UnicodeEncodeError:
+    raise err
+  except UnicodeDecodeError:
+
+
+    raise err
+  except AttributeError:
+    try:
+      return s.decode('ascii').encode('ascii')
+    except UnicodeDecodeError:
+      raise err
 
 
 class HandlerBase(validation.Validated):
@@ -895,12 +934,9 @@ class HttpHeadersDict(validation.ValidatedDict):
       original_name = name
 
 
-      if isinstance(name, unicode):
-        try:
-          name = name.encode('ascii')
-        except UnicodeEncodeError:
-          raise appinfo_errors.InvalidHttpHeaderName(
-              'HTTP header values must not contain non-ASCII data')
+      if isinstance(name, six_subset.string_types):
+        name = EnsureAsciiBytes(name, appinfo_errors.InvalidHttpHeaderName(
+            'HTTP header values must not contain non-ASCII data'))
 
 
       name = name.lower()
@@ -960,12 +996,12 @@ class HttpHeadersDict(validation.ValidatedDict):
          https://www.ietf.org/rfc/rfc2616.txt
       """
 
-      if isinstance(value, unicode):
-        try:
-          value = value.encode('ascii')
-        except UnicodeEncodeError:
-          raise appinfo_errors.InvalidHttpHeaderValue(
-              'HTTP header values must not contain non-ASCII data')
+      if isinstance(value, six_subset.string_types):
+        value = EnsureAsciiBytes(value, appinfo_errors.InvalidHttpHeaderValue(
+            'HTTP header values must not contain non-ASCII data'))
+        b_value = value
+      else:
+        b_value = ('%s' % value).encode('ascii')
 
 
       key = key.lower()
@@ -974,8 +1010,8 @@ class HttpHeadersDict(validation.ValidatedDict):
 
 
 
-      printable = set(string.printable[:-5])
-      if not all(char in printable for char in str(value)):
+      printable = set(string.printable[:-5].encode('ascii'))
+      if not all(b in printable for b in b_value):
         raise appinfo_errors.InvalidHttpHeaderValue(
             'HTTP header field values must consist of printable characters.')
 
@@ -1194,7 +1230,7 @@ class URLMap(HandlerBase):
 
       mapping_type = HANDLER_API_ENDPOINT
     else:
-      for id_field in URLMap.ALLOWED_FIELDS.iterkeys():
+      for id_field in URLMap.ALLOWED_FIELDS:
 
         if getattr(self, id_field) is not None:
 
@@ -1209,7 +1245,7 @@ class URLMap(HandlerBase):
 
 
 
-    for attribute in self.ATTRIBUTES.iterkeys():
+    for attribute in self.ATTRIBUTES:
       if (getattr(self, attribute) is not None and
           not (attribute in allowed_fields or
                attribute in URLMap.COMMON_FIELDS or
@@ -1622,7 +1658,7 @@ class CpuUtilization(validation.Validated):
       CPU_UTILIZATION_UTILIZATION: validation.Optional(
           validation.Range(1e-6, 1.0, float)),
       CPU_UTILIZATION_AGGREGATION_WINDOW_LENGTH_SEC: validation.Optional(
-          validation.Range(1, sys.maxint)),
+          validation.Range(1, sys.maxsize)),
   }
 
 
@@ -1669,6 +1705,8 @@ class EndpointsApiService(validation.Validated):
                                  ROLLOUT_STRATEGY_MANAGED)),
       CONFIG_ID:
           validation.Optional(_NON_WHITE_SPACE_REGEX),
+      TRACE_SAMPLING:
+          validation.Optional(validation.TYPE_BOOL),
   }
 
   def CheckInitialized(self):
@@ -1707,11 +1745,11 @@ class AutomaticScaling(validation.Validated):
           validation.Optional(_CONCURRENT_REQUESTS_REGEX),
 
       MIN_NUM_INSTANCES:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       MAX_NUM_INSTANCES:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       COOL_DOWN_PERIOD_SEC:
-          validation.Optional(validation.Range(60, sys.maxint, int)),
+          validation.Optional(validation.Range(60, sys.maxsize, int)),
       CPU_UTILIZATION:
           validation.Optional(CpuUtilization),
       STANDARD_MAX_INSTANCES:
@@ -1723,25 +1761,25 @@ class AutomaticScaling(validation.Validated):
       STANDARD_TARGET_THROUGHPUT_UTILIZATION:
           validation.Optional(validation.TYPE_FLOAT),
       TARGET_NETWORK_SENT_BYTES_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_NETWORK_SENT_PACKETS_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_NETWORK_RECEIVED_BYTES_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_NETWORK_RECEIVED_PACKETS_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_DISK_WRITE_BYTES_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_DISK_WRITE_OPS_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_DISK_READ_BYTES_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_DISK_READ_OPS_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_REQUEST_COUNT_PER_SEC:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       TARGET_CONCURRENT_REQUESTS:
-          validation.Optional(validation.Range(1, sys.maxint)),
+          validation.Optional(validation.Range(1, sys.maxsize)),
       CUSTOM_METRICS: validation.Optional(validation.Repeated(CustomMetric)),
   }
 
@@ -1908,22 +1946,23 @@ class HealthCheck(validation.Validated):
   """Class representing the health check configuration."""
   ATTRIBUTES = {
       ENABLE_HEALTH_CHECK: validation.Optional(validation.TYPE_BOOL),
-      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxint)),
-      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxint)),
-      UNHEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
-      HEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
-      RESTART_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
+      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
+      UNHEALTHY_THRESHOLD: validation.Optional(
+          validation.Range(0, sys.maxsize)),
+      HEALTHY_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
+      RESTART_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
       HOST: validation.Optional(validation.TYPE_STR)}
 
 
 class LivenessCheck(validation.Validated):
   """Class representing the liveness check configuration."""
   ATTRIBUTES = {
-      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxint)),
-      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxint)),
-      FAILURE_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
-      SUCCESS_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
-      INITIAL_DELAY_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
+      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
+      FAILURE_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
+      SUCCESS_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
+      INITIAL_DELAY_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
       PATH: validation.Optional(validation.TYPE_STR),
       HOST: validation.Optional(validation.TYPE_STR)}
 
@@ -1931,12 +1970,12 @@ class LivenessCheck(validation.Validated):
 class ReadinessCheck(validation.Validated):
   """Class representing the readiness check configuration."""
   ATTRIBUTES = {
-      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxint)),
-      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxint)),
+      CHECK_INTERVAL_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
+      TIMEOUT_SEC: validation.Optional(validation.Range(0, sys.maxsize)),
       APP_START_TIMEOUT_SEC: validation.Optional(
-          validation.Range(0, sys.maxint)),
-      FAILURE_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
-      SUCCESS_THRESHOLD: validation.Optional(validation.Range(0, sys.maxint)),
+          validation.Range(0, sys.maxsize)),
+      FAILURE_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
+      SUCCESS_THRESHOLD: validation.Optional(validation.Range(0, sys.maxsize)),
       PATH: validation.Optional(validation.TYPE_STR),
       HOST: validation.Optional(validation.TYPE_STR)}
 
@@ -1991,6 +2030,15 @@ class Network(validation.Validated):
 
       SESSION_AFFINITY:
           validation.Optional(bool)
+  }
+
+
+class VpcAccessConnector(validation.Validated):
+  """Class representing the VPC Access connector configuration."""
+
+  ATTRIBUTES = {
+      VPC_ACCESS_CONNECTOR_NAME:
+          validation.Regex(VPC_ACCESS_CONNECTOR_NAME_REGEX),
   }
 
 
@@ -2056,9 +2104,10 @@ class AppInclude(validation.Validated):
 
 
 
-    instances = max(_Instances(appinclude_one), _Instances(appinclude_two))
-    if instances is not None:
-      appinclude_one.manual_scaling = ManualScaling(instances=str(instances))
+    if _Instances(appinclude_one) or _Instances(appinclude_two):
+      instances = max(_Instances(appinclude_one), _Instances(appinclude_two))
+      if instances is not None:
+        appinclude_one.manual_scaling = ManualScaling(instances=str(instances))
     return appinclude_one
 
   @classmethod
@@ -2267,6 +2316,7 @@ class AppInfoExternal(validation.Validated):
       LIVENESS_CHECK: validation.Optional(LivenessCheck),
       READINESS_CHECK: validation.Optional(ReadinessCheck),
       NETWORK: validation.Optional(Network),
+      VPC_ACCESS_CONNECTOR: validation.Optional(VpcAccessConnector),
       ZONES: validation.Optional(validation.Repeated(validation.TYPE_STR)),
       BUILTINS: validation.Optional(validation.Repeated(BuiltinHandler)),
       INCLUDES: validation.Optional(validation.Type(list)),
@@ -2332,10 +2382,6 @@ class AppInfoExternal(validation.Validated):
 
 
       self.runtime = 'custom'
-    if (not self.handlers and not self.builtins and not self.includes
-        and not self.IsVm()):
-      raise appinfo_errors.MissingURLMapping(
-          'No URLMap entries found in application configuration')
     if self.handlers and len(self.handlers) > MAX_URL_MAPS:
       raise appinfo_errors.TooManyURLMappings(
           'Found more than %d URLMap entries in application configuration' %
@@ -2768,3 +2814,5 @@ def ValidFilename(filename):
   if _file_path_negative_3_re.search(filename) is not None:
     return 'Any spaces must be in the middle of a filename: %s' % filename
   return ''
+
+

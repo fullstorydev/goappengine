@@ -78,6 +78,14 @@ START_PROCESS_REVERSE = -3
 # an environment variable.
 START_PROCESS_REVERSE_NO_FILE = -4
 
+# User application has an entrypoint defined in app.yaml.
+START_PROCESS_WITH_ENTRYPOINT = -5
+
+# Runtimes which need
+_RUNTIMES_NEED_VM_ENV_VARS = [
+    'go111',
+]
+
 
 def _sleep_between_retries(attempt, max_attempts, sleep_base):
   """Sleep between retry attempts.
@@ -161,7 +169,8 @@ class HttpRuntimeProxy(instance.RuntimeProxy):
 
   _VALID_START_PROCESS_FLAVORS = [START_PROCESS, START_PROCESS_FILE,
                                   START_PROCESS_REVERSE,
-                                  START_PROCESS_REVERSE_NO_FILE]
+                                  START_PROCESS_REVERSE_NO_FILE,
+                                  START_PROCESS_WITH_ENTRYPOINT]
 
   # TODO: Determine if we can always use SIGTERM.
   # Set this to True to quit with SIGTERM rather than SIGKILL
@@ -223,7 +232,8 @@ class HttpRuntimeProxy(instance.RuntimeProxy):
     # Java and Go. Python hacks os.environ to not really return the environment
     # variables, so Python needs to set these elsewhere.
     runtime_config = self._runtime_config_getter()
-    if runtime_config.vm:
+    if (runtime_config.vm or
+        self._module_configuration.runtime in _RUNTIMES_NEED_VM_ENV_VARS):
       self._env.update(get_vm_environment_variables(
           self._module_configuration, runtime_config))
 
@@ -358,6 +368,20 @@ class HttpRuntimeProxy(instance.RuntimeProxy):
             env=self._env,
             cwd=self._module_configuration.application_root,
             stderr=subprocess.PIPE)
+    elif self._start_process_flavor == START_PROCESS_WITH_ENTRYPOINT:
+      serialized_config = runtime_config.SerializeToString()
+      with self._process_lock:
+        assert not self._process, 'start() can only be called once'
+        port = portpicker.PickUnusedPort()
+        self._env['PORT'] = str(port)
+
+        self._process = safe_subprocess.start_process(
+            args=self._args,
+            input_string=serialized_config,
+            env=self._env,
+            cwd=self._module_configuration.application_root,
+            stderr=subprocess.PIPE,
+            shell=True)
     elif self._start_process_flavor == START_PROCESS_REVERSE_NO_FILE:
       serialized_config = runtime_config.SerializeToString()
       with self._process_lock:

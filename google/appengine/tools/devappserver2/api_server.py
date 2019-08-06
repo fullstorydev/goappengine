@@ -55,7 +55,7 @@ import urlparse
 
 import google
 import portpicker
-import yaml
+from google.appengine._internal.ruamel import yaml
 
 from google.appengine.api import apiproxy_stub
 from google.appengine.api import apiproxy_stub_map
@@ -88,30 +88,8 @@ GLOBAL_API_LOCK = threading.RLock()
 DEFAULT_API_SERVER_APP_ID = 'dev~app-id'
 
 
-# TODO: Remove after the Files API is really gone.
-_FILESAPI_USE_TRACKER = None
-_FILESAPI_ENABLED = True
-
-
 class DatastoreFileError(Exception):
   """A datastore data file is not supported."""
-
-
-def enable_filesapi_tracking(request_data):
-  """Turns on per-request tracking of Files API use.
-
-  Args:
-    request_data: An object with a set_filesapi_used(request_id) method to
-        track Files API use.
-  """
-  global _FILESAPI_USE_TRACKER
-  _FILESAPI_USE_TRACKER = request_data
-
-
-def set_filesapi_enabled(enabled):
-  """Enables or disables the Files API."""
-  global _FILESAPI_ENABLED
-  _FILESAPI_ENABLED = enabled
 
 
 def _execute_request(request, use_proto3=False):
@@ -163,13 +141,6 @@ def _execute_request(request, use_proto3=False):
     raise apiproxy_errors.CallNotFoundError('%s.%s does not exist' % (service,
                                                                       method))
 
-  # TODO: Remove after the Files API is really gone.
-  if not _FILESAPI_ENABLED and service == 'file':
-    raise apiproxy_errors.CallNotFoundError(
-        'Files API method %s.%s is disabled. Further information: '
-        'https://cloud.google.com/appengine/docs/deprecations/files_api'
-        % (service, method))
-
   request_data = request_class()
   if use_proto3:
     request_data.ParseFromString(request.request)
@@ -179,10 +150,6 @@ def _execute_request(request, use_proto3=False):
   service_stub = apiproxy_stub_map.apiproxy.GetStub(service)
 
   def make_request():
-    # TODO: Remove after the Files API is really gone.
-    if (_FILESAPI_USE_TRACKER is not None
-        and service == 'file' and request_id is not None):
-      _FILESAPI_USE_TRACKER.set_filesapi_used(request_id)
     service_stub.MakeSyncCall(service,
                               method,
                               request_data,
@@ -294,8 +261,8 @@ class APIServer(wsgi_server.WsgiServer):
     # We set this GRPC_PORT in environment variable as it is only accessed by
     # the devappserver process.
     os.environ['GRPC_PORT'] = str(self._grpc_api_port)
-    logging.info('Starting GRPC_API_server at: http://localhost:%d',
-                 self._grpc_api_port)
+    logging.info('%s: http://localhost:%d',
+                 constants.GRPC_API_SERVER_STARTING_MSG, self._grpc_api_port)
     self._grpc_server.start()
 
   def start(self):
@@ -304,7 +271,8 @@ class APIServer(wsgi_server.WsgiServer):
     if self._gcd_emulator_launching_thread:
       self._gcd_emulator_launching_thread.join()
     super(APIServer, self).start()
-    logging.info('Starting API server at: http://%s:%d', self._host, self.port)
+    logging.info('%s: http://%s:%d',
+                 constants.API_SERVER_STARTING_MSG, self._host, self.port)
     if self._use_grpc:
       self._start_grpc_server()
 
@@ -364,6 +332,10 @@ class APIServer(wsgi_server.WsgiServer):
               apiproxy_stub.REQ_SIZE_EXCEEDS_LIMIT_MSG_TEMPLATE % (
                   service, request.method()))
         response = service_stub.MakeSyncCallForRemoteApi(request)
+        metrics.GetMetricsLogger().LogOnceOnStop(
+            metrics.API_STUB_USAGE_CATEGORY,
+            metrics.API_STUB_USAGE_ACTION_TEMPLATE
+            % 'datastore_v3_with_cloud_datastore_emulator')
       else:
         if request.has_request_id():
           request_id = request.request_id()
@@ -477,7 +449,7 @@ class APIServer(wsgi_server.WsgiServer):
 def _launch_gcd_emulator(
     app_id=None, emulator_port=0, silent=True, index_file='',
     require_indexes=False, datastore_path='', stub_type=None, cmd=None,
-    is_test=False):
+    is_test=False, auto_id_policy=datastore_stub_util.SEQUENTIAL):
   """Launch Cloud Datastore emulator asynchronously.
 
   If datastore_path is sqlite stub data, rename it and convert into emulator
@@ -499,6 +471,8 @@ def _launch_gcd_emulator(
       invokes the emulator.
     is_test: A boolean. If True, run emulator in --testing mode for unittests.
       Otherwise override some emulator flags for dev_appserver use cases.
+    auto_id_policy: A string specifying how the emualtor assigns auto id,
+      default to sequential.
 
   Returns:
     A threading.Thread object that asynchronously launch the emulator.
@@ -516,7 +490,9 @@ def _launch_gcd_emulator(
       need_conversion: A bool. If True convert sqlite data to emulator data.
     """
     emulator_manager.Launch(
-        emulator_port, silent, index_file, require_indexes, datastore_path)
+        emulator_port, silent, index_file, require_indexes, datastore_path,
+        ('SEQUENTIAL' if auto_id_policy == datastore_stub_util.SEQUENTIAL
+         else 'SCATTERED'))
     if need_conversion:
       logging.info(
           'Converting datastore_sqlite_stub data in %s to Cloud Datastore '
@@ -603,6 +579,10 @@ def create_api_server(
       raise DatastoreFileError(
           'The datastore file %s cannot be recognized by dev_appserver. Please '
           'restart dev_appserver with --clear_datastore=1' % datastore_path)
+    # The flag should override environment variable regarding emulator host.
+    if options.running_datastore_emulator_host:
+      os.environ['DATASTORE_EMULATOR_HOST'] = (
+          options.running_datastore_emulator_host)
     env_emulator_host = os.environ.get('DATASTORE_EMULATOR_HOST')
     if env_emulator_host:  # emulator already running, reuse it.
       logging.warning(
@@ -615,16 +595,17 @@ def create_api_server(
     else:
       gcd_emulator_launching_thread = _launch_gcd_emulator(
           app_id=app_id,
-          emulator_port=(
-              options.gcd_emulator_port if options.gcd_emulator_port else
-              portpicker.PickUnusedPort()),
+          emulator_port=(options.datastore_emulator_port
+                         if options.datastore_emulator_port else
+                         portpicker.PickUnusedPort()),
           silent=options.dev_appserver_log_level != 'debug',
           index_file=os.path.join(app_root, 'index.yaml'),
           require_indexes=options.require_indexes,
           datastore_path=datastore_path,
           stub_type=stub_type,
-          cmd=options.gcd_emulator_cmd,
-          is_test=options.gcd_emulator_is_test_mode)
+          cmd=options.datastore_emulator_cmd,
+          is_test=options.datastore_emulator_is_test_mode,
+          auto_id_policy=options.auto_id_policy)
   else:
     # Use SQLite stub.
     # For historic reason we are still supporting conversion from file stub to
@@ -807,6 +788,16 @@ def main():
   request_info = wsgi_request_info.WSGIRequestInfo(dispatcher)
   # pylint: enable=protected-access
 
+  metrics_logger = metrics.GetMetricsLogger()
+  metrics_logger.Start(
+      options.google_analytics_client_id,
+      user_agent=options.google_analytics_user_agent,
+      support_datastore_emulator=options.support_datastore_emulator,
+      category=metrics.API_SERVER_CATEGORY)
+
+  # When Cloud Datastore Emulator is invoked from api_server, it should be in
+  # test mode, which stores in memory.
+  options.datastore_emulator_is_test_mode = True
   server = create_api_server(
       request_info=request_info,
       storage_path=get_storage_path(options.storage_path, app_id),
@@ -816,6 +807,7 @@ def main():
     server.start()
     shutdown.wait_until_shutdown()
   finally:
+    metrics.GetMetricsLogger().Stop()
     server.quit()
 
 

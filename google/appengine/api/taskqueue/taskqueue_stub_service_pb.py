@@ -20,7 +20,12 @@
 from google.net.proto import ProtocolBuffer
 import abc
 import array
-import dummy_thread as thread
+try:
+  from thread import allocate_lock as _Lock
+except ImportError:
+  from threading import Lock as _Lock
+
+if hasattr(__builtins__, 'xrange'): range = xrange
 
 if hasattr(ProtocolBuffer, 'ExtendableProtocolMessage'):
   _extension_runtime = True
@@ -143,7 +148,7 @@ class GetQueuesResponse(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -161,7 +166,7 @@ class GetQueuesResponse(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kfetch_queues_response = 1
   kfetch_queue_stats_response = 2
@@ -188,7 +193,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
 
   def __init__(self, contents=None):
     self.eta_delta_ = []
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def query_tasks_response(self):
@@ -229,7 +234,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
   def MergeFrom(self, x):
     assert x is not self
     if (x.has_query_tasks_response()): self.mutable_query_tasks_response().MergeFrom(x.query_tasks_response())
-    for i in xrange(x.eta_delta_size()): self.add_eta_delta(x.eta_delta(i))
+    for i in range(x.eta_delta_size()): self.add_eta_delta(x.eta_delta(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -249,14 +254,14 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
     n = 0
     if (self.has_query_tasks_response_): n += 1 + self.lengthString(self.query_tasks_response_.ByteSize())
     n += 1 * len(self.eta_delta_)
-    for i in xrange(len(self.eta_delta_)): n += self.lengthString(len(self.eta_delta_[i]))
+    for i in range(len(self.eta_delta_)): n += self.lengthString(len(self.eta_delta_[i]))
     return n
 
   def ByteSizePartial(self):
     n = 0
     if (self.has_query_tasks_response_): n += 1 + self.lengthString(self.query_tasks_response_.ByteSizePartial())
     n += 1 * len(self.eta_delta_)
-    for i in xrange(len(self.eta_delta_)): n += self.lengthString(len(self.eta_delta_[i]))
+    for i in range(len(self.eta_delta_)): n += self.lengthString(len(self.eta_delta_[i]))
     return n
 
   def Clear(self):
@@ -268,7 +273,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(10)
       out.putVarInt32(self.query_tasks_response_.ByteSize())
       self.query_tasks_response_.OutputUnchecked(out)
-    for i in xrange(len(self.eta_delta_)):
+    for i in range(len(self.eta_delta_)):
       out.putVarInt32(18)
       out.putPrefixedString(self.eta_delta_[i])
 
@@ -277,7 +282,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(10)
       out.putVarInt32(self.query_tasks_response_.ByteSizePartial())
       self.query_tasks_response_.OutputPartial(out)
-    for i in xrange(len(self.eta_delta_)):
+    for i in range(len(self.eta_delta_)):
       out.putVarInt32(18)
       out.putPrefixedString(self.eta_delta_[i])
 
@@ -295,7 +300,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -315,7 +320,7 @@ class GetFilteredTasksResponse(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kquery_tasks_response = 1
   keta_delta = 2
@@ -407,7 +412,7 @@ class FlushQueueRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -418,7 +423,7 @@ class FlushQueueRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kqueue_name = 1
 
@@ -492,7 +497,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
     assert x is not self
     if (x.has_url()): self.set_url(x.url())
     if (x.has_name()): self.set_name(x.name())
-    for i in xrange(x.queue_names_size()): self.add_queue_names(x.queue_names(i))
+    for i in range(x.queue_names_size()): self.add_queue_names(x.queue_names(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -514,7 +519,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
     if (self.has_url_): n += 1 + self.lengthString(len(self.url_))
     if (self.has_name_): n += 1 + self.lengthString(len(self.name_))
     n += 1 * len(self.queue_names_)
-    for i in xrange(len(self.queue_names_)): n += self.lengthString(len(self.queue_names_[i]))
+    for i in range(len(self.queue_names_)): n += self.lengthString(len(self.queue_names_[i]))
     return n
 
   def ByteSizePartial(self):
@@ -522,7 +527,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
     if (self.has_url_): n += 1 + self.lengthString(len(self.url_))
     if (self.has_name_): n += 1 + self.lengthString(len(self.name_))
     n += 1 * len(self.queue_names_)
-    for i in xrange(len(self.queue_names_)): n += self.lengthString(len(self.queue_names_[i]))
+    for i in range(len(self.queue_names_)): n += self.lengthString(len(self.queue_names_[i]))
     return n
 
   def Clear(self):
@@ -537,7 +542,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
     if (self.has_name_):
       out.putVarInt32(18)
       out.putPrefixedString(self.name_)
-    for i in xrange(len(self.queue_names_)):
+    for i in range(len(self.queue_names_)):
       out.putVarInt32(26)
       out.putPrefixedString(self.queue_names_[i])
 
@@ -548,7 +553,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
     if (self.has_name_):
       out.putVarInt32(18)
       out.putPrefixedString(self.name_)
-    for i in xrange(len(self.queue_names_)):
+    for i in range(len(self.queue_names_)):
       out.putVarInt32(26)
       out.putPrefixedString(self.queue_names_[i])
 
@@ -566,7 +571,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -584,7 +589,7 @@ class GetFilteredTasksRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kurl = 1
   kname = 2
@@ -679,7 +684,7 @@ class PatchQueueYamlParserRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -690,7 +695,7 @@ class PatchQueueYamlParserRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kpatched_return_value = 1
 
@@ -1014,7 +1019,7 @@ class SetUpStubRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1033,7 +1038,7 @@ class SetUpStubRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kservice_name = 1
   kroot_path = 2
@@ -1084,7 +1089,7 @@ class GetQueueStateInfoResponse_QueueInfo_TaskInfo(ProtocolBuffer.ProtocolMessag
   add_request_ = None
 
   def __init__(self, contents=None):
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def task_name(self): return self.task_name_
@@ -1214,7 +1219,7 @@ class GetQueueStateInfoResponse_QueueInfo_TaskInfo(ProtocolBuffer.ProtocolMessag
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1230,7 +1235,7 @@ class GetQueueStateInfoResponse_QueueInfo_TaskInfo(ProtocolBuffer.ProtocolMessag
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   ktask_name = 1
   keta_millis = 2
@@ -1274,7 +1279,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
 
   def __init__(self, contents=None):
     self.task_infos_ = []
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def queue_name(self): return self.queue_name_
@@ -1420,7 +1425,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
     if (x.has_target()): self.set_target(x.target())
     if (x.has_mode()): self.set_mode(x.mode())
     if (x.has_acl()): self.mutable_acl().MergeFrom(x.acl())
-    for i in xrange(x.task_infos_size()): self.add_task_infos().CopyFrom(x.task_infos(i))
+    for i in range(x.task_infos_size()): self.add_task_infos().CopyFrom(x.task_infos(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -1464,7 +1469,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
     if (self.has_mode_): n += 1 + self.lengthString(len(self.mode_))
     if (self.has_acl_): n += 1 + self.lengthString(self.acl_.ByteSize())
     n += 1 * len(self.task_infos_)
-    for i in xrange(len(self.task_infos_)): n += self.lengthString(self.task_infos_[i].ByteSize())
+    for i in range(len(self.task_infos_)): n += self.lengthString(self.task_infos_[i].ByteSize())
     return n
 
   def ByteSizePartial(self):
@@ -1478,7 +1483,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
     if (self.has_mode_): n += 1 + self.lengthString(len(self.mode_))
     if (self.has_acl_): n += 1 + self.lengthString(self.acl_.ByteSizePartial())
     n += 1 * len(self.task_infos_)
-    for i in xrange(len(self.task_infos_)): n += self.lengthString(self.task_infos_[i].ByteSizePartial())
+    for i in range(len(self.task_infos_)): n += self.lengthString(self.task_infos_[i].ByteSizePartial())
     return n
 
   def Clear(self):
@@ -1519,7 +1524,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(66)
       out.putVarInt32(self.acl_.ByteSize())
       self.acl_.OutputUnchecked(out)
-    for i in xrange(len(self.task_infos_)):
+    for i in range(len(self.task_infos_)):
       out.putVarInt32(74)
       out.putVarInt32(self.task_infos_[i].ByteSize())
       self.task_infos_[i].OutputUnchecked(out)
@@ -1551,7 +1556,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(66)
       out.putVarInt32(self.acl_.ByteSizePartial())
       self.acl_.OutputPartial(out)
-    for i in xrange(len(self.task_infos_)):
+    for i in range(len(self.task_infos_)):
       out.putVarInt32(74)
       out.putVarInt32(self.task_infos_[i].ByteSizePartial())
       self.task_infos_[i].OutputPartial(out)
@@ -1597,7 +1602,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1629,7 +1634,7 @@ class GetQueueStateInfoResponse_QueueInfo(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kqueue_name = 1
   kformatted_rate_string = 2
@@ -1696,7 +1701,7 @@ class GetQueueStateInfoResponse(ProtocolBuffer.ProtocolMessage):
 
   def MergeFrom(self, x):
     assert x is not self
-    for i in xrange(x.queues_size()): self.add_queues().CopyFrom(x.queues(i))
+    for i in range(x.queues_size()): self.add_queues().CopyFrom(x.queues(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -1714,26 +1719,26 @@ class GetQueueStateInfoResponse(ProtocolBuffer.ProtocolMessage):
   def ByteSize(self):
     n = 0
     n += 1 * len(self.queues_)
-    for i in xrange(len(self.queues_)): n += self.lengthString(self.queues_[i].ByteSize())
+    for i in range(len(self.queues_)): n += self.lengthString(self.queues_[i].ByteSize())
     return n
 
   def ByteSizePartial(self):
     n = 0
     n += 1 * len(self.queues_)
-    for i in xrange(len(self.queues_)): n += self.lengthString(self.queues_[i].ByteSizePartial())
+    for i in range(len(self.queues_)): n += self.lengthString(self.queues_[i].ByteSizePartial())
     return n
 
   def Clear(self):
     self.clear_queues()
 
   def OutputUnchecked(self, out):
-    for i in xrange(len(self.queues_)):
+    for i in range(len(self.queues_)):
       out.putVarInt32(10)
       out.putVarInt32(self.queues_[i].ByteSize())
       self.queues_[i].OutputUnchecked(out)
 
   def OutputPartial(self, out):
-    for i in xrange(len(self.queues_)):
+    for i in range(len(self.queues_)):
       out.putVarInt32(10)
       out.putVarInt32(self.queues_[i].ByteSizePartial())
       self.queues_[i].OutputPartial(out)
@@ -1749,7 +1754,7 @@ class GetQueueStateInfoResponse(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1767,7 +1772,7 @@ class GetQueueStateInfoResponse(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kqueues = 1
 
@@ -1856,7 +1861,7 @@ class LoadQueueXmlRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1867,7 +1872,7 @@ class LoadQueueXmlRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kqueue_xml_path = 1
 
@@ -1956,7 +1961,7 @@ class SetTaskQueueClockRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1967,7 +1972,7 @@ class SetTaskQueueClockRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kclock_time_milliseconds = 1
 

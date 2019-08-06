@@ -18,6 +18,7 @@
 
 
 
+import argparse
 import cStringIO
 import getpass
 import itertools
@@ -54,6 +55,8 @@ from google.appengine.ext.remote_api import remote_api_pb
 from google.appengine.runtime import apiproxy_errors
 from google.appengine.tools.devappserver2 import api_server
 from google.appengine.tools.devappserver2 import datastore_grpc_stub
+from google.appengine.tools.devappserver2 import metrics
+from google.appengine.tools.devappserver2 import shutdown
 from google.appengine.tools.devappserver2 import stub_util
 from google.appengine.tools.devappserver2 import wsgi_request_info
 from google.appengine.tools.devappserver2 import wsgi_test_utils
@@ -277,6 +280,38 @@ class TestAPIServerWithEmulator(APIServerTestBase):
                 'datastore_v3', 'Put'))))
     self._assert_remote_call(expected_remote_response, fake_put_request,
                              'datastore_v3', 'Put')
+
+
+class TestApiServerMain(unittest.TestCase):
+
+  @mock.patch.object(api_server, 'create_api_server')
+  @mock.patch.object(shutdown, 'wait_until_shutdown')
+  @mock.patch.object(metrics._MetricsLogger, 'Start')
+  @mock.patch.object(metrics._MetricsLogger, 'Stop')
+  @mock.patch.object(argparse.ArgumentParser, 'parse_args',
+                     return_value=argparse.Namespace(
+                         google_analytics_client_id='myid',
+                         google_analytics_user_agent='myagent',
+                         support_datastore_emulator=True,
+                         storage_path='/tmp',
+                         app_id='',
+                         dev_appserver_log_level='info',
+                         config_paths=None,
+                         java_app_base_url=None))
+  def testMetrics(self,
+                  unused_mock_parse,
+                  mock_stop,
+                  mock_start,
+                  mock_wait_until_shutdown,
+                  mock_create_api_server):
+    """Tests metrics logging flow is triggered by api_server main()."""
+    api_server.main()
+    mock_create_api_server.assert_called_once()
+    mock_wait_until_shutdown.assert_called_once()
+    mock_start.assert_called_once_with(
+        'myid', user_agent='myagent', support_datastore_emulator=True,
+        category=metrics.API_SERVER_CATEGORY)
+    mock_stop.assert_called_once()
 
 
 class GetStoragePathTest(unittest.TestCase):

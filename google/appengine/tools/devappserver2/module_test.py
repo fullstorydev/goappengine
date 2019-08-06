@@ -48,6 +48,7 @@ from google.appengine.tools.devappserver2 import util
 from google.appengine.tools.devappserver2 import wsgi_server
 from google.appengine.tools.devappserver2.custom import instance_factory as custom_factory
 from google.appengine.tools.devappserver2.go import application as go_application
+from google.appengine.tools.devappserver2.go import gaego as gaego_application
 from google.appengine.tools.devappserver2.go import instance_factory as go_factory
 from google.appengine.tools.devappserver2.java import instance_factory as java_factory
 from google.appengine.tools.devappserver2.python import instance_factory as python_factory
@@ -122,7 +123,6 @@ class ModuleFacade(module.Module):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -169,7 +169,6 @@ class AutoScalingModuleFacade(module.AutoScalingModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -221,7 +220,6 @@ class ManualScalingModuleFacade(module.ManualScalingModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -271,7 +269,6 @@ class BasicScalingModuleFacade(module.BasicScalingModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -321,7 +318,6 @@ class ExternalModuleFacade(module.ExternalModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -451,7 +447,7 @@ class TestModuleCreateUrlHandlers(googletest.TestCase):
         url='/_ah/warmup',
         script='warmup_handler',
         login='admin')
-    # Built-in: login, logout, blob_upload, blob_image, channel, gcs, endpoints
+    # Built-in: login, logout, blob_upload, blob_image, channel, gcs
     self.num_builtin_handlers = 6
 
   def test_match_all(self):
@@ -513,6 +509,13 @@ class TestModuleCreateUrlHandlers(googletest.TestCase):
     handlers = self.servr._create_url_handlers()
     self.assertEqual(self.num_builtin_handlers + 2, len(handlers))
     self.assertEqual(self.instance_factory.START_URL_MAP, handlers[0].url_map)
+
+  def test_endpoints_handler(self):
+    self.module_configuration.handlers = [appinfo.URLMap(url=r'/_ah/spi/.*',
+                                                         script=r'foo.py')]
+    handlers = self.servr._create_url_handlers()
+    # The script handler, /_ah/start, and /_ah/api/.* handler are added.
+    self.assertEqual(self.num_builtin_handlers + 3, len(handlers))
 
 
 class TestModuleGetRuntimeConfig(parameterized.TestCase):
@@ -1371,7 +1374,8 @@ class TestAutoScalingInstancePoolHandleChanges(InstancePoolHandleChangesBase):
     self.servr._module_configuration.check_for_updates().AndReturn(frozenset())
     self.servr._watcher.changes(0).AndReturn(set())
     self.servr._maybe_restart_instances(config_changed=False,
-                                        file_changed=False)
+                                        file_changed=False,
+                                        modern_runtime_dep_libs_changed=None)
     self.mox.ReplayAll()
     self.servr._handle_changes()
     self.mox.VerifyAll()
@@ -1380,7 +1384,8 @@ class TestAutoScalingInstancePoolHandleChanges(InstancePoolHandleChangesBase):
     self.servr._module_configuration.check_for_updates().AndReturn(frozenset())
     self.servr._watcher.changes(0).AndReturn(set())
     self.servr._maybe_restart_instances(config_changed=False,
-                                        file_changed=False)
+                                        file_changed=False,
+                                        modern_runtime_dep_libs_changed=None)
 
     self.mox.ReplayAll()
     self.servr._handle_changes()
@@ -1391,7 +1396,22 @@ class TestAutoScalingInstancePoolHandleChanges(InstancePoolHandleChangesBase):
     self.servr._module_configuration.check_for_updates().AndReturn(conf_change)
     self.servr._watcher.changes(0).AndReturn(set())
     self.instance_factory.configuration_changed(conf_change)
-    self.servr._maybe_restart_instances(config_changed=True, file_changed=False)
+    self.servr._maybe_restart_instances(config_changed=True, file_changed=False,
+                                        modern_runtime_dep_libs_changed=None)
+
+    self.mox.ReplayAll()
+    self.servr._handle_changes()
+    self.mox.VerifyAll()
+
+  def test_restart_modern_runtime_dep_libs_changed(self):
+    self.instance_factory.dependency_libraries_changed = lambda _: True
+
+    conf_change = frozenset([])
+    self.servr._module_configuration.check_for_updates().AndReturn(conf_change)
+    self.servr._watcher.changes(0).AndReturn(set())
+    self.servr._maybe_restart_instances(config_changed=False,
+                                        file_changed=False,
+                                        modern_runtime_dep_libs_changed=True)
 
     self.mox.ReplayAll()
     self.servr._handle_changes()
@@ -1403,14 +1423,16 @@ class TestAutoScalingInstancePoolHandleChanges(InstancePoolHandleChangesBase):
     self.servr._watcher.changes(0).AndReturn(set())
     self.servr._create_url_handlers()
     self.instance_factory.configuration_changed(conf_change)
-    self.servr._maybe_restart_instances(config_changed=True, file_changed=False)
+    self.servr._maybe_restart_instances(config_changed=True, file_changed=False,
+                                        modern_runtime_dep_libs_changed=None)
 
     self.mox.ReplayAll()
     self.servr._handle_changes()
     self.mox.VerifyAll()
 
   def _restart_module(self):
-    self.servr._maybe_restart_instances(config_changed=False, file_changed=True)
+    self.servr._maybe_restart_instances(config_changed=False, file_changed=True,
+                                        modern_runtime_dep_libs_changed=None)
 
   def test_file_change_and_report(self):
     self._test_file_change_and_report()
@@ -2604,7 +2626,6 @@ class TestInteractiveCommandModule(googletest.TestCase):
         api_port=9000,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -2839,6 +2860,12 @@ class InstanceFactoryTest(googletest.TestCase):
     go_application.GoApplication(
         mox.IgnoreArg(), mox.IgnoreArg(), mox.IgnoreArg())
     self._run_test('go', go_factory.GoRuntimeInstanceFactory)
+
+  def test_gaego(self):
+    self.mox.StubOutWithMock(gaego_application, 'GaeGoApplication')
+    gaego_application.GaeGoApplication(
+        mox.IgnoreArg(), mox.IgnoreArg(), mox.IgnoreArg())
+    self._run_test('go111', go_factory.GoRuntimeInstanceFactory)
 
   def test_non_vm_java(self):
     self.mox.StubOutWithMock(

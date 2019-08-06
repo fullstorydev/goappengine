@@ -22,6 +22,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"go/build"
 	"go/scanner"
 	"io"
 	"io/ioutil"
@@ -48,8 +49,8 @@ const (
 	maxRootPackageTreeImportsPerFile = 20
 
 	// The default minor API version to use when parsing the user's App.
-	// Currently set to support Go 1.8.
-	defaultMinorVersion = 8
+	// Currently set to support Go 1.9.
+	defaultMinorVersion = 9
 )
 
 var (
@@ -60,7 +61,7 @@ var (
 	dynamic         = flag.Bool("dynamic", false, "Create a binary with a dynamic linking header.")
 	extraImports    = flag.String("extra_imports", "", "A comma-separated list of extra packages to import.")
 	gcFlags         = flag.String("gcflags", "", "Comma-separated list of extra compiler flags.")
-	goPath          = flag.String("gopath", os.Getenv("GOPATH"), "Location of extra packages.")
+	goPath          = flag.String("gopath", build.Default.GOPATH, "Location of extra packages.")
 	goRoot          = flag.String("goroot", os.Getenv("GOROOT"), "Root of the Go installation.")
 	help            = flag.Bool("help", false, "Display help documentation.")
 	incremental     = flag.Bool("incremental_rebuild", false, "Allow re-use of previous build products during build.")
@@ -161,6 +162,10 @@ func main() {
 	baseDir, err := filepath.Abs(baseDir)
 	if err != nil {
 		log.Fatalf("go-app-builder: unable to resolve %q: %v", *appBase, err)
+	}
+
+	if *goPath == "" {
+		log.Fatal("GOPATH is empty. Either HOME or GOPATH environment variables must be set, or -goPath must be specified.")
 	}
 
 	app, err := ParseFiles(baseDir, flag.Args(), ignoreReleaseTags)

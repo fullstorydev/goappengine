@@ -107,7 +107,6 @@ class AutoScalingModuleFacade(module.AutoScalingModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -155,7 +154,6 @@ class ManualScalingModuleFacade(module.ManualScalingModule):
         api_port=8080,
         auth_domain='gmail.com',
         runtime_stderr_loglevel=1,
-        node_config=None,
         php_config=None,
         python_config=None,
         java_config=None,
@@ -202,7 +200,6 @@ def _make_dispatcher(app_config):
       1,
       'gmail.com',
       1,
-      node_config=None,
       php_config=None,
       python_config=None,
       java_config=None,
@@ -249,15 +246,15 @@ class DispatcherTest(unittest.TestCase):
     self.mox.StubOutWithMock(self.dispatcher, '_create_module')
     self.mox.StubOutWithMock(self.dispatcher._port_registry, 'has')
     self.dispatcher._port_registry.has(1).AndReturn(False)
-    self.dispatcher._create_module(app_config.modules[0], 1).AndReturn(
+    self.dispatcher._create_module(app_config.modules[0], 1, None).AndReturn(
         self.module1)
     self.dispatcher._port_registry.has(1).AndReturn(True)
     self.dispatcher._port_registry.has(2).AndReturn(False)
-    self.dispatcher._create_module(app_config.modules[1], 2).AndReturn(
+    self.dispatcher._create_module(app_config.modules[1], 2, None).AndReturn(
         self.module2)
     self.dispatcher._port_registry.has(2).AndReturn(True)
     self.dispatcher._port_registry.has(3).AndReturn(False)
-    self.dispatcher._create_module(app_config.modules[2], 3).AndReturn(
+    self.dispatcher._create_module(app_config.modules[2], 3, None).AndReturn(
         self.module3)
     self.mox.ReplayAll()
     self.dispatcher.start('localhost', 12345, object())

@@ -30,15 +30,16 @@ using the validation mechanism (see google.appengine.api.validation.py).
 
 
 
+from __future__ import absolute_import
 
 
+import google
 
+from google.appengine._internal.ruamel import yaml
 from google.appengine.api import validation
-from google.appengine.api import yaml_listener
 from google.appengine.api import yaml_builder
 from google.appengine.api import yaml_errors
-
-import yaml
+from google.appengine.api import yaml_listener
 
 
 class _ObjectMapper(object):
@@ -66,6 +67,7 @@ class _ObjectMapper(object):
     if key in self.seen:
       raise yaml_errors.DuplicateAttribute("Duplicate attribute '%s'." % key)
     self.seen.add(key)
+
 
 class _ObjectSequencer(object):
   """Wrapper used for building sequences from a yaml file to a list.
@@ -174,7 +176,7 @@ class ObjectBuilder(yaml_builder.Builder):
     except validation.ValidationError:
 
       raise
-    except Exception, e:
+    except Exception as e:
 
 
 
@@ -214,7 +216,7 @@ class ObjectBuilder(yaml_builder.Builder):
 
     try:
       attribute = subject.value.GetValidator(key)
-    except validation.ValidationError, err:
+    except validation.ValidationError as err:
       raise yaml_errors.UnexpectedAttribute(err)
 
     if isinstance(value, _ObjectMapper):
@@ -230,7 +232,7 @@ class ObjectBuilder(yaml_builder.Builder):
     subject.see(key)
     try:
       subject.value.Set(key, value)
-    except validation.ValidationError, e:
+    except validation.ValidationError as e:
 
 
 
@@ -249,7 +251,7 @@ class ObjectBuilder(yaml_builder.Builder):
       e.message = ("Unable to assign value '%s' to attribute '%s':\n%s" %
                    (value_str, key, error_str))
       raise e
-    except Exception, e:
+    except Exception as e:
       try:
         error_str = str(e)
       except Exception:
@@ -301,7 +303,7 @@ def BuildObjects(default_class, stream, loader=yaml.loader.SafeLoader):
   handler = yaml_builder.BuilderHandler(builder)
   listener = yaml_listener.EventListener(handler)
 
-  listener.Parse(stream, loader)
+  listener.Parse(stream, loader, version=(1, 1))
   return handler.GetResults()
 
 

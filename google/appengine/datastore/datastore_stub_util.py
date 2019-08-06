@@ -2167,10 +2167,6 @@ class BaseTransactionManager(object):
     Returns:
       A datastore_pb.Transaction for the created transaction
     """
-    Check(not (allow_multiple_eg and isinstance(
-        self._consistency_policy, MasterSlaveConsistencyPolicy)),
-          'transactions on multiple entity groups only allowed with the '
-          'High Replication datastore')
     Check((previous_transaction is None) or
           mode == datastore_pb.BeginTransactionRequest.READ_WRITE,
           'previous_transaction can only be set in READ_WRITE mode')
