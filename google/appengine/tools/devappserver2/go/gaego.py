@@ -77,7 +77,7 @@ class GaeGoApplication(object):
 
     app_root = self._module_configuration.application_root
     exe_name = os.path.join(self._work_dir, '_ah_exe')
-    args = ['build', '-o', exe_name]
+    args = ['build', '-o', exe_name, '-tags', 'appengine111 dev_appserver']
     if self._enable_debugging:
       args.extend(['-N', '-l'])
     try:
