@@ -20,7 +20,12 @@
 from google.net.proto import ProtocolBuffer
 import abc
 import array
-import dummy_thread as thread
+try:
+  from thread import allocate_lock as _Lock
+except ImportError:
+  from threading import Lock as _Lock
+
+if hasattr(__builtins__, 'xrange'): range = xrange
 
 if hasattr(ProtocolBuffer, 'ExtendableProtocolMessage'):
   _extension_runtime = True
@@ -29,6 +34,9 @@ else:
   _extension_runtime = False
   _ExtendableProtocolMessage = ProtocolBuffer.ProtocolMessage
 
+from google.appengine.api.api_base_pb import *
+import google.appengine.api.api_base_pb
+google_dot_apphosting_dot_api_dot_api__base__pb = __import__('google.appengine.api.api_base_pb', {}, {}, [''])
 class SetHttpProxyRequest(ProtocolBuffer.ProtocolMessage):
   has_http_proxy_host_ = 0
   http_proxy_host_ = ""
@@ -135,7 +143,7 @@ class SetHttpProxyRequest(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -147,7 +155,7 @@ class SetHttpProxyRequest(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   khttp_proxy_host = 1
   khttp_proxy_port = 2

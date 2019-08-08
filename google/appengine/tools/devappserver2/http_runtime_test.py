@@ -91,9 +91,12 @@ class FakeTee(object):
 
 
 class ModuleConfigurationStub(object):
-  def __init__(self, application_root='/tmp', error_handlers=None):
+
+  def __init__(self, application_root='/tmp', error_handlers=None,
+               runtime='python'):
     self.application_root = application_root
     self.error_handlers = error_handlers
+    self.runtime = runtime
 
 
 class HttpRuntimeProxyTest(wsgi_test_utils.WSGITestCase):

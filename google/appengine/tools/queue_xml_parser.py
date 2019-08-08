@@ -16,6 +16,8 @@
 #
 """Performs translation of queue.xml to queue.yaml."""
 
+from __future__ import print_function
+
 import sys
 
 from xml.etree import ElementTree
@@ -86,7 +88,7 @@ class QueueXmlParser(object):
 
       return self.queue_xml
 
-    except ElementTree.ParseError, e:
+    except ElementTree.ParseError as e:
       raise AppEngineConfigException('Bad input -- not valid XML: %s' % e)
 
   def ProcessQueueNode(self, node):
@@ -267,7 +269,7 @@ class RetryParameters(object):
 
 def main():
   xml = sys.stdin.read()
-  print GetQueueYaml(None, xml)
+  print(GetQueueYaml(None, xml))
 
 if __name__ == '__main__':
   sys.exit(main())

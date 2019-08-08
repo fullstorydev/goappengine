@@ -531,6 +531,10 @@ class socket(object):
 
 
   def __init__(self, family=AF_INET, type=SOCK_STREAM, proto=0, _create=False):
+    if os.environ.get('GAE_USE_DIRECT_SOCKETS'):
+      raise Exception('Instantiating a remote socket when direct sockets '
+                      'have been selected.  Probably an import issue.')
+
     if family not in (AF_INET, AF_INET6):
       raise error(errno.EAFNOSUPPORT, os.strerror(errno.EAFNOSUPPORT))
 

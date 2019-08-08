@@ -36,10 +36,10 @@ def GetDispatchYaml(application, dispatch_xml_str):
 
 def _MakeDispatchListIntoYaml(application, dispatch_list):
   """Converts list of DispatchEntry objects into a YAML string."""
-  statements = [
-      'application: %s' % application,
-      'dispatch:',
-  ]
+  statements = []
+  if application:
+    statements.append('application: %s' % application)
+  statements.append('dispatch:')
   for entry in dispatch_list:
     statements += entry.ToYaml()
   return '\n'.join(statements) + '\n'

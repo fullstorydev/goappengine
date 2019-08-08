@@ -88,11 +88,6 @@ class Dispatcher(request_info.Dispatcher):
                port,
                auth_domain,
                runtime_stderr_loglevel,
-
-
-
-
-
                php_config,
                python_config,
                java_config,
@@ -108,7 +103,8 @@ class Dispatcher(request_info.Dispatcher):
                module_to_threadsafe_override,
                external_port,
                specified_service_ports=None,
-               enable_host_checking=True):
+               enable_host_checking=True,
+               ssl_certificate_paths=None):
     """Initializer for Dispatcher.
 
     Args:
@@ -122,11 +118,6 @@ class Dispatcher(request_info.Dispatcher):
       runtime_stderr_loglevel: An int reprenting the minimum logging level at
           which runtime log messages should be written to stderr. See
           devappserver2.py for possible values.
-
-
-
-
-
       php_config: A runtime_config_pb2.PhpConfig instances containing PHP
           runtime-specific configuration. If None then defaults are used.
       python_config: A runtime_config_pb2.PythonConfig instance containing
@@ -169,12 +160,10 @@ class Dispatcher(request_info.Dispatcher):
           This allows services of given names to run on specified ports.
       enable_host_checking: A bool indicating that HTTP Host checking should
           be enforced for incoming requests.
+      ssl_certificate_paths: A ssl_utils.SSLCertificatePaths instance. If
+          specified, modules will be launched with SSL.
     """
     self._configuration = configuration
-
-
-
-
     self._php_config = php_config
     self._python_config = python_config
     self._java_config = java_config
@@ -208,6 +197,7 @@ class Dispatcher(request_info.Dispatcher):
     self._external_port = external_port
     self._specified_service_ports = specified_service_ports or {}
     self._enable_host_checking = enable_host_checking
+    self._ssl_certificate_paths = ssl_certificate_paths
 
   def start(self, api_host, api_port, request_data):
     """Starts the configured modules.
@@ -243,17 +233,48 @@ class Dispatcher(request_info.Dispatcher):
       if service_name in self._specified_service_ports:
         service_port = self._specified_service_ports[service_name]
       elif next_available_port:
-        while self._port_registry.has(next_available_port):
-          next_available_port += 1
-        if next_available_port >= (1 << 16):
-          raise RuntimeError('Cannot find port for service %s' % service_name)
+        next_available_port = self._find_next_available_port(
+            next_available_port, service_name)
         service_port = next_available_port
 
-      _service = self._create_module(module_configuration, service_port)
+      # If necessary, find an additional port to bind to for accepting https
+      # connections
+      ssl_port = None
+      if self._ssl_certificate_paths:
+        ssl_port = self._find_next_available_port(service_port + 1,
+                                                  service_name)
+
+      _service = self._create_module(module_configuration, service_port,
+                                     ssl_port)
       _service.start()
       self._module_name_to_module[module_configuration.module_name] = _service
-      logging.info('Starting module "%s" running at: http://%s',
-                   module_configuration.module_name, _service.balanced_address)
+
+      log_message = 'Starting module "%s" running at: http://%s' % (
+          module_configuration.module_name, _service.balanced_address)
+      if ssl_port:
+        log_message += ' and https://%s:%s' % (self._host, ssl_port)
+      logging.info(log_message)
+
+  def _find_next_available_port(self, starting_port, service_name):
+    """Finds an available port in the port registry starting at starting_port.
+
+    Args:
+      starting_port: int, the port to start searching from.
+      service_name: str, the name of the service used in exception if no port
+        could be found.
+
+    Raises:
+      RuntimeError: If no port can be found.
+
+    Returns:
+      A port that is available for binding to.
+    """
+    next_available_port = starting_port
+    while self._port_registry.has(next_available_port):
+      next_available_port += 1
+    if next_available_port >= (1 << 16):
+      raise RuntimeError('Cannot find port for service %s' % service_name)
+    return next_available_port
 
   @property
   def dispatch_port(self):
@@ -316,7 +337,7 @@ class Dispatcher(request_info.Dispatcher):
                         '.'.join(map(str,
                                      runtime_factories.PYTHON27_PROD_VERSION)))
 
-  def _create_module(self, module_configuration, port):
+  def _create_module(self, module_configuration, port, ssl_port=None):
     self.check_python_version(module_configuration.runtime)
     max_instances = self._module_to_max_instances.get(
         module_configuration.module_name)
@@ -341,11 +362,6 @@ class Dispatcher(request_info.Dispatcher):
         api_port=self._api_port,
         auth_domain=self._auth_domain,
         runtime_stderr_loglevel=self._runtime_stderr_loglevel,
-
-
-
-
-
         php_config=self._php_config,
         python_config=self._python_config,
         custom_config=self._custom_config,
@@ -363,7 +379,9 @@ class Dispatcher(request_info.Dispatcher):
         automatic_restarts=self._automatic_restart,
         allow_skipped_files=self._allow_skipped_files,
         threadsafe_override=threadsafe_override,
-        enable_host_checking=self._enable_host_checking)
+        enable_host_checking=self._enable_host_checking,
+        ssl_certificate_paths=self._ssl_certificate_paths,
+        ssl_port=ssl_port)
 
     return module_instance
 

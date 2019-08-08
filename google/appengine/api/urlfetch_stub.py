@@ -81,11 +81,6 @@ _API_CALL_DEADLINE = 5.0
 _API_CALL_VALIDATE_CERTIFICATE_DEFAULT = False
 
 
-_CONNECTION_SUPPORTS_TIMEOUT = sys.version_info >= (2, 6)
-
-
-_CONNECTION_SUPPORTS_SSL_TUNNEL = sys.version_info >= (2, 6)
-
 
 _MAX_REQUEST_SIZE = 10485760
 
@@ -144,7 +139,8 @@ def _IsAllowedPort(port):
 
 
 
-  if ((port >= 80 and port <= 90) or
+  if (port == 0 or
+      (port >= 80 and port <= 90) or
       (port >= 440 and port <= 450) or
       port >= 1024):
     return True
@@ -347,6 +343,10 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
         protocol = last_protocol
 
 
+      if port == '0':
+        host = host.replace(':0', '')
+
+
 
 
 
@@ -419,8 +419,7 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
 
           default_port = 443
 
-          if (_CONNECTION_SUPPORTS_SSL_TUNNEL and
-              os.environ.get('HTTPS_PROXY') and not _IsLocalhost(host)):
+          if os.environ.get('HTTPS_PROXY') and not _IsLocalhost(host):
             _, proxy_host, _, _, _ = (
                 urlparse.urlsplit(os.environ.get('HTTPS_PROXY')))
         else:
@@ -435,8 +434,18 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
 
 
 
-        connection_kwargs = (
-            {'timeout': deadline} if _CONNECTION_SUPPORTS_TIMEOUT else {})
+        connection_kwargs = {'timeout': deadline}
+
+
+
+
+        if (not validate_certificate and sys.version_info >= (2, 7, 9)
+            and protocol == 'https'):
+
+
+
+          import ssl
+          connection_kwargs['context'] = ssl._create_unverified_context()
 
         if proxy_host:
           proxy_address, _, proxy_port = proxy_host.partition(':')
@@ -456,13 +465,7 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
         last_protocol = protocol
         last_host = host
 
-        if not _CONNECTION_SUPPORTS_TIMEOUT:
-          orig_timeout = socket.getdefaulttimeout()
         try:
-          if not _CONNECTION_SUPPORTS_TIMEOUT:
-
-
-            socket.setdefaulttimeout(deadline)
           _SendRequest(connection, method, full_path, payload, adjusted_headers)
           http_response = connection.getresponse()
           if method == 'HEAD':
@@ -470,8 +473,6 @@ class URLFetchServiceStub(apiproxy_stub.APIProxyStub):
           else:
             http_response_data = http_response.read()
         finally:
-          if not _CONNECTION_SUPPORTS_TIMEOUT:
-            socket.setdefaulttimeout(orig_timeout)
           connection.close()
       except _fancy_urllib_InvalidCertException, e:
         raise apiproxy_errors.ApplicationError(

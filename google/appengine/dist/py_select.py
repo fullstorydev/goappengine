@@ -14,12 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
-
-
 """This module supports asynchronous I/O on multiple file descriptors."""
 
+import os
 
 
-from google.appengine.api.remote_socket._remote_socket import select, error
+
+
+
+
+if os.environ.get('GAE_USE_DIRECT_SOCKETS'):
+
+  from _select import *
+else:
+  from google.appengine.api.remote_socket._remote_socket import select, error

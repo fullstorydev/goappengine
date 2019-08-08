@@ -178,7 +178,14 @@ SERVICE_ACCOUNT_BASE = (
 
 APP_YAML_FILENAME = 'app.yaml'
 
-GCLOUD_ONLY_RUNTIMES = set(['custom', 'nodejs', 'nodejs8', 'php72'])
+GCLOUD_ONLY_RUNTIMES = set([
+    'custom',
+    'go111',
+    'nodejs',
+    'nodejs8',
+    'php72',
+    'python37',
+])
 
 
 
@@ -2129,9 +2136,8 @@ class AppVersionUpload(object):
     success, unused_contents = RetryWithBackoff(
         lambda: (self.IsReady(), None), PrintRetryMessage, 1, 2, 60, 20)
     if not success:
-
       logging.warning('Version still not ready to serve, aborting.')
-      raise RuntimeError('Version not ready.')
+      raise RuntimeError('Version is not ready to serve.')
 
     result = self.StartServing()
     if not result:
@@ -2144,9 +2150,8 @@ class AppVersionUpload(object):
             'Another operation on this version is in progress.')
       success, response = RetryNoBackoff(self.IsServing, PrintRetryMessage)
       if not success:
-
         logging.warning('Version still not serving, aborting.')
-        raise RuntimeError('Version not ready.')
+        raise RuntimeError('Version failed to start serving.')
 
 
 
@@ -3457,7 +3462,7 @@ class AppCfgApp(object):
     msg = 'Application: %s' % appyaml.application
     if appyaml.application != orig_application:
       msg += ' (was: %s)' % orig_application
-    if self.action.function is 'Update':
+    if self.action.function == 'Update':
 
       if (appyaml.module is not None and
           appyaml.module != appinfo.DEFAULT_MODULE):

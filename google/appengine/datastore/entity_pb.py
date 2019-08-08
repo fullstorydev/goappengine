@@ -20,7 +20,12 @@
 from google.net.proto import ProtocolBuffer
 import abc
 import array
-import dummy_thread as thread
+try:
+  from thread import allocate_lock as _Lock
+except ImportError:
+  from threading import Lock as _Lock
+
+if hasattr(__builtins__, 'xrange'): range = xrange
 
 if hasattr(ProtocolBuffer, 'ExtendableProtocolMessage'):
   _extension_runtime = True
@@ -161,7 +166,7 @@ class PropertyValue_ReferenceValuePathElement(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -275,7 +280,7 @@ class PropertyValue_PointValue(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -547,7 +552,7 @@ class PropertyValue_UserValue(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -634,7 +639,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
     assert x is not self
     if (x.has_app()): self.set_app(x.app())
     if (x.has_name_space()): self.set_name_space(x.name_space())
-    for i in xrange(x.pathelement_size()): self.add_pathelement().CopyFrom(x.pathelement(i))
+    for i in range(x.pathelement_size()): self.add_pathelement().CopyFrom(x.pathelement(i))
     if (x.has_database_id()): self.set_database_id(x.database_id())
 
   def Equals(self, x):
@@ -665,7 +670,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
     n += self.lengthString(len(self.app_))
     if (self.has_name_space_): n += 2 + self.lengthString(len(self.name_space_))
     n += 2 * len(self.pathelement_)
-    for i in xrange(len(self.pathelement_)): n += self.pathelement_[i].ByteSize()
+    for i in range(len(self.pathelement_)): n += self.pathelement_[i].ByteSize()
     if (self.has_database_id_): n += 2 + self.lengthString(len(self.database_id_))
     return n + 1
 
@@ -676,7 +681,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
       n += self.lengthString(len(self.app_))
     if (self.has_name_space_): n += 2 + self.lengthString(len(self.name_space_))
     n += 2 * len(self.pathelement_)
-    for i in xrange(len(self.pathelement_)): n += self.pathelement_[i].ByteSizePartial()
+    for i in range(len(self.pathelement_)): n += self.pathelement_[i].ByteSizePartial()
     if (self.has_database_id_): n += 2 + self.lengthString(len(self.database_id_))
     return n
 
@@ -689,7 +694,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
   def OutputUnchecked(self, out):
     out.putVarInt32(106)
     out.putPrefixedString(self.app_)
-    for i in xrange(len(self.pathelement_)):
+    for i in range(len(self.pathelement_)):
       out.putVarInt32(115)
       self.pathelement_[i].OutputUnchecked(out)
       out.putVarInt32(116)
@@ -704,7 +709,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
     if (self.has_app_):
       out.putVarInt32(106)
       out.putPrefixedString(self.app_)
-    for i in xrange(len(self.pathelement_)):
+    for i in range(len(self.pathelement_)):
       out.putVarInt32(115)
       self.pathelement_[i].OutputPartial(out)
       out.putVarInt32(116)
@@ -733,7 +738,7 @@ class PropertyValue_ReferenceValue(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -769,7 +774,7 @@ class PropertyValue(ProtocolBuffer.ProtocolMessage):
   referencevalue_ = None
 
   def __init__(self, contents=None):
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def int64value(self): return self.int64value_
@@ -1026,7 +1031,7 @@ class PropertyValue(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1052,7 +1057,7 @@ class PropertyValue(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kint64Value = 1
   kbooleanValue = 2
@@ -1447,7 +1452,7 @@ class Property(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1467,7 +1472,7 @@ class Property(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kmeaning = 1
   kmeaning_uri = 2
@@ -1635,7 +1640,7 @@ class Path_Element(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1671,7 +1676,7 @@ class Path(ProtocolBuffer.ProtocolMessage):
 
   def MergeFrom(self, x):
     assert x is not self
-    for i in xrange(x.element_size()): self.add_element().CopyFrom(x.element(i))
+    for i in range(x.element_size()): self.add_element().CopyFrom(x.element(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -1689,26 +1694,26 @@ class Path(ProtocolBuffer.ProtocolMessage):
   def ByteSize(self):
     n = 0
     n += 2 * len(self.element_)
-    for i in xrange(len(self.element_)): n += self.element_[i].ByteSize()
+    for i in range(len(self.element_)): n += self.element_[i].ByteSize()
     return n
 
   def ByteSizePartial(self):
     n = 0
     n += 2 * len(self.element_)
-    for i in xrange(len(self.element_)): n += self.element_[i].ByteSizePartial()
+    for i in range(len(self.element_)): n += self.element_[i].ByteSizePartial()
     return n
 
   def Clear(self):
     self.clear_element()
 
   def OutputUnchecked(self, out):
-    for i in xrange(len(self.element_)):
+    for i in range(len(self.element_)):
       out.putVarInt32(11)
       self.element_[i].OutputUnchecked(out)
       out.putVarInt32(12)
 
   def OutputPartial(self, out):
-    for i in xrange(len(self.element_)):
+    for i in range(len(self.element_)):
       out.putVarInt32(11)
       self.element_[i].OutputPartial(out)
       out.putVarInt32(12)
@@ -1721,7 +1726,7 @@ class Path(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1739,7 +1744,7 @@ class Path(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kElementGroup = 1
   kElementtype = 2
@@ -1933,7 +1938,7 @@ class Reference(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -1950,7 +1955,7 @@ class Reference(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kapp = 13
   kname_space = 20
@@ -2238,7 +2243,7 @@ class User(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -2255,7 +2260,7 @@ class User(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kemail = 1
   kauth_domain = 2
@@ -2321,7 +2326,7 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
     self.entity_group_ = Path()
     self.property_ = []
     self.raw_property_ = []
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def key(self): return self.key_
@@ -2425,8 +2430,8 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
     if (x.has_owner()): self.mutable_owner().MergeFrom(x.owner())
     if (x.has_kind()): self.set_kind(x.kind())
     if (x.has_kind_uri()): self.set_kind_uri(x.kind_uri())
-    for i in xrange(x.property_size()): self.add_property().CopyFrom(x.property(i))
-    for i in xrange(x.raw_property_size()): self.add_raw_property().CopyFrom(x.raw_property(i))
+    for i in range(x.property_size()): self.add_property().CopyFrom(x.property(i))
+    for i in range(x.raw_property_size()): self.add_raw_property().CopyFrom(x.raw_property(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -2475,9 +2480,9 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
     if (self.has_kind_): n += 1 + self.lengthVarInt64(self.kind_)
     if (self.has_kind_uri_): n += 1 + self.lengthString(len(self.kind_uri_))
     n += 1 * len(self.property_)
-    for i in xrange(len(self.property_)): n += self.lengthString(self.property_[i].ByteSize())
+    for i in range(len(self.property_)): n += self.lengthString(self.property_[i].ByteSize())
     n += 1 * len(self.raw_property_)
-    for i in xrange(len(self.raw_property_)): n += self.lengthString(self.raw_property_[i].ByteSize())
+    for i in range(len(self.raw_property_)): n += self.lengthString(self.raw_property_[i].ByteSize())
     return n + 3
 
   def ByteSizePartial(self):
@@ -2492,9 +2497,9 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
     if (self.has_kind_): n += 1 + self.lengthVarInt64(self.kind_)
     if (self.has_kind_uri_): n += 1 + self.lengthString(len(self.kind_uri_))
     n += 1 * len(self.property_)
-    for i in xrange(len(self.property_)): n += self.lengthString(self.property_[i].ByteSizePartial())
+    for i in range(len(self.property_)): n += self.lengthString(self.property_[i].ByteSizePartial())
     n += 1 * len(self.raw_property_)
-    for i in xrange(len(self.raw_property_)): n += self.lengthString(self.raw_property_[i].ByteSizePartial())
+    for i in range(len(self.raw_property_)): n += self.lengthString(self.raw_property_[i].ByteSizePartial())
     return n
 
   def Clear(self):
@@ -2516,11 +2521,11 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
     out.putVarInt32(106)
     out.putVarInt32(self.key_.ByteSize())
     self.key_.OutputUnchecked(out)
-    for i in xrange(len(self.property_)):
+    for i in range(len(self.property_)):
       out.putVarInt32(114)
       out.putVarInt32(self.property_[i].ByteSize())
       self.property_[i].OutputUnchecked(out)
-    for i in xrange(len(self.raw_property_)):
+    for i in range(len(self.raw_property_)):
       out.putVarInt32(122)
       out.putVarInt32(self.raw_property_[i].ByteSize())
       self.raw_property_[i].OutputUnchecked(out)
@@ -2543,11 +2548,11 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
       out.putVarInt32(106)
       out.putVarInt32(self.key_.ByteSizePartial())
       self.key_.OutputPartial(out)
-    for i in xrange(len(self.property_)):
+    for i in range(len(self.property_)):
       out.putVarInt32(114)
       out.putVarInt32(self.property_[i].ByteSizePartial())
       self.property_[i].OutputPartial(out)
-    for i in xrange(len(self.raw_property_)):
+    for i in range(len(self.raw_property_)):
       out.putVarInt32(122)
       out.putVarInt32(self.raw_property_[i].ByteSizePartial())
       self.raw_property_[i].OutputPartial(out)
@@ -2601,7 +2606,7 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -2641,7 +2646,7 @@ class EntityProto(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kkey = 13
   kentity_group = 16
@@ -2773,7 +2778,7 @@ class EntityMetadata(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -2785,7 +2790,7 @@ class EntityMetadata(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kcreated_version = 1
   kupdated_version = 2
@@ -2937,7 +2942,7 @@ class EntitySummary_PropertySummary(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -2950,7 +2955,7 @@ class EntitySummary_PropertySummary(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kname = 1
   kproperty_type_for_stats = 2
@@ -2999,7 +3004,7 @@ class EntitySummary(ProtocolBuffer.ProtocolMessage):
 
   def MergeFrom(self, x):
     assert x is not self
-    for i in xrange(x.large_raw_property_size()): self.add_large_raw_property().CopyFrom(x.large_raw_property(i))
+    for i in range(x.large_raw_property_size()): self.add_large_raw_property().CopyFrom(x.large_raw_property(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -3017,26 +3022,26 @@ class EntitySummary(ProtocolBuffer.ProtocolMessage):
   def ByteSize(self):
     n = 0
     n += 1 * len(self.large_raw_property_)
-    for i in xrange(len(self.large_raw_property_)): n += self.lengthString(self.large_raw_property_[i].ByteSize())
+    for i in range(len(self.large_raw_property_)): n += self.lengthString(self.large_raw_property_[i].ByteSize())
     return n
 
   def ByteSizePartial(self):
     n = 0
     n += 1 * len(self.large_raw_property_)
-    for i in xrange(len(self.large_raw_property_)): n += self.lengthString(self.large_raw_property_[i].ByteSizePartial())
+    for i in range(len(self.large_raw_property_)): n += self.lengthString(self.large_raw_property_[i].ByteSizePartial())
     return n
 
   def Clear(self):
     self.clear_large_raw_property()
 
   def OutputUnchecked(self, out):
-    for i in xrange(len(self.large_raw_property_)):
+    for i in range(len(self.large_raw_property_)):
       out.putVarInt32(10)
       out.putVarInt32(self.large_raw_property_[i].ByteSize())
       self.large_raw_property_[i].OutputUnchecked(out)
 
   def OutputPartial(self, out):
-    for i in xrange(len(self.large_raw_property_)):
+    for i in range(len(self.large_raw_property_)):
       out.putVarInt32(10)
       out.putVarInt32(self.large_raw_property_[i].ByteSizePartial())
       self.large_raw_property_[i].OutputPartial(out)
@@ -3052,7 +3057,7 @@ class EntitySummary(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -3070,7 +3075,7 @@ class EntitySummary(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   klarge_raw_property = 1
 
@@ -3128,7 +3133,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
   def MergeFrom(self, x):
     assert x is not self
     if (x.has_index_id()): self.set_index_id(x.index_id())
-    for i in xrange(x.value_size()): self.add_value(x.value(i))
+    for i in range(x.value_size()): self.add_value(x.value(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -3151,7 +3156,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
     n = 0
     n += self.lengthVarInt64(self.index_id_)
     n += 1 * len(self.value_)
-    for i in xrange(len(self.value_)): n += self.lengthString(len(self.value_[i]))
+    for i in range(len(self.value_)): n += self.lengthString(len(self.value_[i]))
     return n + 1
 
   def ByteSizePartial(self):
@@ -3160,7 +3165,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
       n += 1
       n += self.lengthVarInt64(self.index_id_)
     n += 1 * len(self.value_)
-    for i in xrange(len(self.value_)): n += self.lengthString(len(self.value_[i]))
+    for i in range(len(self.value_)): n += self.lengthString(len(self.value_[i]))
     return n
 
   def Clear(self):
@@ -3170,7 +3175,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
   def OutputUnchecked(self, out):
     out.putVarInt32(8)
     out.putVarInt64(self.index_id_)
-    for i in xrange(len(self.value_)):
+    for i in range(len(self.value_)):
       out.putVarInt32(18)
       out.putPrefixedString(self.value_[i])
 
@@ -3178,7 +3183,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
     if (self.has_index_id_):
       out.putVarInt32(8)
       out.putVarInt64(self.index_id_)
-    for i in xrange(len(self.value_)):
+    for i in range(len(self.value_)):
       out.putVarInt32(18)
       out.putPrefixedString(self.value_[i])
 
@@ -3193,7 +3198,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -3210,7 +3215,7 @@ class CompositeProperty(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kindex_id = 1
   kvalue = 2
@@ -3251,10 +3256,12 @@ class Index_Property(ProtocolBuffer.ProtocolMessage):
 
   MODE_UNSPECIFIED =    0
   GEOSPATIAL   =    3
+  ARRAY_CONTAINS =    4
 
   _Mode_NAMES = {
     0: "MODE_UNSPECIFIED",
     3: "GEOSPATIAL",
+    4: "ARRAY_CONTAINS",
   }
 
   def Mode_Name(cls, x): return cls._Mode_NAMES.get(x, "")
@@ -3391,7 +3398,7 @@ class Index_Property(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -3408,11 +3415,13 @@ class Index(ProtocolBuffer.ProtocolMessage):
   VERSION_UNSPECIFIED =    0
   V1           =    1
   V2           =    2
+  V3           =    3
 
   _Version_NAMES = {
     0: "VERSION_UNSPECIFIED",
     1: "V1",
     2: "V2",
+    3: "V3",
   }
 
   def Version_Name(cls, x): return cls._Version_NAMES.get(x, "")
@@ -3506,7 +3515,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
     if (x.has_ancestor()): self.set_ancestor(x.ancestor())
     if (x.has_parent()): self.set_parent(x.parent())
     if (x.has_version()): self.set_version(x.version())
-    for i in xrange(x.property_size()): self.add_property().CopyFrom(x.property(i))
+    for i in range(x.property_size()): self.add_property().CopyFrom(x.property(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -3543,7 +3552,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
     if (self.has_parent_): n += 2
     if (self.has_version_): n += 1 + self.lengthVarInt64(self.version_)
     n += 2 * len(self.property_)
-    for i in xrange(len(self.property_)): n += self.property_[i].ByteSize()
+    for i in range(len(self.property_)): n += self.property_[i].ByteSize()
     return n + 3
 
   def ByteSizePartial(self):
@@ -3556,7 +3565,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
     if (self.has_parent_): n += 2
     if (self.has_version_): n += 1 + self.lengthVarInt64(self.version_)
     n += 2 * len(self.property_)
-    for i in xrange(len(self.property_)): n += self.property_[i].ByteSizePartial()
+    for i in range(len(self.property_)): n += self.property_[i].ByteSizePartial()
     return n
 
   def Clear(self):
@@ -3569,7 +3578,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
   def OutputUnchecked(self, out):
     out.putVarInt32(10)
     out.putPrefixedString(self.entity_type_)
-    for i in xrange(len(self.property_)):
+    for i in range(len(self.property_)):
       out.putVarInt32(19)
       self.property_[i].OutputUnchecked(out)
       out.putVarInt32(20)
@@ -3586,7 +3595,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
     if (self.has_entity_type_):
       out.putVarInt32(10)
       out.putPrefixedString(self.entity_type_)
-    for i in xrange(len(self.property_)):
+    for i in range(len(self.property_)):
       out.putVarInt32(19)
       self.property_[i].OutputPartial(out)
       out.putVarInt32(20)
@@ -3620,7 +3629,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -3642,7 +3651,7 @@ class Index(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kentity_type = 1
   kancestor = 5
@@ -3891,7 +3900,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
     if (x.has_error_message()): self.set_error_message(x.error_message())
     if (x.has_only_use_if_required()): self.set_only_use_if_required(x.only_use_if_required())
     if (x.has_disabled_index()): self.set_disabled_index(x.disabled_index())
-    for i in xrange(x.deprecated_read_division_family_size()): self.add_deprecated_read_division_family(x.deprecated_read_division_family(i))
+    for i in range(x.deprecated_read_division_family_size()): self.add_deprecated_read_division_family(x.deprecated_read_division_family(i))
     if (x.has_deprecated_write_division_family()): self.set_deprecated_write_division_family(x.deprecated_write_division_family())
 
   def Equals(self, x):
@@ -3954,7 +3963,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
     if (self.has_only_use_if_required_): n += 2
     if (self.has_disabled_index_): n += 2
     n += 1 * len(self.deprecated_read_division_family_)
-    for i in xrange(len(self.deprecated_read_division_family_)): n += self.lengthString(len(self.deprecated_read_division_family_[i]))
+    for i in range(len(self.deprecated_read_division_family_)): n += self.lengthString(len(self.deprecated_read_division_family_[i]))
     if (self.has_deprecated_write_division_family_): n += 1 + self.lengthString(len(self.deprecated_write_division_family_))
     return n + 4
 
@@ -3978,7 +3987,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
     if (self.has_only_use_if_required_): n += 2
     if (self.has_disabled_index_): n += 2
     n += 1 * len(self.deprecated_read_division_family_)
-    for i in xrange(len(self.deprecated_read_division_family_)): n += self.lengthString(len(self.deprecated_read_division_family_[i]))
+    for i in range(len(self.deprecated_read_division_family_)): n += self.lengthString(len(self.deprecated_read_division_family_[i]))
     if (self.has_deprecated_write_division_family_): n += 1 + self.lengthString(len(self.deprecated_write_division_family_))
     return n
 
@@ -4008,7 +4017,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
     if (self.has_only_use_if_required_):
       out.putVarInt32(48)
       out.putBoolean(self.only_use_if_required_)
-    for i in xrange(len(self.deprecated_read_division_family_)):
+    for i in range(len(self.deprecated_read_division_family_)):
       out.putVarInt32(58)
       out.putPrefixedString(self.deprecated_read_division_family_[i])
     if (self.has_deprecated_write_division_family_):
@@ -4044,7 +4053,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
     if (self.has_only_use_if_required_):
       out.putVarInt32(48)
       out.putBoolean(self.only_use_if_required_)
-    for i in xrange(len(self.deprecated_read_division_family_)):
+    for i in range(len(self.deprecated_read_division_family_)):
       out.putVarInt32(58)
       out.putPrefixedString(self.deprecated_read_division_family_[i])
     if (self.has_deprecated_write_division_family_):
@@ -4104,7 +4113,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -4133,7 +4142,7 @@ class CompositeIndex(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kapp_id = 1
   kdatabase_id = 12
@@ -4347,7 +4356,7 @@ class SearchIndexEntry(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -4361,7 +4370,7 @@ class SearchIndexEntry(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kindex_id = 1
   kwrite_division_family = 2
@@ -4495,7 +4504,7 @@ class IndexPostfix_IndexValue(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -4510,7 +4519,7 @@ class IndexPostfix_IndexValue(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kproperty_name = 1
   kvalue = 2
@@ -4541,7 +4550,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
 
   def __init__(self, contents=None):
     self.index_value_ = []
-    self.lazy_init_lock_ = thread.allocate_lock()
+    self.lazy_init_lock_ = _Lock()
     if contents is not None: self.MergeFromString(contents)
 
   def index_value_size(self): return len(self.index_value_)
@@ -4608,7 +4617,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
 
   def MergeFrom(self, x):
     assert x is not self
-    for i in xrange(x.index_value_size()): self.add_index_value().CopyFrom(x.index_value(i))
+    for i in range(x.index_value_size()): self.add_index_value().CopyFrom(x.index_value(i))
     if (x.has_key()): self.mutable_key().MergeFrom(x.key())
     if (x.has_before()): self.set_before(x.before())
     if (x.has_before_ascending()): self.set_before_ascending(x.before_ascending())
@@ -4636,7 +4645,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
   def ByteSize(self):
     n = 0
     n += 1 * len(self.index_value_)
-    for i in xrange(len(self.index_value_)): n += self.lengthString(self.index_value_[i].ByteSize())
+    for i in range(len(self.index_value_)): n += self.lengthString(self.index_value_[i].ByteSize())
     if (self.has_key_): n += 1 + self.lengthString(self.key_.ByteSize())
     if (self.has_before_): n += 2
     if (self.has_before_ascending_): n += 2
@@ -4645,7 +4654,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
   def ByteSizePartial(self):
     n = 0
     n += 1 * len(self.index_value_)
-    for i in xrange(len(self.index_value_)): n += self.lengthString(self.index_value_[i].ByteSizePartial())
+    for i in range(len(self.index_value_)): n += self.lengthString(self.index_value_[i].ByteSizePartial())
     if (self.has_key_): n += 1 + self.lengthString(self.key_.ByteSizePartial())
     if (self.has_before_): n += 2
     if (self.has_before_ascending_): n += 2
@@ -4658,7 +4667,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
     self.clear_before_ascending()
 
   def OutputUnchecked(self, out):
-    for i in xrange(len(self.index_value_)):
+    for i in range(len(self.index_value_)):
       out.putVarInt32(10)
       out.putVarInt32(self.index_value_[i].ByteSize())
       self.index_value_[i].OutputUnchecked(out)
@@ -4674,7 +4683,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
       out.putBoolean(self.before_ascending_)
 
   def OutputPartial(self, out):
-    for i in xrange(len(self.index_value_)):
+    for i in range(len(self.index_value_)):
       out.putVarInt32(10)
       out.putVarInt32(self.index_value_[i].ByteSizePartial())
       self.index_value_[i].OutputPartial(out)
@@ -4712,7 +4721,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -4736,7 +4745,7 @@ class IndexPostfix(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kindex_value = 1
   kkey = 2
@@ -4889,7 +4898,7 @@ class IndexPosition(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -4902,7 +4911,7 @@ class IndexPosition(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kkey = 1
   kbefore = 2

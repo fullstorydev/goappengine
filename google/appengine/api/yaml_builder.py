@@ -31,12 +31,14 @@ object so that it can construct a properly structured object.
 
 
 
+from __future__ import absolute_import
 
+
+from google.appengine._internal.ruamel import yaml
 
 from google.appengine.api import yaml_errors
 from google.appengine.api import yaml_listener
 
-import yaml
 
 
 _TOKEN_DOCUMENT = 'document'

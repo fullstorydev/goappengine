@@ -33,6 +33,7 @@ from google.appengine.tools.devappserver2 import dispatcher
 from google.appengine.tools.devappserver2 import metrics
 from google.appengine.tools.devappserver2 import runtime_config_pb2
 from google.appengine.tools.devappserver2 import shutdown
+from google.appengine.tools.devappserver2 import ssl_utils
 from google.appengine.tools.devappserver2 import update_checker
 from google.appengine.tools.devappserver2 import util
 from google.appengine.tools.devappserver2 import wsgi_request_info
@@ -50,6 +51,10 @@ PARSER = cli_parser.create_command_line_parser(
     cli_parser.DEV_APPSERVER_CONFIGURATION)
 
 
+# Minimum java version required by the Cloud Datastore Emulator
+_CLOUD_DATASTORE_EMULATOR_JAVA_VERSION = 8
+
+
 class PhpVersionError(Exception):
   """Raised when multiple versions of php are in app yaml."""
 
@@ -59,6 +64,63 @@ class PhpPathError(Exception):
 
   This flag is optional for php55.
   """
+
+
+class MissingDatastoreEmulatorError(Exception):
+  """Raised when Datastore Emulator cannot be found."""
+
+
+class _DatastoreEmulatorDepManager(object):
+  """Manages dependencies of using Cloud Datastore Emulator."""
+
+  def _gen_grpc_import_report(self):
+    """Try to import grpc and generate a report.
+
+    Returns:
+      A dict.
+    """
+    report = {}
+    report['MaxUnicode'] = sys.maxunicode
+    try:
+      # Using '__import__()' instead of 'import' for easiness to mock
+      __import__('grpc')
+    except ImportError as e:
+      report['ImportError'] = repr(e)
+    return report
+
+  @property
+  def grpc_import_report(self):
+
+
+
+    return self._grpc_import_report
+
+  @property
+  def java_major_version(self):
+    return self._java_major_version
+
+  @property
+  def satisfied(self):
+    return self.error_hint is None
+
+  @property
+  def error_hint(self):
+    return self._error_hint
+
+  def __init__(self):
+    self._grpc_import_report = self._gen_grpc_import_report()
+    self._java_major_version = util.get_java_major_version()
+
+    self._error_hint = None
+    if self._java_major_version < _CLOUD_DATASTORE_EMULATOR_JAVA_VERSION:
+      self._error_hint = (
+          'Cannot use the Cloud Datastore Emulator because Java is absent. '
+          'Please make sure Java %s+ is installed, and added to your system '
+          'path' % _CLOUD_DATASTORE_EMULATOR_JAVA_VERSION)
+    elif 'ImportError' in self._grpc_import_report:
+      self._error_hint = (
+          'Cannot use the Cloud Datastore Emulator because the packaged grpcio '
+          'is incompatible to this system. Please install grpcio using pip')
 
 
 class DevelopmentServer(object):
@@ -87,6 +149,95 @@ class DevelopmentServer(object):
         self._dispatcher.get_default_version(module_name),
         instance)
 
+  def _correct_datastore_emulator_cmd(self):
+    """Returns the path to cloud datastore emulator invocation script.
+
+    This is for the edge case when dev_appserver is invoked from
+    <google-cloud-sdk>/platform/google_appengine/dev_appserver.py.
+    """
+    if self._options.datastore_emulator_cmd:
+      return
+    # __file__ returns <cloud-sdk>/platform/google_appengine/dev_appserver.py
+    platform_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    emulator_script = (
+        'cloud_datastore_emulator.cmd' if sys.platform.startswith('win')
+        else 'cloud_datastore_emulator')
+
+    self._options.datastore_emulator_cmd = os.path.join(
+        platform_dir, 'cloud-datastore-emulator', emulator_script)
+
+  def _fail_for_using_datastore_emulator_from_legacy_sdk(self):
+    """Error out on attempts to use the emulator from the legacy GAE SDK."""
+    if (self._options.support_datastore_emulator and (
+        self._options.datastore_emulator_cmd is None
+        or not os.path.exists(self._options.datastore_emulator_cmd))):
+      raise MissingDatastoreEmulatorError(
+          'Cannot find Cloud Datastore Emulator. Please make sure that you are '
+          'using the Google Cloud SDK and have installed the Cloud Datastore '
+          'Emulator.')
+
+  def _decide_use_datastore_emulator(self):
+    """Decide whether to use the Cloud Datastore Emulator.
+
+    - if --support_datastore_emulator is not set, enable it based on Google
+    Analytics client ID. If grpc or java is not satisfied, fall back to old path
+    with info level logging.
+    - if --support_datastore_emulator is True/False, respect it. But, if grpc or
+    java is not satisfied, raise exception.
+
+    The decision is stored into _options.support_datastore_emulator.
+
+    Raises:
+      RuntimeError: if --support_datastore_emulator = True while emulator deps
+      aren't satisfied.
+    """
+    explicitly_support = self._options.support_datastore_emulator
+
+    # If --support_datastore_emulator is empty, select by analytics client ID.
+    client_id = self._options.google_analytics_client_id
+    selected = (explicitly_support is None and client_id)
+
+    dep_manager = None
+    self.grpc_import_report = None
+    self.java_major_version = None
+
+    if explicitly_support or selected:
+      # Lazy create dep_manager, because it checks Java.
+      # On MacOS checking Java may cause annoying prompt window.
+      dep_manager = _DatastoreEmulatorDepManager()
+      self.grpc_import_report = dep_manager.grpc_import_report
+      self.java_major_version = dep_manager.java_major_version
+
+    # Adjust logic based on whether dependencies are satisfied
+    if explicitly_support and not dep_manager.satisfied:
+      raise RuntimeError(dep_manager.error_hint)
+    if selected:
+      if dep_manager.satisfied:
+        # Store the decision result in options.support_datastore_emulator
+        self._options.support_datastore_emulator = True
+      else:
+        logging.debug(dep_manager.error_hint)
+
+    if self._options.support_datastore_emulator:
+      # TODO: When rollout is 100%, remove the message.
+      logging.info(
+          'Using Cloud Datastore Emulator.\n'
+          'We are gradually rolling out the emulator as the default datastore '
+          'implementation of dev_appserver.\n'
+          'If broken, you can temporarily disable it by '
+          '--support_datastore_emulator=False\n'
+          'Read the documentation: '
+          'https://cloud.google.com/appengine/docs/standard/python/tools/migrate-cloud-datastore-emulator\n'  # pylint: disable=line-too-long
+          'Help us validate that the feature is ready by taking this survey: https://goo.gl/forms/UArIcs8K9CUSCm733\n'  # pylint: disable=line-too-long
+          'Report issues at: '
+          'https://issuetracker.google.com/issues/new?component=187272\n')
+
+  @classmethod
+  def _check_platform_support(cls, all_module_runtimes):
+    if (any(runtime.startswith('python3') for runtime in all_module_runtimes)
+        and util.is_windows()):
+      raise OSError('Dev_appserver does not support python3 apps on Windows.')
+
   def start(self, options):
     """Start devappserver2 servers based on the provided command line arguments.
 
@@ -95,8 +246,14 @@ class DevelopmentServer(object):
 
     Raises:
       PhpPathError: php executable path is not specified for php72.
+      MissingDatastoreEmulatorError: dev_appserver.py is not invoked from the right
+        directory.
     """
     self._options = options
+
+    self._correct_datastore_emulator_cmd()
+    self._fail_for_using_datastore_emulator_from_legacy_sdk()
+    self._decide_use_datastore_emulator()
 
     logging.getLogger().setLevel(
         constants.LOG_LEVEL_TO_PYTHON_CONSTANT[options.dev_appserver_log_level])
@@ -107,6 +264,8 @@ class DevelopmentServer(object):
         app_id=options.app_id,
         runtime=options.runtime,
         env_variables=parsed_env_variables)
+    all_module_runtimes = {module.runtime for module in configuration.modules}
+    self._check_platform_support(all_module_runtimes)
 
     storage_path = api_server.get_storage_path(
         options.storage_path, configuration.app_id)
@@ -114,14 +273,6 @@ class DevelopmentServer(object):
         storage_path, options.datastore_path)
     datastore_data_type = (datastore_converter.get_stub_type(datastore_path)
                            if os.path.isfile(datastore_path) else None)
-    if options.google_analytics_client_id:
-      metrics_logger = metrics.GetMetricsLogger()
-      metrics_logger.Start(
-          options.google_analytics_client_id,
-          options.google_analytics_user_agent,
-          {module.runtime for module in configuration.modules},
-          {module.env or 'standard' for module in configuration.modules},
-          options.support_datastore_emulator, datastore_data_type)
 
     if options.skip_sdk_update_check:
       logging.info('Skipping SDK update check.')
@@ -149,14 +300,34 @@ class DevelopmentServer(object):
     if not options.php_executable_path and php_version == 'php72':
       raise PhpPathError('For php72, --php_executable_path must be specified.')
 
+    if options.ssl_certificate_path and options.ssl_certificate_key_path:
+      ssl_certificate_paths = self._create_ssl_certificate_paths_if_valid(
+          options.ssl_certificate_path, options.ssl_certificate_key_path)
+    else:
+      if options.ssl_certificate_path or options.ssl_certificate_key_path:
+        logging.warn('Must provide both --ssl_certificate_path and '
+                     '--ssl_certificate_key_path to enable SSL. Since '
+                     'only one flag was provided, not using SSL.')
+      ssl_certificate_paths = None
+
+    if options.google_analytics_client_id:
+      metrics_logger = metrics.GetMetricsLogger()
+      metrics_logger.Start(
+          options.google_analytics_client_id,
+          options.google_analytics_user_agent,
+          all_module_runtimes,
+          {module.env or 'standard' for module in configuration.modules},
+          options.support_datastore_emulator, datastore_data_type,
+          bool(ssl_certificate_paths), options,
+          multi_module=len(configuration.modules) > 1,
+          dispatch_config=configuration.dispatch is not None,
+          grpc_import_report=self.grpc_import_report,
+          java_major_version=self.java_major_version
+      )
+
     self._dispatcher = dispatcher.Dispatcher(
         configuration, options.host, options.port, options.auth_domain,
         constants.LOG_LEVEL_TO_RUNTIME_CONSTANT[options.log_level],
-
-
-
-
-
         self._create_php_config(options, php_version),
         self._create_python_config(options),
         self._create_java_config(options),
@@ -174,7 +345,8 @@ class DevelopmentServer(object):
             '--threadsafe_override'),
         options.external_port,
         options.specified_service_ports,
-        options.enable_host_checking)
+        options.enable_host_checking,
+        ssl_certificate_paths)
 
     wsgi_request_info_ = wsgi_request_info.WSGIRequestInfo(self._dispatcher)
 
@@ -289,18 +461,6 @@ class DevelopmentServer(object):
 
     return php_config
 
-
-
-
-
-
-
-
-
-
-
-
-
   @staticmethod
   def _create_python_config(options):
     python_config = runtime_config_pb2.PythonConfig()
@@ -385,6 +545,32 @@ class DevelopmentServer(object):
 
     # Create a dict with an entry for every module.
     return {module_name: setting for module_name in module_names}
+
+  @staticmethod
+  def _create_ssl_certificate_paths_if_valid(certificate_path,
+                                             certificate_key_path):
+    """Returns an ssl_utils.SSLCertificatePaths instance iff valid cert/key.
+
+    Args:
+      certificate_path: str, path to the SSL certificate.
+      certificate_key_path: str, path to the SSL certificate's private key.
+
+    Returns:
+      An ssl_utils.SSLCertificatePaths with the provided paths, or None if the
+        cert/key pair is invalid.
+    """
+    ssl_certificate_paths = ssl_utils.SSLCertificatePaths(
+        ssl_certificate_path=certificate_path,
+        ssl_certificate_key_path=certificate_key_path)
+    try:
+      ssl_utils.validate_ssl_certificate_paths_or_raise(ssl_certificate_paths)
+    except ssl_utils.SSLCertificatePathsValidationError as e:
+      ssl_failure_reason = (
+          e.error_message if e.error_message else e.original_exception)
+      logging.warn('Tried to enable SSL, but failed: %s', ssl_failure_reason)
+      return None
+    else:
+      return ssl_certificate_paths
 
 
 def main():

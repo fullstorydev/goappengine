@@ -115,6 +115,7 @@ func runSDKTool(tool string, args []string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
+	cmd.Env = os.Environ()
 	if err = cmd.Start(); err != nil {
 		base.Fatalf("error starting %s: %v", toolName, err)
 	}

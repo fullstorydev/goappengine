@@ -20,11 +20,11 @@ import threading
 from google.appengine.tools.devappserver2 import watcher_common
 
 try:
-  import fsevents
+  import FSEvents
   from fsevents import Observer
   from fsevents import Stream
 except ImportError:
-  fsevents = None
+  FSEvents = None
   Observer = None
   Stream = None
 
@@ -43,7 +43,7 @@ class FSEventsFileWatcher(object):
 
         def callback(event, mask=None):
             logging.debug("FSEventsFileWatcher event %s", event)
-            if event.mask == fsevents.FS_FLAGNONE:
+            if event.mask == FSEvents.kFSEventStreamEventFlagNone:
                 return
 
             absolute_path = event.name
@@ -93,7 +93,7 @@ class FSEventsFileWatcher(object):
 
     @staticmethod
     def is_available():
-      return fsevents is not None
+      return Observer is not None
 
     def start(self):
         self.observer.schedule(self.stream)
