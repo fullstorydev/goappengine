@@ -38,14 +38,9 @@ from google.appengine.tools.devappserver2.go import goroots
 # confident depending on the goroot and gopath being in the same place relative
 # to it.
 #
-# This gopath will be used in the event that the user does not already have a
-# GOPATH in their os.environ.
-#
 # devappserver2: $HOME/go_appengine/google/appengine/tools/devappserver2
-# gopath:        $HOME/go_appengine/gopath
 ROOT_PATH = os.path.normpath(
     os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', '..'))
-GOPATH = os.path.join(ROOT_PATH, 'gopath')
 
 
 def _rmtree(directory):
@@ -131,6 +126,12 @@ class GoApplication(object):
     """The path to the Go executable. None if it has not been built."""
     return self._go_executable
 
+  def _get_gab_env(self):
+    return {
+        'GOPATH': os.getenv('GOPATH', ''),
+        'HOME': os.getenv('HOME', ''),
+    }
+
   def _run_gab(self, gab_extra_args, env):
     """Run go-app-builder.
 
@@ -163,7 +164,6 @@ class GoApplication(object):
         '-arch', self._arch,
         '-dynamic',
         '-goroot', self._goroot,
-        '-gopath', os.environ.get('GOPATH', GOPATH),
         '-nobuild_files', '^' + str(self._module_configuration.nobuild_files),
         '-incremental_rebuild',
         '-unsafe',
@@ -281,7 +281,8 @@ class GoApplication(object):
     """
     gab_args = ['-print_extras_hash']
     gab_args.extend(self._go_file_to_mtime)
-    gab_stdout, _ = self._run_gab(gab_args, env={})
+    gab_stdout, _ = self._run_gab(
+        gab_args, env=self._get_gab_env())
     return gab_stdout
 
   def _build(self):
@@ -306,7 +307,8 @@ class GoApplication(object):
     GoApplication._lock.acquire()
     try:
       logging.info('Building Go application %s in %s', module_name, self._work_dir)
-      gab_stdout, gab_stderr = self._run_gab(gab_args, env={})
+      gab_stdout, gab_stderr = self._run_gab(
+        gab_args, env=self._get_gab_env())
     finally:
       GoApplication._lock.release()
     logging.info('Build of %s succeeded:\n%s\n%s', module_name, gab_stdout, gab_stderr)

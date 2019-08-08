@@ -86,11 +86,11 @@ func (m *MailServiceError) String() string { return proto.CompactTextString(m) }
 func (*MailServiceError) ProtoMessage()    {}
 
 type MailAttachment struct {
-	FileName         *string `protobuf:"bytes,1,req,name=FileName" json:"FileName,omitempty"`
-	Data             []byte  `protobuf:"bytes,2,req,name=Data" json:"Data,omitempty"`
-	ContentID        *string `protobuf:"bytes,3,opt,name=ContentID" json:"ContentID,omitempty"`
-	ContentIDSet     *bool   `protobuf:"varint,13,opt,name=ContentID_set,json=ContentIDSet" json:"ContentID_set,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
+	FileName                *string `protobuf:"bytes,1,req,name=FileName" json:"FileName,omitempty"`
+	Data                    []byte  `protobuf:"bytes,2,req,name=Data" json:"Data,omitempty"`
+	ContentID               *string `protobuf:"bytes,3,opt,name=ContentID" json:"ContentID,omitempty"`
+	DEPRECATED_ContentIDSet *bool   `protobuf:"varint,13,opt,name=DEPRECATED_ContentID_set,json=DEPRECATEDContentIDSet" json:"DEPRECATED_ContentID_set,omitempty"`
+	XXX_unrecognized        []byte  `json:"-"`
 }
 
 func (m *MailAttachment) Reset()         { *m = MailAttachment{} }
@@ -118,9 +118,9 @@ func (m *MailAttachment) GetContentID() string {
 	return ""
 }
 
-func (m *MailAttachment) GetContentIDSet() bool {
-	if m != nil && m.ContentIDSet != nil {
-		return *m.ContentIDSet
+func (m *MailAttachment) GetDEPRECATED_ContentIDSet() bool {
+	if m != nil && m.DEPRECATED_ContentIDSet != nil {
+		return *m.DEPRECATED_ContentIDSet
 	}
 	return false
 }

@@ -20,7 +20,12 @@
 from google.net.proto import ProtocolBuffer
 import abc
 import array
-import dummy_thread as thread
+try:
+  from thread import allocate_lock as _Lock
+except ImportError:
+  from threading import Lock as _Lock
+
+if hasattr(__builtins__, 'xrange'): range = xrange
 
 if hasattr(ProtocolBuffer, 'ExtendableProtocolMessage'):
   _extension_runtime = True
@@ -95,7 +100,7 @@ class MailServiceError(ProtocolBuffer.ProtocolMessage):
       tt = d.getVarInt32()
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -105,7 +110,7 @@ class MailServiceError(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
 
   _TEXT = _BuildTagLookupTable({
@@ -127,8 +132,8 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
   data_ = ""
   has_contentid_ = 0
   contentid_ = ""
-  has_contentid_set_ = 0
-  contentid_set_ = 0
+  has_deprecated_contentid_set_ = 0
+  deprecated_contentid_set_ = 0
 
   def __init__(self, contents=None):
     if contents is not None: self.MergeFromString(contents)
@@ -172,18 +177,18 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
 
   def has_contentid(self): return self.has_contentid_
 
-  def contentid_set(self): return self.contentid_set_
+  def deprecated_contentid_set(self): return self.deprecated_contentid_set_
 
-  def set_contentid_set(self, x):
-    self.has_contentid_set_ = 1
-    self.contentid_set_ = x
+  def set_deprecated_contentid_set(self, x):
+    self.has_deprecated_contentid_set_ = 1
+    self.deprecated_contentid_set_ = x
 
-  def clear_contentid_set(self):
-    if self.has_contentid_set_:
-      self.has_contentid_set_ = 0
-      self.contentid_set_ = 0
+  def clear_deprecated_contentid_set(self):
+    if self.has_deprecated_contentid_set_:
+      self.has_deprecated_contentid_set_ = 0
+      self.deprecated_contentid_set_ = 0
 
-  def has_contentid_set(self): return self.has_contentid_set_
+  def has_deprecated_contentid_set(self): return self.has_deprecated_contentid_set_
 
 
   def MergeFrom(self, x):
@@ -191,7 +196,7 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     if (x.has_filename()): self.set_filename(x.filename())
     if (x.has_data()): self.set_data(x.data())
     if (x.has_contentid()): self.set_contentid(x.contentid())
-    if (x.has_contentid_set()): self.set_contentid_set(x.contentid_set())
+    if (x.has_deprecated_contentid_set()): self.set_deprecated_contentid_set(x.deprecated_contentid_set())
 
   def Equals(self, x):
     if x is self: return 1
@@ -201,8 +206,8 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     if self.has_data_ and self.data_ != x.data_: return 0
     if self.has_contentid_ != x.has_contentid_: return 0
     if self.has_contentid_ and self.contentid_ != x.contentid_: return 0
-    if self.has_contentid_set_ != x.has_contentid_set_: return 0
-    if self.has_contentid_set_ and self.contentid_set_ != x.contentid_set_: return 0
+    if self.has_deprecated_contentid_set_ != x.has_deprecated_contentid_set_: return 0
+    if self.has_deprecated_contentid_set_ and self.deprecated_contentid_set_ != x.deprecated_contentid_set_: return 0
     return 1
 
   def IsInitialized(self, debug_strs=None):
@@ -222,7 +227,7 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     n += self.lengthString(len(self.filename_))
     n += self.lengthString(len(self.data_))
     if (self.has_contentid_): n += 1 + self.lengthString(len(self.contentid_))
-    if (self.has_contentid_set_): n += 2
+    if (self.has_deprecated_contentid_set_): n += 2
     return n + 2
 
   def ByteSizePartial(self):
@@ -234,14 +239,14 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
       n += 1
       n += self.lengthString(len(self.data_))
     if (self.has_contentid_): n += 1 + self.lengthString(len(self.contentid_))
-    if (self.has_contentid_set_): n += 2
+    if (self.has_deprecated_contentid_set_): n += 2
     return n
 
   def Clear(self):
     self.clear_filename()
     self.clear_data()
     self.clear_contentid()
-    self.clear_contentid_set()
+    self.clear_deprecated_contentid_set()
 
   def OutputUnchecked(self, out):
     out.putVarInt32(10)
@@ -251,9 +256,9 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     if (self.has_contentid_):
       out.putVarInt32(26)
       out.putPrefixedString(self.contentid_)
-    if (self.has_contentid_set_):
+    if (self.has_deprecated_contentid_set_):
       out.putVarInt32(104)
-      out.putBoolean(self.contentid_set_)
+      out.putBoolean(self.deprecated_contentid_set_)
 
   def OutputPartial(self, out):
     if (self.has_filename_):
@@ -265,9 +270,9 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     if (self.has_contentid_):
       out.putVarInt32(26)
       out.putPrefixedString(self.contentid_)
-    if (self.has_contentid_set_):
+    if (self.has_deprecated_contentid_set_):
       out.putVarInt32(104)
-      out.putBoolean(self.contentid_set_)
+      out.putBoolean(self.deprecated_contentid_set_)
 
   def TryMerge(self, d):
     while d.avail() > 0:
@@ -282,11 +287,11 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
         self.set_contentid(d.getPrefixedString())
         continue
       if tt == 104:
-        self.set_contentid_set(d.getBoolean())
+        self.set_deprecated_contentid_set(d.getBoolean())
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -295,24 +300,24 @@ class MailAttachment(ProtocolBuffer.ProtocolMessage):
     if self.has_filename_: res+=prefix+("FileName: %s\n" % self.DebugFormatString(self.filename_))
     if self.has_data_: res+=prefix+("Data: %s\n" % self.DebugFormatString(self.data_))
     if self.has_contentid_: res+=prefix+("ContentID: %s\n" % self.DebugFormatString(self.contentid_))
-    if self.has_contentid_set_: res+=prefix+("ContentID_set: %s\n" % self.DebugFormatBool(self.contentid_set_))
+    if self.has_deprecated_contentid_set_: res+=prefix+("DEPRECATED_ContentID_set: %s\n" % self.DebugFormatBool(self.deprecated_contentid_set_))
     return res
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kFileName = 1
   kData = 2
   kContentID = 3
-  kContentID_set = 13
+  kDEPRECATED_ContentID_set = 13
 
   _TEXT = _BuildTagLookupTable({
     0: "ErrorCode",
     1: "FileName",
     2: "Data",
     3: "ContentID",
-    13: "ContentID_set",
+    13: "DEPRECATED_ContentID_set",
   }, 13)
 
   _TYPES = _BuildTagLookupTable({
@@ -433,7 +438,7 @@ class MailHeader(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -445,7 +450,7 @@ class MailHeader(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kname = 1
   kvalue = 2
@@ -648,15 +653,15 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     assert x is not self
     if (x.has_sender()): self.set_sender(x.sender())
     if (x.has_replyto()): self.set_replyto(x.replyto())
-    for i in xrange(x.to_size()): self.add_to(x.to(i))
-    for i in xrange(x.cc_size()): self.add_cc(x.cc(i))
-    for i in xrange(x.bcc_size()): self.add_bcc(x.bcc(i))
+    for i in range(x.to_size()): self.add_to(x.to(i))
+    for i in range(x.cc_size()): self.add_cc(x.cc(i))
+    for i in range(x.bcc_size()): self.add_bcc(x.bcc(i))
     if (x.has_subject()): self.set_subject(x.subject())
     if (x.has_textbody()): self.set_textbody(x.textbody())
     if (x.has_htmlbody()): self.set_htmlbody(x.htmlbody())
     if (x.has_amphtmlbody()): self.set_amphtmlbody(x.amphtmlbody())
-    for i in xrange(x.attachment_size()): self.add_attachment().CopyFrom(x.attachment(i))
-    for i in xrange(x.header_size()): self.add_header().CopyFrom(x.header(i))
+    for i in range(x.attachment_size()): self.add_attachment().CopyFrom(x.attachment(i))
+    for i in range(x.header_size()): self.add_header().CopyFrom(x.header(i))
 
   def Equals(self, x):
     if x is self: return 1
@@ -710,19 +715,19 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     n += self.lengthString(len(self.sender_))
     if (self.has_replyto_): n += 1 + self.lengthString(len(self.replyto_))
     n += 1 * len(self.to_)
-    for i in xrange(len(self.to_)): n += self.lengthString(len(self.to_[i]))
+    for i in range(len(self.to_)): n += self.lengthString(len(self.to_[i]))
     n += 1 * len(self.cc_)
-    for i in xrange(len(self.cc_)): n += self.lengthString(len(self.cc_[i]))
+    for i in range(len(self.cc_)): n += self.lengthString(len(self.cc_[i]))
     n += 1 * len(self.bcc_)
-    for i in xrange(len(self.bcc_)): n += self.lengthString(len(self.bcc_[i]))
+    for i in range(len(self.bcc_)): n += self.lengthString(len(self.bcc_[i]))
     n += self.lengthString(len(self.subject_))
     if (self.has_textbody_): n += 1 + self.lengthString(len(self.textbody_))
     if (self.has_htmlbody_): n += 1 + self.lengthString(len(self.htmlbody_))
     if (self.has_amphtmlbody_): n += 1 + self.lengthString(len(self.amphtmlbody_))
     n += 1 * len(self.attachment_)
-    for i in xrange(len(self.attachment_)): n += self.lengthString(self.attachment_[i].ByteSize())
+    for i in range(len(self.attachment_)): n += self.lengthString(self.attachment_[i].ByteSize())
     n += 1 * len(self.header_)
-    for i in xrange(len(self.header_)): n += self.lengthString(self.header_[i].ByteSize())
+    for i in range(len(self.header_)): n += self.lengthString(self.header_[i].ByteSize())
     return n + 2
 
   def ByteSizePartial(self):
@@ -732,11 +737,11 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
       n += self.lengthString(len(self.sender_))
     if (self.has_replyto_): n += 1 + self.lengthString(len(self.replyto_))
     n += 1 * len(self.to_)
-    for i in xrange(len(self.to_)): n += self.lengthString(len(self.to_[i]))
+    for i in range(len(self.to_)): n += self.lengthString(len(self.to_[i]))
     n += 1 * len(self.cc_)
-    for i in xrange(len(self.cc_)): n += self.lengthString(len(self.cc_[i]))
+    for i in range(len(self.cc_)): n += self.lengthString(len(self.cc_[i]))
     n += 1 * len(self.bcc_)
-    for i in xrange(len(self.bcc_)): n += self.lengthString(len(self.bcc_[i]))
+    for i in range(len(self.bcc_)): n += self.lengthString(len(self.bcc_[i]))
     if (self.has_subject_):
       n += 1
       n += self.lengthString(len(self.subject_))
@@ -744,9 +749,9 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     if (self.has_htmlbody_): n += 1 + self.lengthString(len(self.htmlbody_))
     if (self.has_amphtmlbody_): n += 1 + self.lengthString(len(self.amphtmlbody_))
     n += 1 * len(self.attachment_)
-    for i in xrange(len(self.attachment_)): n += self.lengthString(self.attachment_[i].ByteSizePartial())
+    for i in range(len(self.attachment_)): n += self.lengthString(self.attachment_[i].ByteSizePartial())
     n += 1 * len(self.header_)
-    for i in xrange(len(self.header_)): n += self.lengthString(self.header_[i].ByteSizePartial())
+    for i in range(len(self.header_)): n += self.lengthString(self.header_[i].ByteSizePartial())
     return n
 
   def Clear(self):
@@ -768,13 +773,13 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     if (self.has_replyto_):
       out.putVarInt32(18)
       out.putPrefixedString(self.replyto_)
-    for i in xrange(len(self.to_)):
+    for i in range(len(self.to_)):
       out.putVarInt32(26)
       out.putPrefixedString(self.to_[i])
-    for i in xrange(len(self.cc_)):
+    for i in range(len(self.cc_)):
       out.putVarInt32(34)
       out.putPrefixedString(self.cc_[i])
-    for i in xrange(len(self.bcc_)):
+    for i in range(len(self.bcc_)):
       out.putVarInt32(42)
       out.putPrefixedString(self.bcc_[i])
     out.putVarInt32(50)
@@ -785,11 +790,11 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     if (self.has_htmlbody_):
       out.putVarInt32(66)
       out.putPrefixedString(self.htmlbody_)
-    for i in xrange(len(self.attachment_)):
+    for i in range(len(self.attachment_)):
       out.putVarInt32(74)
       out.putVarInt32(self.attachment_[i].ByteSize())
       self.attachment_[i].OutputUnchecked(out)
-    for i in xrange(len(self.header_)):
+    for i in range(len(self.header_)):
       out.putVarInt32(82)
       out.putVarInt32(self.header_[i].ByteSize())
       self.header_[i].OutputUnchecked(out)
@@ -804,13 +809,13 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     if (self.has_replyto_):
       out.putVarInt32(18)
       out.putPrefixedString(self.replyto_)
-    for i in xrange(len(self.to_)):
+    for i in range(len(self.to_)):
       out.putVarInt32(26)
       out.putPrefixedString(self.to_[i])
-    for i in xrange(len(self.cc_)):
+    for i in range(len(self.cc_)):
       out.putVarInt32(34)
       out.putPrefixedString(self.cc_[i])
-    for i in xrange(len(self.bcc_)):
+    for i in range(len(self.bcc_)):
       out.putVarInt32(42)
       out.putPrefixedString(self.bcc_[i])
     if (self.has_subject_):
@@ -822,11 +827,11 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
     if (self.has_htmlbody_):
       out.putVarInt32(66)
       out.putPrefixedString(self.htmlbody_)
-    for i in xrange(len(self.attachment_)):
+    for i in range(len(self.attachment_)):
       out.putVarInt32(74)
       out.putVarInt32(self.attachment_[i].ByteSizePartial())
       self.attachment_[i].OutputPartial(out)
-    for i in xrange(len(self.header_)):
+    for i in range(len(self.header_)):
       out.putVarInt32(82)
       out.putVarInt32(self.header_[i].ByteSizePartial())
       self.header_[i].OutputPartial(out)
@@ -878,7 +883,7 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
         continue
 
 
-      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError
+      if (tt == 0): raise ProtocolBuffer.ProtocolBufferDecodeError()
       d.skipData(tt)
 
 
@@ -928,7 +933,7 @@ class MailMessage(ProtocolBuffer.ProtocolMessage):
 
 
   def _BuildTagLookupTable(sparse, maxtag, default=None):
-    return tuple([sparse.get(i, default) for i in xrange(0, 1+maxtag)])
+    return tuple([sparse.get(i, default) for i in range(0, 1+maxtag)])
 
   kSender = 1
   kReplyTo = 2

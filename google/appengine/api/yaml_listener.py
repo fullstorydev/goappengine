@@ -24,10 +24,12 @@ Contains class which interprets YAML events and forwards them to
 a handler object.
 """
 
+from __future__ import absolute_import
 
+import copy
+from google.appengine._internal.ruamel import yaml
 
 from google.appengine.api import yaml_errors
-import yaml
 
 
 
@@ -136,7 +138,7 @@ class EventListener(object):
         'Must provide event handler of type yaml_listener.EventHandler')
     self._event_method_map = {}
 
-    for event, method in _EVENT_METHOD_MAP.iteritems():
+    for event, method in _EVENT_METHOD_MAP.items():
 
       self._event_method_map[event] = getattr(event_handler, method)
 
@@ -173,13 +175,15 @@ class EventListener(object):
     for event in events:
       try:
         self.HandleEvent(*event)
-      except Exception, e:
+      except Exception as e:
         event_object, loader = event
         raise yaml_errors.EventError(e, event_object)
 
   def _GenerateEventParameters(self,
                                stream,
-                               loader_class=yaml.loader.SafeLoader):
+                               loader_class=yaml.loader.SafeLoader,
+                               **loader_args
+                              ):
     """Creates a generator that yields event, loader parameter pairs.
 
     For use as parameters to HandleEvent method for use by Parse method.
@@ -196,23 +200,25 @@ class EventListener(object):
       stream: String document or open file object to process as per the
         yaml.parse method.  Any object that implements a 'read()' method which
         returns a string document will work.
-      Loader: Loader class to use as per the yaml.parse method.  Used to
+      loader_class: Loader class to use as per the yaml.parse method.  Used to
         instantiate new yaml.loader instance.
+      **loader_args: Pass to the loader on construction
+
 
     Yields:
       Tuple(event, loader) where:
         event: Event emitted by PyYAML loader.
-        loader_class: Used for dependency injection.
+        loader: Used for dependency injection.
     """
     assert loader_class is not None
     try:
-      loader = loader_class(stream)
+      loader = loader_class(stream, **loader_args)
       while loader.check_event():
         yield (loader.get_event(), loader)
-    except yaml.error.YAMLError, e:
+    except yaml.error.YAMLError as e:
       raise yaml_errors.EventListenerYAMLError(e)
 
-  def Parse(self, stream, loader_class=yaml.loader.SafeLoader):
+  def Parse(self, stream, loader_class=yaml.loader.SafeLoader, **loader_args):
     """Call YAML parser to generate and handle all events.
 
     Calls PyYAML parser and sends resulting generator to handle_event method
@@ -223,5 +229,14 @@ class EventListener(object):
         yaml.parse method.  Any object that implements a 'read()' method which
         returns a string document will work with the YAML parser.
       loader_class: Used for dependency injection.
+      **loader_args: Pass to the loader on construction.
     """
-    self._HandleEvents(self._GenerateEventParameters(stream, loader_class))
+
+
+    version = (1, 1)
+    if 'version' in loader_args:
+      loader_args = copy.copy(loader_args)
+      version = loader_args['version']
+      del loader_args['version']
+    self._HandleEvents(self._GenerateEventParameters(
+        stream, loader_class, version=version, **loader_args))

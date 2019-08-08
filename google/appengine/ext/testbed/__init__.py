@@ -167,10 +167,14 @@ try:
   from google.appengine.ext.remote_api import remote_api_stub
 except ImportError:
   pass
+try:
 
 
 
 
+  from google.appengine.ext.testbed import apiserver_util
+except ImportError:
+  apiserver_util = None
 
 
 DEFAULT_ENVIRONMENT = {
@@ -287,7 +291,22 @@ class StubNotSupportedError(Error):
 
 
 class EmulatorSupportChecker(object):
-  """A static class. Checks whether datastore emulator is supported."""
+  """A static class. Checks whether datastore emulator is supported.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  """
 
   _check_lock = threading.Lock()
   _use_datastore_emulator = None
@@ -302,6 +321,12 @@ class EmulatorSupportChecker(object):
   def get_emulator_port(cls):
     """Returns the integer port number that datastore emulator listens on."""
     return cls._emulator_port
+
+  @classmethod
+  def init(cls, api_port, emulator_port):
+    cls._api_port = api_port
+    cls._emulator_port = emulator_port
+    cls._use_datastore_emulator = True
 
   @classmethod
   def check(cls):
@@ -355,13 +380,17 @@ class Testbed(object):
 
     self._blob_storage = None
 
-  def activate(self):
+  def activate(self, use_datastore_emulator=False):
     """Activates the testbed.
 
     Invoking this method will also assign default values to environment
     variables that are required by App Engine services, such as
     `os.environ['APPLICATION_ID']`. You can set custom values with
     `setup_env()`.
+
+    Args:
+      use_datastore_emulator: True if user specifies testbed to use the Cloud
+        Datastore Emulator.
     """
     self._orig_env = dict(os.environ)
     self.setup_env()
@@ -378,7 +407,13 @@ class Testbed(object):
     apiproxy_stub_map.apiproxy = self._test_stub_map
     self._activated = True
 
-    self._use_datastore_emulator = EmulatorSupportChecker.check()
+    if use_datastore_emulator:
+      if not EmulatorSupportChecker.check():
+        api_port, emulator_port = apiserver_util.setup_api_server()
+        EmulatorSupportChecker.init(api_port, emulator_port)
+      self._use_datastore_emulator = True
+    else:
+      self._use_datastore_emulator = EmulatorSupportChecker.check()
     if self._use_datastore_emulator:
       self.api_port = EmulatorSupportChecker.get_api_port()
       self.rpc_server = remote_api_stub.ConfigureRemoteApi(

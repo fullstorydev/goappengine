@@ -152,7 +152,7 @@ var FileServiceErrors_ErrorCode_name = map[int32]string{
 	9999: "MAX_ERROR_CODE",
 }
 var FileServiceErrors_ErrorCode_value = map[string]int32{
-	"OK": 0,
+	"OK":                                 0,
 	"API_TEMPORARILY_UNAVAILABLE":        1,
 	"REQUEST_TOO_LARGE":                  3,
 	"RESPONSE_TOO_LARGE":                 4,

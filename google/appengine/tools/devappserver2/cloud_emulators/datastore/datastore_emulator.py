@@ -30,6 +30,7 @@ import time
 
 import httplib2
 import portpicker
+from google.appengine.tools.devappserver2 import constants
 
 
 _DEFAULT_EMULATOR_OPTIONS = ['--testing']
@@ -150,6 +151,8 @@ class DatastoreEmulator(object):
     def Elapsed():
       return time.time() - start
 
+    logging.info('%s: %s',
+                 constants.DATASTORE_EMULATOR_STARTING_MSG, self._host)
     while True:
       try:
         response, _ = self._http.request(self._host)
@@ -157,7 +160,7 @@ class DatastoreEmulator(object):
           logging.info(
               'Cloud Datastore emulator responded after %f seconds', Elapsed())
           return True
-      except socket.error:
+      except (socket.error, httplib.ResponseNotReady):
         pass
       if Elapsed() >= deadline:
         # Out of time; give up.

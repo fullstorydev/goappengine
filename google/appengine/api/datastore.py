@@ -2703,13 +2703,18 @@ def _RunInTransactionInternal(options, mode, function, *args, **kwargs):
   transactional_conn = None
   try:
 
-    for _ in range(0, retries + 1):
+    for i in range(0, retries + 1):
       transactional_conn = conn.new_transaction(options, previous_transaction,
                                                 mode)
       _SetConnection(transactional_conn)
       ok, result = _DoOneTry(function, args, kwargs)
       if ok:
         return result
+
+      if i < retries:
+
+
+        logging.warning('Transaction collision. Retrying... %s', '')
 
       if mode == datastore_rpc.TransactionMode.READ_WRITE:
 
@@ -2759,9 +2764,6 @@ def _DoOneTry(function, args, kwargs):
     if _GetConnection().commit():
       return True, result
     else:
-
-
-      logging.warning('Transaction collision. Retrying... %s', '')
       return False, None
 
 

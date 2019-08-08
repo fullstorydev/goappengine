@@ -16,27 +16,26 @@
 // according to the staging protocol specified in the Google Cloud SDK, under
 // `command_lib/app/staging.py`.  It will stage the app for a given Go version.
 //
+// For GAE Standard second-gen, the Go version must be specified in app.yaml's
+// runtime field with value in the form of `go1XX'. For example, `go111`. There
+// is no default runtime version for GAE Standard second-gen. This runtime
+// supports Go modules defined via a go.mod file.
+//
 // For GAE Standard, the Go version can be specified in the app.yaml file's
 // api_version field with value in the form of `go1.x[RC]`.  If api_version
 // field has unpinned version value of `go1`, use the constant
 // stdDefaultMinorVersion defined below.  If api_version field is not set or not
 // a valid value, go-app-stager will error out.
 //
-// For GAE Flex, gcloud will set GAE_RUNTIME_NAME environment variable to a
-// resolved runtime value based on runtimes.yaml file, i.e. if value is `go`,
-// gcloud should resolve it to a runtime value of `go1.x[RC]` format.  gcloud
-// may provide other runtime values, e.g. `custom`, in which case user should
-// use the flag -go-version to set the Go version to stage with, otherwise
-// go-app-stager will error out.
+// For GAE Flex, the Go version can be specified in the app.yaml file's runtime
+// field with value in the form of `go1.x[RC]`.  If runtime field has unpinned
+// version value of `go`, it will determine the version to use from
+// flexRuntimesConfigURL.
 //
-// TODO: gcloud currently does not set GAE_RUNTIME_NAME yet, and hence
-// go-app-stager falls back to parsing app.yaml for runtime value on its own
-// for now and use the constant flexDefaultMinorVersion if value is `go`.  Once
-// gcloud sets GAE_RUNTIME_NAME environment variable, this fallback logic can
-// be removed.
+// go-app-stager can be invoked with a specific Go version via the -go-version
+// flag to override the logic above.
 //
-// Current codebase assumes 1.x versions even though its interface allows for
-// versions beyond Go1.
+// Current codebase assumes Go 1.x versions.
 package main
 
 import (
@@ -46,6 +45,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -54,10 +54,7 @@ import (
 	"appengine_internal/gopkg.in/yaml.v2"
 )
 
-const (
-	stdDefaultMinorVersion  = 8
-	flexDefaultMinorVersion = 10
-)
+const stdDefaultMinorVersion = 9
 
 func init() {
 	flag.Usage = func() {
@@ -76,6 +73,10 @@ func init() {
 
 // Go version flag to use for finding dependencies. If set, it overrides all other options.
 var goVersion = flag.String("go-version", "", "target Go release version, e.g. 1.8")
+
+// Flag to override URL for Flex staging logic to fetch runtimes.yaml file.
+var flexRuntimesConfigURL = flag.String("flex-runtimes-url",
+	"http://storage.googleapis.com/runtime-builders/runtimes.yaml", "Flex runtimes.yaml URL")
 
 // Top-level standard library packages, used instead of depending on a Goroot.
 var skippedPackages = map[string]bool{
@@ -134,12 +135,16 @@ type config struct {
 	APIVersion string `yaml:"api_version"`
 }
 
-func (conf *config) isStandard() bool {
-	return conf.Runtime == "go" && conf.APIVersion != ""
+func (conf *config) isFlex() bool {
+	return conf.VM || conf.Env == "flex" || conf.Env == "flexible" || conf.Env == "2"
 }
 
-func (conf *config) isFlex() bool {
-	return !conf.isStandard()
+func (conf *config) isLegacyStandard() bool {
+	return !conf.isFlex() && conf.Runtime == "go"
+}
+
+func (conf *config) isStandardSecondGen() bool {
+	return !conf.isFlex() && strings.HasPrefix(conf.Runtime, "go1")
 }
 
 type importFrom struct {
@@ -182,39 +187,105 @@ func main() {
 	}
 	log.Printf("staging for go1.%d", minorVer)
 
-	tags := []string{"appengine", "purego"}
-	enforceMain := false
-	dstDepsDir := ""
-	if c.isFlex() {
+	tags := []string{}
+	if c.isLegacyStandard() {
+		tags = []string{"appengine", "purego"}
+	} else if c.isFlex() {
 		tags = []string{"appenginevm"}
-		enforceMain = true
-		dstDepsDir = filepath.Join("_gopath", "src")
-		skippedPackages["appengine"] = false // Doesn't exist for flex
-
-		// Write out _gopath/main-package-path if main package is under GOPATH.
-		mainPathFile := filepath.Join(dst, "_gopath", "main-package-path")
-		if err := writeMainPkgFile(mainPathFile, src); err != nil {
-			log.Printf("failed to write _gopath/main-package-path: %v", err)
-			os.Exit(1)
-		}
 	}
+	buildCtx := buildContext(tags, minorVer)
+	switch {
+	case c.isLegacyStandard():
+		if err := stageLegacyStandard(src, dst, buildCtx); err != nil {
+			log.Fatalf("Staging Standard app: %s\n", err)
+		}
+	case c.isFlex():
+		if err := stageFlex(src, dst, buildCtx); err != nil {
+			log.Fatalf("Staging Flex app: %s\n", err)
+		}
+	case c.isStandardSecondGen():
+		if err := stageStandardSecondGen(src, dst, buildCtx); err != nil {
+			log.Fatalf("Staging second-gen Standard app: %s\n", err)
+		}
+	default:
+		log.Fatalf("Unrecognized runtime: %s\n", c.Runtime)
+	}
+}
 
+// stageLegacyStandard Stages a legacy GAE Standard app. Does not supporting vendoring or modules.
+func stageLegacyStandard(src, dst string, buildCtx *build.Context) error {
 	// Find all dependencies for a build.Context for the release version and bundle their
 	// directories into the staged directory.
-	buildCtx := buildContext(tags, minorVer)
-	deps, err := analyze(src, buildCtx, enforceMain)
+	deps, err := analyze(src, buildCtx, false /* enforceMain */)
 	if err != nil {
-		log.Printf("failed analyzing %s: %v\nGOPATH: %s\n", src, err, buildCtx.GOPATH)
-		os.Exit(1)
+		return fmt.Errorf("failed analyzing %s: %v\nGOPATH: %s", src, err, buildCtx.GOPATH)
 	}
-	if err = bundle(dst, dstDepsDir, deps); err != nil {
-		log.Printf("failed to bundle to %s: %v", dst, err)
-		os.Exit(1)
+	if err = bundle(dst, "", deps); err != nil {
+		return fmt.Errorf("failed to bundle to %s: %v", dst, err)
 	}
 	if err = copyTree(dst, ".", src, true); err != nil {
-		log.Printf("unable to copy root directory to /app: %v", err)
-		os.Exit(1)
+		return fmt.Errorf("unable to copy root directory to /app: %v", err)
 	}
+	return nil
+}
+
+// stageFlex stages a GAE Flex app. Does not support modules.
+func stageFlex(src, dst string, buildCtx *build.Context) error {
+	skippedPackages["appengine"] = false // Only exists for legacy App Engine Standard
+
+	mainPathFile := filepath.Join(dst, "_gopath", "main-package-path")
+	if err := writeMainPkgFile(mainPathFile, src); err != nil {
+		return fmt.Errorf("failed to write %s: %v", mainPathFile, err)
+	}
+	// Find all dependencies for a build.Context for the release version and bundle their
+	// directories into the staged directory.
+	deps, err := analyze(src, buildCtx, true /* enforceMain */)
+	if err != nil {
+		return fmt.Errorf("failed analyzing %s: %v\nGOPATH: %s", src, err, buildCtx.GOPATH)
+	}
+	if err = bundle(dst, filepath.Join("_gopath", "src"), deps); err != nil {
+		return fmt.Errorf("failed to bundle to %s: %v", dst, err)
+	}
+	if err = copyTree(dst, ".", src, true); err != nil {
+		return fmt.Errorf("unable to copy root directory to /app: %v", err)
+	}
+	return nil
+}
+
+// stageStandardSecondGen stages an App Engine Standard second-gen app. Supports both vendoring and modules.
+func stageStandardSecondGen(src, dst string, buildCtx *build.Context) error {
+	skippedPackages["appengine"] = false // Only exists for legacy App Engine Standard
+
+	gmPath, err := goModPath(src)
+	if err != nil {
+		log.Fatalf("failed finding go.mod: %v\n", err)
+	}
+	go111module := strings.ToLower(os.Getenv("GO111MODULE"))
+	// Go 1.11 has the following logic for GO111MODULE:
+	// If app is not on the GOPATH, use vgo
+	// Else if app *IS* on the GOPATH and has go.mod:
+	//   if GO111MODULE=on, use new vgo behavior
+	//   else use old GOPATH behavior
+	if gmPath == "" || (go111module != "on" && filepath.HasPrefix(gmPath, build.Default.GOPATH)) {
+		fmt.Println("building with dependencies from GOPATH")
+		return stageFlex(src, dst, buildCtx)
+	}
+	fmt.Println("building with dependencies from go.mod")
+
+	// If a go.mod file was found, we assume all dependencies are either local
+	// to the module directory or will be fetched by the builder, so we don't
+	// need to walk the local filesystem or analyze imports.
+	mainPathFile := filepath.Join(dst, "_main-package-path")
+	if err := writeGoModMainPkgFile(mainPathFile, gmPath, src); err != nil {
+		return fmt.Errorf("failed to write %s: %v", mainPathFile, err)
+	}
+	srcRoot := filepath.Dir(gmPath)
+
+	// TODO Make sure this follows symlinks
+	if err = copyTree(dst, ".", srcRoot, true); err != nil {
+		return fmt.Errorf("unable to copy root directory to /app: %v", err)
+	}
+	return nil
 }
 
 // readConfig parses given app.yaml file path.
@@ -286,6 +357,30 @@ func writeMainPkgFile(file string, appDir string) error {
 	return nil
 }
 
+func writeGoModMainPkgFile(dst, goModPath, appDir string) error {
+	mainPath, err := goModRelativeBuildPath(goModPath, appDir)
+	if err != nil {
+		return fmt.Errorf("could not find relative app path: %v", err)
+	}
+	dstDir := filepath.Dir(dst)
+	if err := os.MkdirAll(dstDir, 0755); err != nil {
+		return fmt.Errorf("unable to create directory %q: %v", dstDir, err)
+	}
+	// Write out mainPath to file.
+	f, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("unable to create %q: %v", dst, err)
+	}
+	if _, err := f.WriteString(mainPath); err != nil {
+		return fmt.Errorf("unable to write %q: %v", dst, err)
+	}
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("unable to close %q: %v", dst, err)
+	}
+	fmt.Fprintf(os.Stderr, "main-package: %s\n", mainPath)
+	return nil
+}
+
 func minorVersion(cfg *config, fval string) (int, error) {
 	// Use flag value first if set.
 	if fval != "" {
@@ -295,10 +390,12 @@ func minorVersion(cfg *config, fval string) (int, error) {
 		return 0, fmt.Errorf("invalid -go-version flag value: %s", fval)
 	}
 	// Use either Flex or Standard specific logic at determining version.
-	if cfg.isFlex() {
+	if cfg.isLegacyStandard() {
+		return stdMinorVersion(cfg)
+	} else if cfg.isFlex() {
 		return flexMinorVersion(cfg)
 	}
-	return stdMinorVersion(cfg)
+	return secondGenMinorVersion(cfg)
 }
 
 // stdMinorVersion returns minor version for GAE Standard.
@@ -315,20 +412,31 @@ func stdMinorVersion(cfg *config) (int, error) {
 	return mv, nil
 }
 
+// secondGenMinorVersion returns minor version for GAE Standard 2nd gen.
+func secondGenMinorVersion(cfg *config) (int, error) {
+	runtime := cfg.Runtime
+	runtime = strings.Replace(runtime, "go1", "go1.", 1)
+	mv, ok := parseGo1MinorVersion(runtime)
+	if !ok {
+		// Invalid value.
+		return -1, fmt.Errorf("invalid runtime value %s", cfg.Runtime)
+	}
+	return mv, nil
+}
+
+const bugReportMsg = `This may be a bug, please file a report at https://issuetracker.google.com/issues/new?component=322870.`
+
 // flexMinorVersion returns minor version for GAE Flex.
 func flexMinorVersion(cfg *config) (int, error) {
-	// Check environment variable.
-	if ev := os.Getenv("GAE_RUNTIME_NAME"); ev != "" {
-		if mv, ok := parseGo1MinorVersion(ev); ok {
-			return mv, nil
-		}
-		return -1, fmt.Errorf("unable to stage for GAE_RUNTIME_NAME %q", ev)
-	}
-	// TODO: Remove logic below once gcloud sets GAE_RUNTIME_NAME.
-	// Check app.yaml.
 	val := cfg.Runtime
-	if strings.HasSuffix(val, "go") {
-		return flexDefaultMinorVersion, nil
+	if val == "go" {
+		// Error coming from determining the default version may be a bug in the publishing
+		// system/process.  Add statement to error message on how to report bug.
+		mv, err := flexDefaultMinorVersion()
+		if err != nil {
+			return 0, fmt.Errorf("%v\n%s", err, bugReportMsg)
+		}
+		return mv, nil
 	}
 	mv, ok := parseGo1MinorVersion(val)
 	if !ok {
@@ -352,26 +460,73 @@ func parseMinorVersion(val string, prefix string) (int, bool) {
 	return mv, err == nil
 }
 
+// flexDefaultMinorVersion returns the default minor version for Flex based on
+// configuration in flexRuntimesConfigURL.
+func flexDefaultMinorVersion() (int, error) {
+	type runtimesConfig struct {
+		Runtimes map[string]struct {
+			Target struct {
+				Runtime string
+			}
+		}
+	}
+
+	b, err := readFlexRuntimesConfig()
+	if err != nil {
+		return 0, err
+	}
+	cfg := &runtimesConfig{}
+	if err := yaml.Unmarshal(b, cfg); err != nil {
+		return 0, fmt.Errorf("failed to parse runtimes.yaml: %v", err)
+	}
+	rt, ok := cfg.Runtimes["go"]
+	if !ok {
+		return 0, fmt.Errorf("missing go runtime config in runtimes.yaml")
+	}
+	target := rt.Target.Runtime
+	if !strings.HasPrefix(target, "go1.") {
+		return 0, fmt.Errorf("invalid go runtime version in runtimes.yaml: %s", target)
+	}
+	s := strings.TrimPrefix(target, "go1.")
+	mv, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, fmt.Errorf("invalid go runtime version in runtimes.yaml: %s", target)
+	}
+	return mv, nil
+}
+
+func readFlexRuntimesConfig() ([]byte, error) {
+	resp, err := http.Get(*flexRuntimesConfigURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download runtimes.yaml: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("fetching runtimes.yaml returned status %d", resp.StatusCode)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read runtimes.yaml: %v", err)
+	}
+	return body, nil
+}
+
 // buildContext returns the context for building the source.
 func buildContext(tags []string, minorVersion int) *build.Context {
-	ctx := &build.Context{
+	var rels []string
+	for i := 1; i <= minorVersion; i++ {
+		rels = append(rels, fmt.Sprintf("go1.%d", i))
+	}
+	return &build.Context{
 		GOARCH:      "amd64",
 		GOOS:        "linux",
 		GOROOT:      "",
 		GOPATH:      build.Default.GOPATH,
 		Compiler:    build.Default.Compiler,
 		BuildTags:   tags,
-		ReleaseTags: releaseTags(minorVersion),
+		ReleaseTags: rels,
 	}
-	return ctx
-}
-
-func releaseTags(minorVersion int) []string {
-	var tags []string
-	for i := 1; i <= minorVersion; i++ {
-		tags = append(tags, fmt.Sprintf("go1.%d", i))
-	}
-	return tags
 }
 
 // enforceMain, if not main will return an error.
@@ -505,4 +660,57 @@ func copyFile(dstRoot, dst, src string) error {
 		return fmt.Errorf("unable to close %q: %v", dst, err)
 	}
 	return nil
+}
+
+// goModPath searches up the directory tree for a go.mod file, stopping at the
+// first match and returning the path to the go.mod file. If no go.mod file is
+// found, returns an empty string.
+func goModPath(src string) (string, error) {
+	src, err := filepath.Abs(src)
+	if err != nil {
+		return "", fmt.Errorf("src abspath: %v", err)
+	}
+	for {
+		p := filepath.Join(src, "go.mod")
+		_, err := os.Stat(p)
+		if err == nil {
+			return p, nil
+		}
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("unexpected error: %v", err)
+		}
+		oldSrc := src
+		src = filepath.Dir(src)
+		if oldSrc == src {
+			break
+		}
+	}
+	return "", nil
+}
+
+// unixSeparators converts non-unix \ path separators to unix / separators.
+func unixSeparators(path string) string {
+	return strings.Replace(path, `\`, `/`, -1)
+}
+
+// goModRelativeBuildPath returns the relative path to the package being built,
+// given the root at the path to go.mod. This will return paths that look like
+// "." or "foo" or "foo/bar"
+func goModRelativeBuildPath(goModPath, appDir string) (string, error) {
+	rootDir, err := filepath.Abs(filepath.Dir(goModPath))
+	if err != nil {
+		return "", fmt.Errorf("could not get absolute path for go.mod path %q: %v", goModPath, err)
+	}
+	mainDir, err := filepath.Abs(appDir)
+	if err != nil {
+		return "", fmt.Errorf("could not get absolute path for dir %q: %v", appDir, err)
+	}
+	if !strings.HasPrefix(mainDir, rootDir) {
+		return "", fmt.Errorf("expected path '%q' to have prefix '%q'", mainDir, rootDir)
+	}
+	appPath, err := filepath.Rel(rootDir, mainDir)
+	if err != nil {
+		return "", fmt.Errorf("could not get relative path: %v", err)
+	}
+	return unixSeparators(appPath), nil
 }

@@ -4,12 +4,12 @@ package objabi
 
 import "runtime"
 
-const defaultGOROOT = `/tmp/go_sdk331654961/appengine/go_appengine/goroot-1.9`
+const defaultGOROOT = `/tmp/go_sdk033083639/appengine/go_appengine/goroot-1.9`
 const defaultGO386 = `sse2`
 const defaultGOARM = `7`
 const defaultGOOS = runtime.GOOS
 const defaultGOARCH = runtime.GOARCH
 const defaultGO_EXTLINK_ENABLED = ``
-const version = `1.9.2 (appengine-1.9.68)`
+const version = `1.9.4 (appengine-1.9.78)`
 const stackGuardMultiplier = 1
 const goexperiment = ``

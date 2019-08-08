@@ -33,9 +33,11 @@ from google.appengine.tools.devappserver2 import application_configuration
 
 from google.appengine.tools.devappserver2 import http_runtime
 from google.appengine.tools.devappserver2 import instance
+from google.appengine.tools.devappserver2 import metrics
 from google.appengine.tools.devappserver2 import util
 from google.appengine.tools.devappserver2.go import application as go_application
 from google.appengine.tools.devappserver2.go import errors as go_errors
+from google.appengine.tools.devappserver2.go import gaego
 from google.appengine.tools.devappserver2.go import managedvm as go_managedvm
 
 _REBUILD_CONFIG_CHANGES = frozenset(
@@ -119,6 +121,13 @@ class GoRuntimeInstanceFactory(instance.InstanceFactory):
       self._start_process_flavor = http_runtime.START_PROCESS_REVERSE
       self._go_application = go_managedvm.GoManagedVMApp(
           self._module_configuration)
+    elif module_configuration.runtime.startswith('go1'):
+      self._start_process_flavor = http_runtime.START_PROCESS_REVERSE
+      go_config = runtime_config_getter().go_config
+      self._go_application = gaego.GaeGoApplication(
+          self._module_configuration,
+          go_config.work_dir,
+          go_config.enable_debugging)
     else:
       self._start_process_flavor = http_runtime.START_PROCESS
       go_config = runtime_config_getter().go_config
@@ -129,6 +138,19 @@ class GoRuntimeInstanceFactory(instance.InstanceFactory):
     self._modified_since_last_build = False
     self._last_build_error = None
 
+  def _find_go_mod_dir(self, base_path):
+    """Returns the path to go.mod, if it exists, or None if not."""
+    # Start at application_root and walk up until we reach root or find a go.mod
+    pwd = base_path
+    while pwd:
+      if os.path.isfile(os.path.join(pwd, 'go.mod')):
+        return pwd
+      parent = os.path.dirname(pwd)
+      if parent == pwd:
+        return None
+      pwd = parent
+    return None
+
   def get_restart_directories(self):
     """Returns a list of directories changes in which should trigger a restart.
 
@@ -137,19 +159,33 @@ class GoRuntimeInstanceFactory(instance.InstanceFactory):
       deleted or modified) in these directories will trigger a restart of all
       instances created with this factory.
     """
+    # Go < 1.11 should always watch GOPATH
+    # Go == 1.11 should only watch GOPATH if GO111MODULE != on
+    # Go > 1.11 should only watch go.mod dir
+    go_mod_dir = self._find_go_mod_dir(
+        self._module_configuration.application_root)
+    if os.getenv('GO111MODULE', '').lower() == 'on' and go_mod_dir:
+      logging.info('Building with dependencies from go.mod.')
+      return [go_mod_dir]
+    logging.info('Building with dependencies from GOPATH.')
+
+    # Go <= 1.10 assumes GOPATH, or will infer it
     if not self._runtime_config_getter().go_config.enable_watching_go_path:
       return []
-    try:
-      go_path = os.environ['GOPATH']
-    except KeyError:
+
+    default_gopath = os.path.join(os.path.expanduser('~'), 'go')
+    go_path = os.getenv('GOPATH', default_gopath)
+    if not go_path:
+      logging.error(
+          'GOPATH and/or HOME are not set, not watching GOPATH for changes.')
       return []
+
+    if sys.platform.startswith('win32'):
+      roots = go_path.split(';')
     else:
-      if sys.platform.startswith('win32'):
-        roots = go_path.split(';')
-      else:
-        roots = go_path.split(':')
-      dirs = [os.path.join(r, 'src') for r in roots]
-      return [d for d in dirs if os.path.isdir(d)]
+      roots = go_path.split(':')
+    dirs = [os.path.join(r, 'src') for r in roots]
+    return [d for d in dirs if os.path.isdir(d)]
 
   def files_changed(self):
     """Called when a file relevant to the factory *might* have changed."""
@@ -196,6 +232,8 @@ class GoRuntimeInstanceFactory(instance.InstanceFactory):
         logging.error('Failed to build Go application: %s', e)
         # Deploy a failure proxy now and each time a new instance is requested.
         self._last_build_error = e
+        metrics.GetMetricsLogger().LogOnceOnStop(
+            metrics.DEVAPPSERVER_CATEGORY, metrics.ERROR_ACTION, label=repr(e))
 
       self._modified_since_last_build = False
 
