@@ -20,7 +20,6 @@ import threading
 from google.appengine.tools.devappserver2 import watcher_common
 
 try:
-  import FSEvents
   from fsevents import Observer
   from fsevents import Stream
 except ImportError:
