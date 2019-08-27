@@ -22,6 +22,7 @@ from google.appengine.tools.devappserver2 import watcher_common
 try:
   from fsevents import Observer
   from fsevents import Stream
+  from fsevents import FS_FLAGNONE
 except ImportError:
   FSEvents = None
   Observer = None
@@ -42,7 +43,7 @@ class FSEventsFileWatcher(object):
 
         def callback(event, mask=None):
             logging.debug("FSEventsFileWatcher event %s", event)
-            if event.mask == FSEvents.kFSEventStreamEventFlagNone:
+            if event.mask == FS_FLAGNONE:
                 return
 
             absolute_path = event.name
