@@ -122,7 +122,7 @@ class GoRuntimeInstanceFactory(instance.InstanceFactory):
       self._go_application = go_managedvm.GoManagedVMApp(
           self._module_configuration)
     elif module_configuration.runtime.startswith('go1'):
-      self._start_process_flavor = http_runtime.START_PROCESS_REVERSE
+      self._start_process_flavor = http_runtime.START_PROCESS
       go_config = runtime_config_getter().go_config
       self._go_application = gaego.GaeGoApplication(
           self._module_configuration,
